@@ -1,42 +1,24 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
-  </q-page>
+  <price-chart :data="priceSeriesData" />
 </template>
 
 <script setup lang="ts">
-import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
-import { ref } from 'vue';
+import PriceChart from 'src/components/PriceChart.vue';
 
-const todos = ref<Todo[]>([
+const priceSeriesData = [
   {
-    id: 1,
-    content: 'ct1'
+    t: new Date('2023-01-17'),
+    o: 21175.83,
+    h: 21438.66,
+    l: 20978.53,
+    c: 21161.52,
   },
   {
-    id: 2,
-    content: 'ct2'
+    t: new Date('2022-01-02'),
+    o: 12,
+    h: 25,
+    l: 8,
+    c: 18,
   },
-  {
-    id: 3,
-    content: 'ct3'
-  },
-  {
-    id: 4,
-    content: 'ct4'
-  },
-  {
-    id: 5,
-    content: 'ct5'
-  }
-]);
-const meta = ref<Meta>({
-  totalCount: 1200
-});
+];
 </script>
