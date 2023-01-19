@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import ChartWrapper from './charts/ChartWrapper.vue';
 import { PriceSeries } from 'src/components/price-chart.model';
 
@@ -41,6 +41,34 @@ const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
+
+const maxCandleHigh = computed(() => {
+  if (props.data.length) {
+    return Math.max(...props.data.map((ohlc) => Number(ohlc.h)));
+  } else {
+    return undefined;
+  }
+});
+
+const maxCandleLow = computed(() => {
+  if (props.data.length) {
+    return Math.min(...props.data.map((ohlc) => Number(ohlc.l)));
+  } else {
+    return undefined;
+  }
+});
+
+const candleH2L = computed(() => {
+  if (
+    maxCandleHigh.value &&
+    maxCandleLow.value &&
+    maxCandleHigh.value > maxCandleLow.value
+  ) {
+    return maxCandleHigh.value - maxCandleLow.value;
+  } else {
+    return undefined;
+  }
+});
 
 onMounted(() => {
   if (chartCanvasRef.value && xBarRef.value && yBarRef.value) {
@@ -69,82 +97,84 @@ onMounted(() => {
         ctxChart.stroke();
       }
 
-      const ohlc = {
-        d: new Date('20-01-1994'),
-        o: 50,
-        h: 90,
-        l: 30,
-        c: 80,
-        v: 1029102,
-      };
-
       // Set the x and y coordinates of the candlestick
       const CANDLE_PADDING = 5;
-      let xPositionCandlestick = 0 + CANDLE_PADDING
+      let xPositionCandlestick = 0 + CANDLE_PADDING;
       props.data.forEach((ohlc) => {
         drawCandle(ctxChart, xPositionCandlestick, ohlc);
-        xPositionCandlestick += CANDLE_WIDTH + CANDLE_DISTANCE
-      })
+        xPositionCandlestick += CANDLE_WIDTH + CANDLE_DISTANCE;
+      });
+
+      function drawCandle(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        ohlc: PriceSeries,
+        width: number = CANDLE_WIDTH,
+        bull_color: string = CANDLE_BULL_COLOR,
+        bear_color: string = CANDLE_BEAR_COLOR,
+        candle_border: boolean = CANDLE_BORDER,
+        candle_border_color: string = CANDLE_BORDER_COLOR
+      ) {
+        if (!candleH2L.value || !maxCandleHigh.value) {
+          return;
+        }
+        const scaled_o =
+          chart.height * ((maxCandleHigh.value - ohlc.o) / candleH2L.value);
+        const scaled_h =
+          chart.height * ((maxCandleHigh.value - ohlc.h) / candleH2L.value);
+        const scaled_l =
+          chart.height * ((maxCandleHigh.value - ohlc.l) / candleH2L.value);
+        const scaled_c =
+          chart.height * ((maxCandleHigh.value - ohlc.c) / candleH2L.value);
+        // Draw the body and the wick of the candlestick
+        if (ohlc.c > ohlc.o) {
+          // body
+          ctx.fillStyle = bull_color;
+          ctx.fillRect(x, scaled_o, width, scaled_c - scaled_o);
+          // upper wick
+          ctx.strokeStyle = bull_color;
+          if (candle_border) {
+            ctx.strokeStyle = candle_border_color;
+          }
+          ctx.beginPath();
+          ctx.moveTo(x + width / 2, scaled_h);
+          ctx.lineTo(x + width / 2, scaled_c);
+          ctx.stroke();
+          // lower wick
+          ctx.beginPath();
+          ctx.moveTo(x + width / 2, scaled_l);
+          ctx.lineTo(x + width / 2, scaled_o);
+          ctx.stroke();
+        } else {
+          // body
+          ctx.fillStyle = bear_color;
+          ctx.fillRect(x, scaled_c, width, scaled_o - scaled_c);
+          // upper wick
+          ctx.strokeStyle = bear_color;
+          if (candle_border) {
+            ctx.strokeStyle = candle_border_color;
+          }
+          ctx.beginPath();
+          ctx.moveTo(x + width / 2, scaled_h);
+          ctx.lineTo(x + width / 2, scaled_o);
+          ctx.stroke();
+          // lower wick
+          ctx.beginPath();
+          ctx.moveTo(x + width / 2, scaled_l);
+          ctx.lineTo(x + width / 2, scaled_c);
+          ctx.stroke();
+        }
+
+        if (candle_border) {
+          // Draw the border of the candlestick
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = candle_border_color;
+          ctx.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
+        }
+      }
     }
   }
 });
-
-function drawCandle(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  ohlc: PriceSeries,
-  width: number = CANDLE_WIDTH,
-  bull_color: string = CANDLE_BULL_COLOR,
-  bear_color: string = CANDLE_BEAR_COLOR,
-  candle_border: boolean = CANDLE_BORDER,
-  candle_border_color: string = CANDLE_BORDER_COLOR
-) {
-  // Draw the body and the wick of the candlestick
-  if (open > close) {
-    // body
-    ctx.fillStyle = bear_color;
-    ctx.fillRect(x, ohlc.c, width, ohlc.o - ohlc.c);
-    // upper wick
-    ctx.strokeStyle = bear_color;
-    if (candle_border) {
-      ctx.strokeStyle = candle_border_color;
-    }
-    ctx.beginPath();
-    ctx.moveTo(x + width / 2, ohlc.h);
-    ctx.lineTo(x + width / 2, ohlc.o);
-    ctx.stroke();
-    // lower wick
-    ctx.beginPath();
-    ctx.moveTo(x + width / 2, ohlc.l);
-    ctx.lineTo(x + width / 2, ohlc.c);
-    ctx.stroke();
-  } else {
-    // body
-    ctx.fillStyle = bull_color;
-    ctx.fillRect(x, ohlc.o, width, ohlc.c - ohlc.o);
-    // upper wick
-    ctx.strokeStyle = bull_color;
-    if (candle_border) {
-      ctx.strokeStyle = candle_border_color;
-    }
-    ctx.beginPath();
-    ctx.moveTo(x + width / 2, ohlc.h);
-    ctx.lineTo(x + width / 2, ohlc.c);
-    ctx.stroke();
-    // lower wick
-    ctx.beginPath();
-    ctx.moveTo(x + width / 2, ohlc.l);
-    ctx.lineTo(x + width / 2, ohlc.o);
-    ctx.stroke();
-  }
-
-  if (candle_border) {
-    // Draw the border of the candlestick
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = candle_border_color;
-    ctx.strokeRect(x, ohlc.c, width, ohlc.o - ohlc.c);
-  }
-}
 </script>
 
 <style lang="scss" scoped>
