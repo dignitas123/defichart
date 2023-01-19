@@ -40,6 +40,7 @@ const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
+const CANDLE_DISTANCE = 5;
 
 onMounted(() => {
   if (chartCanvasRef.value && xBarRef.value && yBarRef.value) {
@@ -78,10 +79,12 @@ onMounted(() => {
       };
 
       // Set the x and y coordinates of the candlestick
-      const x = 100;
-      const y = 50;
-
-      drawCandle(ctxChart, x, y, ohlc);
+      const CANDLE_PADDING = 5;
+      let xPositionCandlestick = 0 + CANDLE_PADDING
+      props.data.forEach((ohlc) => {
+        drawCandle(ctxChart, xPositionCandlestick, ohlc);
+        xPositionCandlestick += CANDLE_WIDTH + CANDLE_DISTANCE
+      })
     }
   }
 });
@@ -89,7 +92,6 @@ onMounted(() => {
 function drawCandle(
   ctx: CanvasRenderingContext2D,
   x: number,
-  y: number,
   ohlc: PriceSeries,
   width: number = CANDLE_WIDTH,
   bull_color: string = CANDLE_BULL_COLOR,
