@@ -3,8 +3,8 @@
     <div style="height: 100%">
       <div class="row full-height" ref="chartRowRef">
         <div class="col chart-canvas">
-          <canvas ref="chartCanvasRef" id="ChartCanvas" />
-          <canvas ref="yBarRef" id="YBarCanvas" />
+          <div class="row"><canvas ref="chartCanvasRef" id="ChartCanvas" /></div>
+          <div class="row"><canvas ref="yBarRef" id="YBarCanvas" /></div>
         </div>
         <div class="col x-bar">
           <canvas ref="xBarRef" id="XBarCanvas" />
@@ -35,24 +35,27 @@ const chartRowRef = ref<HTMLElement | null>(null);
 
 const HORIZONTAL_LINES = 10;
 const GRID_COLOR = 'lightgray';
-const CANDLE_WIDTH = 20;
 const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
+const CANDLE_PADDING = 5;
+const MAX_CANDLES = 40;
+
+const data_max_candles = ref(props.data.slice(-MAX_CANDLES))
 
 const maxCandleHigh = computed(() => {
-  if (props.data.length) {
-    return Math.max(...props.data.map((ohlc) => Number(ohlc.h)));
+  if (data_max_candles.value.length) {
+    return Math.max(...data_max_candles.value.map((ohlc) => Number(ohlc.h)));
   } else {
     return undefined;
   }
 });
 
 const maxCandleLow = computed(() => {
-  if (props.data.length) {
-    return Math.min(...props.data.map((ohlc) => Number(ohlc.l)));
+  if (data_max_candles.value.length) {
+    return Math.min(...data_max_candles.value.map((ohlc) => Number(ohlc.l)));
   } else {
     return undefined;
   }
@@ -97,25 +100,24 @@ onMounted(() => {
         ctxChart.stroke();
       }
 
+      const candle_width = chart.width / MAX_CANDLES - CANDLE_DISTANCE + CANDLE_DISTANCE / MAX_CANDLES
       // Set the x and y coordinates of the candlestick
-      const CANDLE_PADDING = 5;
-      let xPositionCandlestick = 0 + CANDLE_PADDING;
-      props.data.forEach((ohlc) => {
-        drawCandle(ctxChart, xPositionCandlestick, ohlc);
-        xPositionCandlestick += CANDLE_WIDTH + CANDLE_DISTANCE;
+      let xPositionCandlestick = 0 + CANDLE_PADDING + (MAX_CANDLES - data_max_candles.value.length) * candle_width;
+      data_max_candles.value.forEach((ohlc) => {
+        drawCandle(xPositionCandlestick, ohlc);
+        xPositionCandlestick += candle_width + CANDLE_DISTANCE;
       });
 
       function drawCandle(
-        ctx: CanvasRenderingContext2D,
         x: number,
         ohlc: PriceSeries,
-        width: number = CANDLE_WIDTH,
+        width: number = candle_width,
         bull_color: string = CANDLE_BULL_COLOR,
         bear_color: string = CANDLE_BEAR_COLOR,
         candle_border: boolean = CANDLE_BORDER,
         candle_border_color: string = CANDLE_BORDER_COLOR
       ) {
-        if (!candleH2L.value || !maxCandleHigh.value) {
+        if (!candleH2L.value || !maxCandleHigh.value || !ctxChart) {
           return;
         }
         const scaled_o =
@@ -129,47 +131,47 @@ onMounted(() => {
         // Draw the body and the wick of the candlestick
         if (ohlc.c > ohlc.o) {
           // body
-          ctx.fillStyle = bull_color;
-          ctx.fillRect(x, scaled_o, width, scaled_c - scaled_o);
+          ctxChart.fillStyle = bull_color;
+          ctxChart.fillRect(x, scaled_o, width, scaled_c - scaled_o);
           // upper wick
-          ctx.strokeStyle = bull_color;
+          ctxChart.strokeStyle = bull_color;
           if (candle_border) {
-            ctx.strokeStyle = candle_border_color;
+            ctxChart.strokeStyle = candle_border_color;
           }
-          ctx.beginPath();
-          ctx.moveTo(x + width / 2, scaled_h);
-          ctx.lineTo(x + width / 2, scaled_c);
-          ctx.stroke();
+          ctxChart.beginPath();
+          ctxChart.moveTo(x + width / 2, scaled_h);
+          ctxChart.lineTo(x + width / 2, scaled_c);
+          ctxChart.stroke();
           // lower wick
-          ctx.beginPath();
-          ctx.moveTo(x + width / 2, scaled_l);
-          ctx.lineTo(x + width / 2, scaled_o);
-          ctx.stroke();
+          ctxChart.beginPath();
+          ctxChart.moveTo(x + width / 2, scaled_l);
+          ctxChart.lineTo(x + width / 2, scaled_o);
+          ctxChart.stroke();
         } else {
           // body
-          ctx.fillStyle = bear_color;
-          ctx.fillRect(x, scaled_c, width, scaled_o - scaled_c);
+          ctxChart.fillStyle = bear_color;
+          ctxChart.fillRect(x, scaled_c, width, scaled_o - scaled_c);
           // upper wick
-          ctx.strokeStyle = bear_color;
+          ctxChart.strokeStyle = bear_color;
           if (candle_border) {
-            ctx.strokeStyle = candle_border_color;
+            ctxChart.strokeStyle = candle_border_color;
           }
-          ctx.beginPath();
-          ctx.moveTo(x + width / 2, scaled_h);
-          ctx.lineTo(x + width / 2, scaled_o);
-          ctx.stroke();
+          ctxChart.beginPath();
+          ctxChart.moveTo(x + width / 2, scaled_h);
+          ctxChart.lineTo(x + width / 2, scaled_o);
+          ctxChart.stroke();
           // lower wick
-          ctx.beginPath();
-          ctx.moveTo(x + width / 2, scaled_l);
-          ctx.lineTo(x + width / 2, scaled_c);
-          ctx.stroke();
+          ctxChart.beginPath();
+          ctxChart.moveTo(x + width / 2, scaled_l);
+          ctxChart.lineTo(x + width / 2, scaled_c);
+          ctxChart.stroke();
         }
 
         if (candle_border) {
           // Draw the border of the candlestick
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = candle_border_color;
-          ctx.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
+          ctxChart.lineWidth = 2;
+          ctxChart.strokeStyle = candle_border_color;
+          ctxChart.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
         }
       }
     }
