@@ -2,8 +2,10 @@
   <chart-wrapper>
     <div style="height: 100%">
       <div class="row full-height" ref="chartRowRef">
-        <div class="col chart-canvas">
-          <div class="row"><canvas ref="chartCanvasRef" id="ChartCanvas" /></div>
+        <div class="col justify-between chart-canvas">
+          <div class="row" style="height: 100%">
+            <canvas ref="chartCanvasRef" id="ChartCanvas" />
+          </div>
           <div class="row"><canvas ref="yBarRef" id="YBarCanvas" /></div>
         </div>
         <div class="col x-bar">
@@ -40,10 +42,9 @@ const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
-const CANDLE_PADDING = 5;
 const MAX_CANDLES = 40;
 
-const data_max_candles = ref(props.data.slice(-MAX_CANDLES))
+const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 
 const maxCandleHigh = computed(() => {
   if (data_max_candles.value.length) {
@@ -100,9 +101,18 @@ onMounted(() => {
         ctxChart.stroke();
       }
 
-      const candle_width = chart.width / MAX_CANDLES - CANDLE_DISTANCE + CANDLE_DISTANCE / MAX_CANDLES
-      // Set the x and y coordinates of the candlestick
-      let xPositionCandlestick = 0 + CANDLE_PADDING + (MAX_CANDLES - data_max_candles.value.length) * candle_width;
+      const candle_width =
+        chart.width / MAX_CANDLES -
+        CANDLE_DISTANCE -
+        CANDLE_DISTANCE / MAX_CANDLES;
+
+      const starting_distance_difference = MAX_CANDLES - props.data.length;
+
+      let xPositionCandlestick =
+        0 +
+        (starting_distance_difference > 0 ? starting_distance_difference : 0) *
+          (candle_width + CANDLE_DISTANCE) +
+        CANDLE_DISTANCE;
       data_max_candles.value.forEach((ohlc) => {
         drawCandle(xPositionCandlestick, ohlc);
         xPositionCandlestick += candle_width + CANDLE_DISTANCE;
@@ -181,7 +191,8 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .chart-canvas {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .x-bar {
@@ -190,8 +201,9 @@ onMounted(() => {
   max-width: 60px;
 }
 
-#chartCanvasRef {
+#ChartCanvas {
   height: 100%;
+  width: 100%;
 }
 
 #XBarCanvas {

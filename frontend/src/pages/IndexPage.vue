@@ -11,7 +11,7 @@ const priceSeriesData: PriceSeries[] = generateData();
 function generateData() {
   const data = [];
   let o = 100;
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 60; i++) {
     const d = new Date(`${i + 1}-01-2021`);
     const h = o + Math.random() * 5;
     const l = o - Math.random() * 5;
