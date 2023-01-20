@@ -10,7 +10,7 @@
           <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
         <div class="col x-bar">
-          <price-axis />
+          <price-axis :width="60" :height="chartRowRefClientHeight" />
         </div>
       </div>
       <div class="row time-row" style="height: 50px">
@@ -77,6 +77,14 @@ const candleH2L = computed(() => {
     return undefined;
   }
 });
+
+const chartRowRefClientHeight = computed(() => {
+  if(chartRowRef.value && chartRowRef.value.clientHeight) {
+    return chartRowRef.value.clientHeight - 50;
+  } else {
+    return undefined;
+  }
+})
 
 onMounted(() => {
   if (chartCanvasRef.value && yBarRef.value) {
