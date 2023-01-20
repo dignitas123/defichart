@@ -1,17 +1,17 @@
 <template>
   <chart-wrapper>
-    <div style="height: 100%">
-      <div class="row full-height" ref="chartRowRef">
-        <div class="col justify-between chart-canvas">
-          <div class="row" style="height: 100%">
+    <div class="row" ref="chartRowRef">
+        <div class="row">
+          <div class="col">
             <canvas ref="chartCanvasRef" id="ChartCanvas" />
           </div>
-          <div class="row"><canvas ref="yBarRef" id="YBarCanvas" /></div>
+          <div class="col x-bar">
+            <canvas ref="xBarRef" id="XBarCanvas" />
+          </div>
         </div>
-        <div class="col x-bar">
-          <canvas ref="xBarRef" id="XBarCanvas" />
+        <div class="row time-row">
+          <canvas ref="yBarRef" id="YBarCanvas" />
         </div>
-      </div>
     </div>
   </chart-wrapper>
 </template>
@@ -190,15 +190,22 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+
 .chart-canvas {
   display: flex;
   flex-direction: column;
+  height: calc(100% - 32px);
 }
 
 .x-bar {
   overflow: auto;
   min-width: 60px;
   max-width: 60px;
+}
+
+.time-row {
+  width: 100%;
+  background: yellow;
 }
 
 #ChartCanvas {
@@ -208,11 +215,9 @@ onMounted(() => {
 
 #XBarCanvas {
   height: 100%;
-  background: red;
 }
 
 #YBarCanvas {
-  background: yellow;
   width: 100%;
 }
 </style>
