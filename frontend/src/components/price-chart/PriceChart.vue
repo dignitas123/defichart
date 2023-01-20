@@ -1,25 +1,30 @@
 <template>
   <chart-wrapper>
-    <div class="row" ref="chartRowRef">
-        <div class="row">
-          <div class="col">
-            <canvas ref="chartCanvasRef" id="ChartCanvas" />
-          </div>
-          <div class="col x-bar">
-            <canvas ref="xBarRef" id="XBarCanvas" />
-          </div>
+    <div
+      class="row full-height"
+      ref="chartRowRef"
+      style="flex-direction: column"
+    >
+      <div class="row" style="flex-grow: 1">
+        <div class="col">
+          <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
-        <div class="row time-row">
-          <canvas ref="yBarRef" id="YBarCanvas" />
+        <div class="col x-bar">
+          <price-axis />
         </div>
+      </div>
+      <div class="row time-row" style="height: 50px">
+        <canvas ref="yBarRef" id="YBarCanvas" />
+      </div>
     </div>
   </chart-wrapper>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import ChartWrapper from './charts/ChartWrapper.vue';
+import ChartWrapper from '../charts/ChartWrapper.vue';
 import { PriceSeries } from 'src/components/price-chart.model';
+import PriceAxis from './components/price-axis.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -31,7 +36,6 @@ const props = withDefaults(
 );
 
 const chartCanvasRef = ref<HTMLCanvasElement | null>(null);
-const xBarRef = ref<HTMLCanvasElement | null>(null);
 const yBarRef = ref<HTMLCanvasElement | null>(null);
 const chartRowRef = ref<HTMLElement | null>(null);
 
@@ -75,20 +79,17 @@ const candleH2L = computed(() => {
 });
 
 onMounted(() => {
-  if (chartCanvasRef.value && xBarRef.value && yBarRef.value) {
+  if (chartCanvasRef.value && yBarRef.value) {
     const chartRow = chartRowRef.value;
     const chart = chartCanvasRef.value;
-    const xBar = xBarRef.value;
     const yBar = yBarRef.value;
     const ctxChart = chart.getContext('2d');
-    const ctxXBar = xBar.getContext('2d');
     const ctxYBar = yBar.getContext('2d');
 
-    if (ctxChart && ctxXBar && ctxYBar && chartRow) {
+    if (ctxChart && ctxYBar && chartRow) {
       const clientHeight = chartRow.clientHeight;
       chart.width = chartRow.clientWidth;
       chart.height = clientHeight * 0.95;
-      xBar.height = clientHeight;
       yBar.height = clientHeight * 0.05;
 
       // draw horizontal lines
@@ -190,13 +191,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-
-.chart-canvas {
-  display: flex;
-  flex-direction: column;
-  height: calc(100% - 32px);
-}
-
 .x-bar {
   overflow: auto;
   min-width: 60px;
@@ -211,10 +205,6 @@ onMounted(() => {
 #ChartCanvas {
   height: 100%;
   width: 100%;
-}
-
-#XBarCanvas {
-  height: 100%;
 }
 
 #YBarCanvas {
