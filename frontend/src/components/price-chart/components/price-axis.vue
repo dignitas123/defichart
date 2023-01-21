@@ -3,10 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, watchEffect, ref, computed } from 'vue';
+import { nextTick, watchEffect, ref, computed, withDefaults } from 'vue';
 import { roundToTicksize } from '../helpers/digits';
 
-export interface PricAxisProps {
+export interface PriceAxisProps {
   highestPrice?: number;
   width?: number;
   height?: number;
@@ -15,7 +15,7 @@ export interface PricAxisProps {
   tickSize?: number;
 }
 
-const props = withDefaults(defineProps<PricAxisProps>(), {
+const props = withDefaults(defineProps<PriceAxisProps>(), {
   maxScale: 13,
   tickSize: 0.1,
 });

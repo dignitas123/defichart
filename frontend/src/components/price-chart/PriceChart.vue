@@ -4,7 +4,6 @@
       class="row full-height"
       ref="chartRowRef"
       style="flex-direction: column"
-      id="test"
     >
       <div class="row" style="flex-grow: 1">
         <div class="col">
@@ -23,15 +22,18 @@
         </div>
       </div>
       <div class="row time-row" :style="`height: ${DATE_BAR_HEIGHT}px`">
-        <div class="col">
-          <canvas ref="yBarRef" id="YBarCanvas" />
-        </div>
-        <div class="col settings-button" :style="`height: ${DATE_BAR_HEIGHT}px`">
-          <q-icon
-            color="dark"
-            name="settings"
-            size="xs"
+        <div class="col" :style="`height: ${DATE_BAR_HEIGHT}px`">
+          <date-axis
+            :dates="data_dates"
+            :height="DATE_BAR_HEIGHT"
+            :width="chartWidth"
           />
+        </div>
+        <div
+          class="col settings-button"
+          :style="`height: ${DATE_BAR_HEIGHT}px`"
+        >
+          <q-icon color="dark" name="settings" size="xs" />
         </div>
       </div>
     </div>
@@ -43,6 +45,7 @@ import { ref, onMounted, computed, watchEffect } from 'vue';
 import ChartWrapper from '../charts/ChartWrapper.vue';
 import { PriceSeries } from 'src/components/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
+import DateAxis from './components/date-axis.vue';
 import { roundToTicksize, getDigits, getBeforeComma } from './helpers/digits';
 
 const props = withDefaults(
@@ -55,10 +58,9 @@ const props = withDefaults(
 );
 
 const chartCanvasRef = ref<HTMLCanvasElement | null>(null);
-const yBarRef = ref<HTMLCanvasElement | null>(null);
 const chartRowRef = ref<HTMLElement | null>(null);
 
-const GRID_COLOR = 'lightgray';
+const GRID_COLOR = '#e4e4e4';
 const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
@@ -71,7 +73,16 @@ const PRICE_AXIS_STANDARD_WIDTH = 60;
 const DATE_BAR_HEIGHT = 35;
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
+
 const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
+
+const data_dates = computed((): Date[] | undefined => {
+  if (data_max_candles.value.length) {
+    return data_max_candles.value.map((ohlc) => ohlc.d);
+  } else {
+    return undefined;
+  }
+});
 
 const maxCandleHigh = computed(() => {
   if (data_max_candles.value.length) {
@@ -170,16 +181,13 @@ const ctxChart = computed(() => {
 });
 
 onMounted(() => {
-  if (chartCanvasRef.value && yBarRef.value) {
+  if (chartCanvasRef.value) {
     const chartRow = chartRowRef.value;
-    const yBar = yBarRef.value;
-    const ctxYBar = yBar.getContext('2d');
 
-    if (ctxChart.value && ctxYBar && chartRow) {
+    if (ctxChart.value && chartRow) {
       const clientHeight = chartRow.clientHeight;
       chartCanvasRef.value.width = chartRow.clientWidth;
       chartCanvasRef.value.height = clientHeight - DATE_BAR_HEIGHT;
-      yBar.height = DATE_BAR_HEIGHT;
 
       const candle_width =
         chartCanvasRef.value.width / MAX_CANDLES -
@@ -299,11 +307,6 @@ onMounted(() => {
 }
 
 #ChartCanvas {
-  height: 100%;
-  width: 100%;
-}
-
-#YBarCanvas {
   height: 100%;
   width: 100%;
 }
