@@ -22,8 +22,17 @@
           />
         </div>
       </div>
-      <div class="row time-row" style="height: 50px">
-        <canvas ref="yBarRef" id="YBarCanvas" />
+      <div class="row time-row" :style="`height: ${DATE_BAR_HEIGHT}px`">
+        <div class="col">
+          <canvas ref="yBarRef" id="YBarCanvas" />
+        </div>
+        <div class="col settings-button" :style="`height: ${DATE_BAR_HEIGHT}px`">
+          <q-icon
+            color="dark"
+            name="settings"
+            size="xs"
+          />
+        </div>
       </div>
     </div>
   </chart-wrapper>
@@ -59,6 +68,7 @@ const MAX_CANDLES = 40;
 const MAX_X_SCALE = 13;
 const DATA_TICKSIZE = 0.00001;
 const PRICE_AXIS_STANDARD_WIDTH = 60;
+const DATE_BAR_HEIGHT = 35;
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
@@ -168,8 +178,8 @@ onMounted(() => {
     if (ctxChart.value && ctxYBar && chartRow) {
       const clientHeight = chartRow.clientHeight;
       chartCanvasRef.value.width = chartRow.clientWidth;
-      chartCanvasRef.value.height = clientHeight - 50;
-      yBar.height = 50;
+      chartCanvasRef.value.height = clientHeight - DATE_BAR_HEIGHT;
+      yBar.height = DATE_BAR_HEIGHT;
 
       const candle_width =
         chartCanvasRef.value.width / MAX_CANDLES -
@@ -277,7 +287,15 @@ onMounted(() => {
 
 .time-row {
   width: 100%;
-  background: yellow;
+}
+
+.settings-button {
+  overflow: auto;
+  min-width: v-bind(priceAxisStandardWidthInPixel);
+  max-width: v-bind(priceAxisStandardWidthInPixel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #ChartCanvas {
