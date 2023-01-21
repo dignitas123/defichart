@@ -10,7 +10,13 @@
           <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
         <div class="col x-bar">
-          <price-axis :width="60" :height="chartRowRefClientHeight" />
+          <price-axis
+            :width="60"
+            :height="chartRowRefClientHeight"
+            :scale="xScale"
+            :maxScale="MAX_X_SCALE"
+            :tickSize="DATA_TICKSIZE"
+          />
         </div>
       </div>
       <div class="row time-row" style="height: 50px">
@@ -25,6 +31,7 @@ import { ref, onMounted, computed } from 'vue';
 import ChartWrapper from '../charts/ChartWrapper.vue';
 import { PriceSeries } from 'src/components/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
+import { roundToTicksize } from './helpers/digits';
 
 const props = withDefaults(
   defineProps<{
@@ -47,6 +54,8 @@ const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
 const MAX_CANDLES = 40;
+const MAX_X_SCALE = 13;
+const DATA_TICKSIZE = 0.1;
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 
@@ -78,13 +87,22 @@ const candleH2L = computed(() => {
   }
 });
 
+const xScale = computed(() => {
+  if (candleH2L.value) {
+    const distance = candleH2L.value / MAX_X_SCALE;
+    return roundToTicksize(distance, DATA_TICKSIZE);
+  } else {
+    return undefined;
+  }
+});
+
 const chartRowRefClientHeight = computed(() => {
-  if(chartRowRef.value && chartRowRef.value.clientHeight) {
+  if (chartRowRef.value && chartRowRef.value.clientHeight) {
     return chartRowRef.value.clientHeight - 50;
   } else {
     return undefined;
   }
-})
+});
 
 onMounted(() => {
   if (chartCanvasRef.value && yBarRef.value) {
