@@ -4,6 +4,7 @@
       class="row full-height"
       ref="chartRowRef"
       style="flex-direction: column"
+      id="test"
     >
       <div class="row" style="flex-grow: 1">
         <div class="col">
@@ -11,11 +12,13 @@
         </div>
         <div class="col x-bar">
           <price-axis
-            :width="60"
-            :height="chartRowRefClientHeight"
+            :highestPrice="maxCandleHigh"
+            :width="priceAxisWidth"
+            :height="chartCanvasHeight"
             :scale="xScale"
             :maxScale="MAX_X_SCALE"
             :tickSize="DATA_TICKSIZE"
+            @horizontalLine="drawHorizontalGridLine"
           />
         </div>
       </div>
@@ -27,11 +30,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watchEffect } from 'vue';
 import ChartWrapper from '../charts/ChartWrapper.vue';
 import { PriceSeries } from 'src/components/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
-import { roundToTicksize } from './helpers/digits';
+import { roundToTicksize, getDigits, getBeforeComma } from './helpers/digits';
 
 const props = withDefaults(
   defineProps<{
@@ -46,7 +49,6 @@ const chartCanvasRef = ref<HTMLCanvasElement | null>(null);
 const yBarRef = ref<HTMLCanvasElement | null>(null);
 const chartRowRef = ref<HTMLElement | null>(null);
 
-const HORIZONTAL_LINES = 10;
 const GRID_COLOR = 'lightgray';
 const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
@@ -55,9 +57,11 @@ const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
 const MAX_CANDLES = 40;
 const MAX_X_SCALE = 13;
-const DATA_TICKSIZE = 0.1;
+const DATA_TICKSIZE = 0.00001;
+const PRICE_AXIS_STANDARD_WIDTH = 60;
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
+const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
 
 const maxCandleHigh = computed(() => {
   if (data_max_candles.value.length) {
@@ -96,40 +100,78 @@ const xScale = computed(() => {
   }
 });
 
-const chartRowRefClientHeight = computed(() => {
-  if (chartRowRef.value && chartRowRef.value.clientHeight) {
-    return chartRowRef.value.clientHeight - 50;
+const chartContext = computed(() => {
+  if (chartCanvasRef.value) {
+    return chartCanvasRef.value.getContext('2d');
   } else {
     return undefined;
   }
 });
 
+const chartCanvasHeight = computed(() => {
+  if (chartCanvasRef.value) {
+    return chartCanvasRef.value.height;
+  } else {
+    return undefined;
+  }
+});
+
+const chartWidth = computed(() => {
+  if (chartRowRef.value) {
+    return chartRowRef.value.clientWidth;
+  } else {
+    return undefined;
+  }
+});
+
+// @emit function
+function drawHorizontalGridLine(price: number) {
+  if (chartContext.value && chartWidth.value) {
+    chartContext.value.strokeStyle = GRID_COLOR;
+    chartContext.value.beginPath();
+    chartContext.value.moveTo(0, price);
+    chartContext.value.lineTo(chartWidth.value, price);
+    chartContext.value.globalCompositeOperation = 'destination-over';
+    chartContext.value.stroke();
+  }
+}
+
+const priceAxisStandardWidthInPixel = computed(() => {
+  return priceAxisWidth.value + 'px';
+});
+
+watchEffect(() => {
+  // set priceAxisWidth depending on digits
+  if (maxCandleHigh.value) {
+    const digits = getDigits(maxCandleHigh.value);
+    const beforeComma = getBeforeComma(maxCandleHigh.value);
+    const widthPixelsSum = (digits + beforeComma) * 5;
+    if (widthPixelsSum > 80) {
+      priceAxisWidth.value = 80;
+    } else {
+      priceAxisWidth.value = widthPixelsSum;
+    }
+  }
+});
+
+const ctxChart = computed(() => {
+  return chartCanvasRef.value?.getContext('2d');
+});
+
 onMounted(() => {
   if (chartCanvasRef.value && yBarRef.value) {
     const chartRow = chartRowRef.value;
-    const chart = chartCanvasRef.value;
     const yBar = yBarRef.value;
-    const ctxChart = chart.getContext('2d');
     const ctxYBar = yBar.getContext('2d');
 
-    if (ctxChart && ctxYBar && chartRow) {
+    if (ctxChart.value && ctxYBar && chartRow) {
       const clientHeight = chartRow.clientHeight;
-      chart.width = chartRow.clientWidth;
-      chart.height = clientHeight * 0.95;
-      yBar.height = clientHeight * 0.05;
-
-      // draw horizontal lines
-      const lineDistance = chart.height / HORIZONTAL_LINES;
-      for (let dist = lineDistance; dist < chart.height; dist += lineDistance) {
-        ctxChart.strokeStyle = GRID_COLOR;
-        ctxChart.beginPath();
-        ctxChart.moveTo(0, dist);
-        ctxChart.lineTo(chart.width, dist);
-        ctxChart.stroke();
-      }
+      chartCanvasRef.value.width = chartRow.clientWidth;
+      chartCanvasRef.value.height = clientHeight - 50;
+      yBar.height = 50;
 
       const candle_width =
-        chart.width / MAX_CANDLES -
+        chartCanvasRef.value.width / MAX_CANDLES -
         CANDLE_DISTANCE -
         CANDLE_DISTANCE / MAX_CANDLES;
 
@@ -154,61 +196,70 @@ onMounted(() => {
         candle_border: boolean = CANDLE_BORDER,
         candle_border_color: string = CANDLE_BORDER_COLOR
       ) {
-        if (!candleH2L.value || !maxCandleHigh.value || !ctxChart) {
+        if (
+          !candleH2L.value ||
+          !maxCandleHigh.value ||
+          !chartCanvasRef.value ||
+          !ctxChart.value
+        ) {
           return;
         }
         const scaled_o =
-          chart.height * ((maxCandleHigh.value - ohlc.o) / candleH2L.value);
+          chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.o) / candleH2L.value);
         const scaled_h =
-          chart.height * ((maxCandleHigh.value - ohlc.h) / candleH2L.value);
+          chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.h) / candleH2L.value);
         const scaled_l =
-          chart.height * ((maxCandleHigh.value - ohlc.l) / candleH2L.value);
+          chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.l) / candleH2L.value);
         const scaled_c =
-          chart.height * ((maxCandleHigh.value - ohlc.c) / candleH2L.value);
+          chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.c) / candleH2L.value);
         // Draw the body and the wick of the candlestick
         if (ohlc.c > ohlc.o) {
           // body
-          ctxChart.fillStyle = bull_color;
-          ctxChart.fillRect(x, scaled_o, width, scaled_c - scaled_o);
+          ctxChart.value.fillStyle = bull_color;
+          ctxChart.value.fillRect(x, scaled_o, width, scaled_c - scaled_o);
           // upper wick
-          ctxChart.strokeStyle = bull_color;
+          ctxChart.value.strokeStyle = bull_color;
           if (candle_border) {
-            ctxChart.strokeStyle = candle_border_color;
+            ctxChart.value.strokeStyle = candle_border_color;
           }
-          ctxChart.beginPath();
-          ctxChart.moveTo(x + width / 2, scaled_h);
-          ctxChart.lineTo(x + width / 2, scaled_c);
-          ctxChart.stroke();
+          ctxChart.value.beginPath();
+          ctxChart.value.moveTo(x + width / 2, scaled_h);
+          ctxChart.value.lineTo(x + width / 2, scaled_c);
+          ctxChart.value.stroke();
           // lower wick
-          ctxChart.beginPath();
-          ctxChart.moveTo(x + width / 2, scaled_l);
-          ctxChart.lineTo(x + width / 2, scaled_o);
-          ctxChart.stroke();
+          ctxChart.value.beginPath();
+          ctxChart.value.moveTo(x + width / 2, scaled_l);
+          ctxChart.value.lineTo(x + width / 2, scaled_o);
+          ctxChart.value.stroke();
         } else {
           // body
-          ctxChart.fillStyle = bear_color;
-          ctxChart.fillRect(x, scaled_c, width, scaled_o - scaled_c);
+          ctxChart.value.fillStyle = bear_color;
+          ctxChart.value.fillRect(x, scaled_c, width, scaled_o - scaled_c);
           // upper wick
-          ctxChart.strokeStyle = bear_color;
+          ctxChart.value.strokeStyle = bear_color;
           if (candle_border) {
-            ctxChart.strokeStyle = candle_border_color;
+            ctxChart.value.strokeStyle = candle_border_color;
           }
-          ctxChart.beginPath();
-          ctxChart.moveTo(x + width / 2, scaled_h);
-          ctxChart.lineTo(x + width / 2, scaled_o);
-          ctxChart.stroke();
+          ctxChart.value.beginPath();
+          ctxChart.value.moveTo(x + width / 2, scaled_h);
+          ctxChart.value.lineTo(x + width / 2, scaled_o);
+          ctxChart.value.stroke();
           // lower wick
-          ctxChart.beginPath();
-          ctxChart.moveTo(x + width / 2, scaled_l);
-          ctxChart.lineTo(x + width / 2, scaled_c);
-          ctxChart.stroke();
+          ctxChart.value.beginPath();
+          ctxChart.value.moveTo(x + width / 2, scaled_l);
+          ctxChart.value.lineTo(x + width / 2, scaled_c);
+          ctxChart.value.stroke();
         }
 
         if (candle_border) {
           // Draw the border of the candlestick
-          ctxChart.lineWidth = 2;
-          ctxChart.strokeStyle = candle_border_color;
-          ctxChart.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
+          ctxChart.value.lineWidth = 2;
+          ctxChart.value.strokeStyle = candle_border_color;
+          ctxChart.value.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
         }
       }
     }
@@ -219,8 +270,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .x-bar {
   overflow: auto;
-  min-width: 60px;
-  max-width: 60px;
+  min-width: v-bind(priceAxisStandardWidthInPixel);
+  max-width: v-bind(priceAxisStandardWidthInPixel);
 }
 
 .time-row {
@@ -234,6 +285,7 @@ onMounted(() => {
 }
 
 #YBarCanvas {
+  height: 100%;
   width: 100%;
 }
 </style>
