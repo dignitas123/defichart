@@ -142,12 +142,13 @@ const priceAxisStandardWidthInPixel = computed(() => {
 
 watchEffect(() => {
   // set priceAxisWidth depending on digits
-  if (maxCandleHigh.value) {
-    const digits = getDigits(maxCandleHigh.value);
+  if (maxCandleHigh.value && DATA_TICKSIZE) {
+    const digits = getDigits(DATA_TICKSIZE);
     const beforeComma = getBeforeComma(maxCandleHigh.value);
-    const widthPixelsSum = (digits + beforeComma) * 5;
-    if (widthPixelsSum > 80) {
-      priceAxisWidth.value = 80;
+    const widthPixelsSum = (digits + beforeComma) * 10;
+    const maxPriceAxisWidth = 100;
+    if (widthPixelsSum > maxPriceAxisWidth) {
+      priceAxisWidth.value = maxPriceAxisWidth;
     } else {
       priceAxisWidth.value = widthPixelsSum;
     }
