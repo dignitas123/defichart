@@ -2,7 +2,7 @@
   <q-layout
     view="lHh lpr lFf"
     container
-    style="height: 600px; width: 700px"
+    :style="`height: ${_height}px; width: ${_width}px`"
     class="chart-wrapper"
   >
     <q-header elevated>
@@ -13,15 +13,39 @@
         <q-space />
 
         <q-btn dense flat icon="minimize" />
-        <q-btn dense flat icon="crop_square" />
+        <q-btn dense flat icon="crop_square" @click="maximize" />
         <q-btn dense flat icon="close" />
       </q-bar>
     </q-header>
     <q-page-container style="height: 100%">
-      <slot />
+      <slot :refreshKey="layoutRefreshKey" />
     </q-page-container>
   </q-layout>
 </template>
+
+<script lang="ts" setup>
+import { ref, withDefaults } from 'vue';
+
+interface ChartWrapperProps {
+  height?: number;
+  width?: number;
+}
+
+const props = withDefaults(defineProps<ChartWrapperProps>(), {
+  height: 600,
+  width: 700,
+});
+
+const _height = ref(props.height);
+const _width = ref(props.width);
+
+const layoutRefreshKey = ref(0);
+
+async function maximize() {
+  layoutRefreshKey.value++;
+  _width.value = 800;
+}
+</script>
 
 <style lang="scss">
 .chart-wrapper {

@@ -84,7 +84,7 @@
     </q-header>
 
     <q-page-container>
-      <q-page class="q-pa-md">
+      <q-page class="q-pa-xs">
         <router-view />
       </q-page>
     </q-page-container>
