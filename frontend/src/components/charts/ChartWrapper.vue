@@ -62,7 +62,6 @@ function close() {
 
 <style lang="scss" scoped>
 .chart-wrapper {
-  position: absolute;
   border: 1px solid var(--q-primary);
 }
 </style>

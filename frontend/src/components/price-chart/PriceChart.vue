@@ -1,11 +1,7 @@
 <template>
   <chart-wrapper>
-    <div
-      class="row full-height"
-      ref="chartRowRef"
-      style="flex-direction: column"
-    >
-      <div class="row" style="flex-grow: 1">
+    <div class="price-chart" ref="chartRowRef">
+      <div chartRowRef class="row" style="flex-grow: 1">
         <div class="col">
           <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
@@ -64,7 +60,7 @@ const updateYXaxis = ref(false);
 
 // size: {width: number; height: number;}
 function onResize() {
-  if(chartCanvasRef.value) {
+  if (chartCanvasRef.value) {
     calculateChart(chartCanvasRef.value);
     updateYXaxis.value = !updateYXaxis.value;
   }
@@ -84,18 +80,19 @@ const MAX_X_SCALE = 13;
 const DATA_TICKSIZE = 0.00001;
 const PRICE_AXIS_STANDARD_WIDTH = 60;
 const DATE_BAR_HEIGHT = 35;
+const CANVAS_HD_SCALE_FACTOR = 5; // improves quality of Chart Canvas
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 
 const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
 
 const chartHeight = computed(() => {
-  if(chartRowRef.value) {
-    return chartRowRef.value.clientHeight
+  if (chartRowRef.value) {
+    return chartRowRef.value.clientHeight;
   } else {
-    return undefined
+    return undefined;
   }
-})
+});
 
 const data_dates = computed((): Date[] | undefined => {
   if (data_max_candles.value.length) {
@@ -180,133 +177,149 @@ onMounted(() => {
 
 function calculateChart(chart: HTMLCanvasElement) {
   const chartRow = chartRowRef.value;
-    if (ctxChart.value && chartRow) {
-      const clientWidth = chartRow.clientWidth
-      const clientHeight = chartRow.clientHeight;
+  if (ctxChart.value && chartRow) {
+    const clientWidth = chartRow.clientWidth;
+    const clientHeight = chartRow.clientHeight;
 
-      chart.width = clientWidth;
-      chart.height = clientHeight - DATE_BAR_HEIGHT;
+    // set the chart initial width and height
+    chart.width = clientWidth;
+    chart.height = clientHeight - DATE_BAR_HEIGHT;
 
-// Get the DPR and size of the canvas
-// const dpr = window.devicePixelRatio;
-  const dpr = 5;
-  console.log("dpr", dpr)
-  const rect = chart.getBoundingClientRect();
-  console.log("rect", rect)
+    const rect = chart.getBoundingClientRect();
 
-  // Set the "actual" size of the canvas
-  chart.width = rect.width * dpr;
-  chart.height = rect.height * dpr;
+    // Set the "actual" size of the canvas
+    chart.width = rect.width * CANVAS_HD_SCALE_FACTOR;
+    chart.height = rect.height * CANVAS_HD_SCALE_FACTOR;
 
-  // Scale the context to ensure correct drawing operations
-  ctxChart.value?.scale(dpr, dpr);
+    // Scale the context to ensure correct drawing operations
+    ctxChart.value?.scale(CANVAS_HD_SCALE_FACTOR, CANVAS_HD_SCALE_FACTOR);
 
-  // Set the "drawn" size of the canvas
-  chart.style.width = `${rect.width}px`;
-  chart.style.height = `${rect.height}px`;
+    // Set the "drawn" size of the canvas
+    chart.style.width = `${rect.width}px`;
+    chart.style.height = `${rect.height}px`;
 
-  console.log("chartCanvasRef.value.height", chartCanvasRef.value?.height)
+    // set the chartWidth value for the price-axis
+    chartWidth.value = clientWidth;
 
-      chartWidth.value = clientWidth;
+    let candle_width =
+      chart.width / MAX_CANDLES -
+      CANDLE_DISTANCE * CANVAS_HD_SCALE_FACTOR -
+      (CANDLE_DISTANCE * CANVAS_HD_SCALE_FACTOR) / MAX_CANDLES;
 
-      const candle_width =
-        chart.width / MAX_CANDLES -
-        CANDLE_DISTANCE -
-        CANDLE_DISTANCE / MAX_CANDLES;
+    const starting_distance_difference = MAX_CANDLES - props.data.length;
 
-      const starting_distance_difference = MAX_CANDLES - props.data.length;
+    let xPositionCandlestick =
+      0 +
+      (starting_distance_difference > 0 ? starting_distance_difference : 0) *
+        (candle_width + CANDLE_DISTANCE * CANVAS_HD_SCALE_FACTOR) +
+      CANDLE_DISTANCE * CANVAS_HD_SCALE_FACTOR;
 
-      let xPositionCandlestick =
-        0 +
-        (starting_distance_difference > 0 ? starting_distance_difference : 0) *
-          (candle_width + CANDLE_DISTANCE) +
-        CANDLE_DISTANCE;
-      data_max_candles.value.forEach((ohlc) => {
-        drawCandle(xPositionCandlestick, ohlc);
-        xPositionCandlestick += candle_width + CANDLE_DISTANCE;
-      });
+    data_max_candles.value.forEach((ohlc) => {
+      drawCandle(xPositionCandlestick, ohlc);
+      xPositionCandlestick +=
+        candle_width + CANDLE_DISTANCE * CANVAS_HD_SCALE_FACTOR;
+    });
 
-      function drawCandle(
-        x: number,
-        ohlc: PriceSeries,
-        width: number = candle_width,
-        bull_color: string = CANDLE_BULL_COLOR,
-        bear_color: string = CANDLE_BEAR_COLOR,
-        candle_border: boolean = CANDLE_BORDER,
-        candle_border_color: string = CANDLE_BORDER_COLOR
+    function drawCandle(
+      x: number,
+      ohlc: PriceSeries,
+      width: number = candle_width,
+      bull_color: string = CANDLE_BULL_COLOR,
+      bear_color: string = CANDLE_BEAR_COLOR,
+      candle_border: boolean = CANDLE_BORDER,
+      candle_border_color: string = CANDLE_BORDER_COLOR
+    ) {
+      if (
+        !candleH2L.value ||
+        !maxCandleHigh.value ||
+        !chartCanvasRef.value ||
+        !ctxChart.value
       ) {
-        if (
-          !candleH2L.value ||
-          !maxCandleHigh.value ||
-          !chartCanvasRef.value ||
-          !ctxChart.value
-        ) {
-          return;
-        }
-        const scaled_o =
-          chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.o) / candleH2L.value) / 5;
-        const scaled_h =
-          chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.h) / candleH2L.value) / 5;
-        const scaled_l =
-          chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.l) / candleH2L.value) / 5;
-        const scaled_c =
-          chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.c) / candleH2L.value) / 5;
-        // Draw the body and the wick of the candlestick
-        if (ohlc.c > ohlc.o) {
-          ctxChart.value.lineWidth = 0;
-          // body
-          ctxChart.value.fillStyle = bull_color;
-          ctxChart.value.fillRect(x / 5, scaled_o, width / 5, scaled_c - scaled_o);
-          ctxChart.value.lineWidth = 0;
-          // upper wick
-          ctxChart.value.strokeStyle = bull_color;
-          if (candle_border) {
-            ctxChart.value.strokeStyle = candle_border_color;
-          }
-          ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_h);
-          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_c);
-          ctxChart.value.stroke();
-          // lower wick
-          ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_l);
-          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_o);
-          ctxChart.value.stroke();
-        } else {
-          ctxChart.value.lineWidth = 0;
-          // body
-          ctxChart.value.fillStyle = bear_color;
-          ctxChart.value.fillRect(x / 5, scaled_c, width / 5, scaled_o - scaled_c);
-          ctxChart.value.lineWidth = 0;
-          // upper wick
-          ctxChart.value.strokeStyle = bear_color;
-          if (candle_border) {
-            ctxChart.value.strokeStyle = candle_border_color;
-          }
-          ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_h);
-          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_o);
-          ctxChart.value.stroke();
-          // lower wick
-          ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_l);
-          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_c);
-          ctxChart.value.stroke();
-        }
-        
-        // TODO: probably doesn't work yet
+        return;
+      }
+      const scaled_o =
+        (chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.o) / candleH2L.value)) /
+        CANVAS_HD_SCALE_FACTOR;
+      const scaled_h =
+        (chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.h) / candleH2L.value)) /
+        CANVAS_HD_SCALE_FACTOR;
+      const scaled_l =
+        (chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.l) / candleH2L.value)) /
+        CANVAS_HD_SCALE_FACTOR;
+      const scaled_c =
+        (chartCanvasRef.value.height *
+          ((maxCandleHigh.value - ohlc.c) / candleH2L.value)) /
+        CANVAS_HD_SCALE_FACTOR;
+
+      const xScaled = x / CANVAS_HD_SCALE_FACTOR;
+      const widthScaled = width / CANVAS_HD_SCALE_FACTOR;
+      // Draw the body and the wick of the candlestick
+      if (ohlc.c > ohlc.o) {
+        ctxChart.value.lineWidth = 0;
+        // body
+        ctxChart.value.fillStyle = bull_color;
+        ctxChart.value.fillRect(
+          x / CANVAS_HD_SCALE_FACTOR,
+          scaled_o,
+          width / CANVAS_HD_SCALE_FACTOR,
+          scaled_c - scaled_o
+        );
+        ctxChart.value.lineWidth = 0;
+        // upper wick
+        ctxChart.value.strokeStyle = bull_color;
         if (candle_border) {
-          // Draw the border of the candlestick
-          ctxChart.value.lineWidth = 2;
           ctxChart.value.strokeStyle = candle_border_color;
-          ctxChart.value.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
         }
+        const xStartingPoint = xScaled + widthScaled / 2;
+        ctxChart.value.beginPath();
+        ctxChart.value.moveTo(xStartingPoint, scaled_h);
+        ctxChart.value.lineTo(xStartingPoint, scaled_c);
+        ctxChart.value.stroke();
+        // lower wick
+        ctxChart.value.beginPath();
+        ctxChart.value.moveTo(xStartingPoint, scaled_l);
+        ctxChart.value.lineTo(xStartingPoint, scaled_o);
+        ctxChart.value.stroke();
+      } else {
+        ctxChart.value.lineWidth = 0;
+        // body
+        ctxChart.value.fillStyle = bear_color;
+        ctxChart.value.fillRect(
+          x / CANVAS_HD_SCALE_FACTOR,
+          scaled_c,
+          width / CANVAS_HD_SCALE_FACTOR,
+          scaled_o - scaled_c
+        );
+        ctxChart.value.lineWidth = 0;
+        // upper wick
+        ctxChart.value.strokeStyle = bear_color;
+        if (candle_border) {
+          ctxChart.value.strokeStyle = candle_border_color;
+        }
+        const xStartingPoint = xScaled + widthScaled / 2;
+        ctxChart.value.beginPath();
+        ctxChart.value.moveTo(xStartingPoint, scaled_h);
+        ctxChart.value.lineTo(xStartingPoint, scaled_o);
+        ctxChart.value.stroke();
+        // lower wick
+        ctxChart.value.beginPath();
+        ctxChart.value.moveTo(xStartingPoint, scaled_l);
+        ctxChart.value.lineTo(xStartingPoint, scaled_c);
+        ctxChart.value.stroke();
+      }
+
+      // TODO: probably doesn't work yet
+      if (candle_border) {
+        // Draw the border of the candlestick
+        ctxChart.value.lineWidth = 2;
+        ctxChart.value.strokeStyle = candle_border_color;
+        ctxChart.value.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
       }
     }
+  }
 }
 
 watchEffect(() => {
@@ -326,27 +339,33 @@ watchEffect(() => {
 </script>
 
 <style lang="scss" scoped>
-.x-bar {
-  overflow: auto;
-  min-width: v-bind(priceAxisStandardWidthInPixel);
-  max-width: v-bind(priceAxisStandardWidthInPixel);
-}
-
-.time-row {
-  width: 100%;
-}
-
-.settings-button {
-  overflow: auto;
-  min-width: v-bind(priceAxisStandardWidthInPixel);
-  max-width: v-bind(priceAxisStandardWidthInPixel);
+.price-chart {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#ChartCanvas {
+  flex-direction: column;
+  justify-content: flex-end;
   height: 100%;
-  width: 100%;
+  .x-bar {
+    overflow: auto;
+    min-width: v-bind(priceAxisStandardWidthInPixel);
+    max-width: v-bind(priceAxisStandardWidthInPixel);
+  }
+
+  .time-row {
+    width: 100%;
+  }
+
+  .settings-button {
+    overflow: auto;
+    min-width: v-bind(priceAxisStandardWidthInPixel);
+    max-width: v-bind(priceAxisStandardWidthInPixel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #ChartCanvas {
+    height: 100%;
+    width: 100%;
+  }
 }
 </style>

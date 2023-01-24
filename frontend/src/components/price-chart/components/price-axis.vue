@@ -1,6 +1,11 @@
 <template>
-  <div ref="xBarRef" class="column prevent-select" id="priceAxis" :style="`width: ${width}px; height: ${height}px;`">
-    <div class="col" v-for="(price, i) in priceArray" :key="i" :style="`height: ${rowDistance}px;`">
+  <div
+    ref="xBarRef"
+    class="column prevent-select"
+    id="priceAxis"
+    :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
+  >
+    <div class="col" v-for="(price, i) in priceArray" :key="i">
       {{ String(price) }}
     </div>
   </div>
@@ -11,18 +16,20 @@ import { watch, watchEffect, ref, computed, withDefaults } from 'vue';
 import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
+  update: boolean;
   highestPrice?: number;
   width?: number;
   height?: number;
   scale?: string;
   maxScale?: number;
   tickSize?: number;
-  update: boolean;
+  paddingTop: number; // padding top needs to be subtracted
 }
 
 const props = withDefaults(defineProps<PriceAxisProps>(), {
   maxScale: 13,
   tickSize: 0.1,
+  paddingTop: 32,
 });
 
 const emit = defineEmits<{
@@ -44,6 +51,14 @@ const priceArray = computed(() => {
   }
 });
 
+const priceAxisHeight = computed(() => {
+  if (props.height) {
+    return props.height - props.paddingTop;
+  } else {
+    return undefined;
+  }
+});
+
 const rowDistance = computed(() => {
   if (props.height) {
     return props.height / props.maxScale;
@@ -53,21 +68,23 @@ const rowDistance = computed(() => {
 });
 
 const rowDistanceInPixel = computed(() => {
-  if(rowDistance.value) {
-    console.log(rowDistance.value)
-    return (rowDistance.value / 3) + 'px';
+  if (rowDistance.value) {
+    return rowDistance.value / 3 + 'px';
   } else {
     return undefined;
   }
-})
+});
 
 const xBarRef = ref<HTMLCanvasElement | null>(null);
 
-watch(() => props.update, async () => {
-  if(rowDistance.value) {
-    await calculatePriceAxis(rowDistance.value);
+watch(
+  () => props.update,
+  async () => {
+    if (rowDistance.value) {
+      await calculatePriceAxis(rowDistance.value);
+    }
   }
-})
+);
 
 watchEffect(async () => {
   if (rowDistance.value) {
@@ -75,20 +92,19 @@ watchEffect(async () => {
   }
 });
 
-async function calculatePriceAxis(rowDistance: number){
+async function calculatePriceAxis(rowDistance: number) {
   let pricePoint = rowDistance / 2; // start point on top
-    if (priceArray.value && rowDistance) {
-      for (let i = 0; i < priceArray.value.length; i++) {
-        emit('horizontalLine', pricePoint);
-        pricePoint += rowDistance;
-      }
+  if (priceArray.value && rowDistance) {
+    for (let i = 0; i < priceArray.value.length; i++) {
+      emit('horizontalLine', pricePoint);
+      pricePoint += rowDistance;
     }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 #priceAxis {
   padding-top: v-bind(rowDistanceInPixel);
-  // margin-bottom: v-bind(rowDistanceInPixel);
 }
 </style>
