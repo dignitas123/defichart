@@ -150,14 +150,6 @@ const chartContext = computed(() => {
   }
 });
 
-const chartCanvasHeight = computed(() => {
-  if (chartCanvasRef.value) {
-    return chartCanvasRef.value.height;
-  } else {
-    return undefined;
-  }
-});
-
 const chartWidth = ref(0);
 
 // @emit function
@@ -188,13 +180,34 @@ onMounted(() => {
 
 function calculateChart(chart: HTMLCanvasElement) {
   const chartRow = chartRowRef.value;
-
     if (ctxChart.value && chartRow) {
       const clientWidth = chartRow.clientWidth
       const clientHeight = chartRow.clientHeight;
+
       chart.width = clientWidth;
-      chartWidth.value = clientWidth;
       chart.height = clientHeight - DATE_BAR_HEIGHT;
+
+// Get the DPR and size of the canvas
+// const dpr = window.devicePixelRatio;
+  const dpr = 5;
+  console.log("dpr", dpr)
+  const rect = chart.getBoundingClientRect();
+  console.log("rect", rect)
+
+  // Set the "actual" size of the canvas
+  chart.width = rect.width * dpr;
+  chart.height = rect.height * dpr;
+
+  // Scale the context to ensure correct drawing operations
+  ctxChart.value?.scale(dpr, dpr);
+
+  // Set the "drawn" size of the canvas
+  chart.style.width = `${rect.width}px`;
+  chart.style.height = `${rect.height}px`;
+
+  console.log("chartCanvasRef.value.height", chartCanvasRef.value?.height)
+
+      chartWidth.value = clientWidth;
 
       const candle_width =
         chart.width / MAX_CANDLES -
@@ -232,55 +245,60 @@ function calculateChart(chart: HTMLCanvasElement) {
         }
         const scaled_o =
           chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.o) / candleH2L.value);
+          ((maxCandleHigh.value - ohlc.o) / candleH2L.value) / 5;
         const scaled_h =
           chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.h) / candleH2L.value);
+          ((maxCandleHigh.value - ohlc.h) / candleH2L.value) / 5;
         const scaled_l =
           chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.l) / candleH2L.value);
+          ((maxCandleHigh.value - ohlc.l) / candleH2L.value) / 5;
         const scaled_c =
           chartCanvasRef.value.height *
-          ((maxCandleHigh.value - ohlc.c) / candleH2L.value);
+          ((maxCandleHigh.value - ohlc.c) / candleH2L.value) / 5;
         // Draw the body and the wick of the candlestick
         if (ohlc.c > ohlc.o) {
+          ctxChart.value.lineWidth = 0;
           // body
           ctxChart.value.fillStyle = bull_color;
-          ctxChart.value.fillRect(x, scaled_o, width, scaled_c - scaled_o);
+          ctxChart.value.fillRect(x / 5, scaled_o, width / 5, scaled_c - scaled_o);
+          ctxChart.value.lineWidth = 0;
           // upper wick
           ctxChart.value.strokeStyle = bull_color;
           if (candle_border) {
             ctxChart.value.strokeStyle = candle_border_color;
           }
           ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x + width / 2, scaled_h);
-          ctxChart.value.lineTo(x + width / 2, scaled_c);
+          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_h);
+          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_c);
           ctxChart.value.stroke();
           // lower wick
           ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x + width / 2, scaled_l);
-          ctxChart.value.lineTo(x + width / 2, scaled_o);
+          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_l);
+          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_o);
           ctxChart.value.stroke();
         } else {
+          ctxChart.value.lineWidth = 0;
           // body
           ctxChart.value.fillStyle = bear_color;
-          ctxChart.value.fillRect(x, scaled_c, width, scaled_o - scaled_c);
+          ctxChart.value.fillRect(x / 5, scaled_c, width / 5, scaled_o - scaled_c);
+          ctxChart.value.lineWidth = 0;
           // upper wick
           ctxChart.value.strokeStyle = bear_color;
           if (candle_border) {
             ctxChart.value.strokeStyle = candle_border_color;
           }
           ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x + width / 2, scaled_h);
-          ctxChart.value.lineTo(x + width / 2, scaled_o);
+          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_h);
+          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_o);
           ctxChart.value.stroke();
           // lower wick
           ctxChart.value.beginPath();
-          ctxChart.value.moveTo(x + width / 2, scaled_l);
-          ctxChart.value.lineTo(x + width / 2, scaled_c);
+          ctxChart.value.moveTo(x / 5 + width / 5 / 2, scaled_l);
+          ctxChart.value.lineTo(x / 5 + width / 5 / 2, scaled_c);
           ctxChart.value.stroke();
         }
-
+        
+        // TODO: probably doesn't work yet
         if (candle_border) {
           // Draw the border of the candlestick
           ctxChart.value.lineWidth = 2;
