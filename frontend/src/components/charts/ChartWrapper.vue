@@ -14,16 +14,17 @@
 
         <q-btn dense flat icon="minimize" />
         <q-btn dense flat icon="crop_square" @click="maximize" />
-        <q-btn dense flat icon="close" />
+        <q-btn dense flat icon="close" @click="close" />
       </q-bar>
     </q-header>
     <q-page-container style="height: 100%">
-      <slot :refreshKey="layoutRefreshKey" />
+      <slot />
     </q-page-container>
   </q-layout>
 </template>
 
 <script lang="ts" setup>
+import { useQuasar } from 'quasar';
 import { ref, withDefaults } from 'vue';
 
 interface ChartWrapperProps {
@@ -36,14 +37,17 @@ const props = withDefaults(defineProps<ChartWrapperProps>(), {
   width: 700,
 });
 
+const $q = useQuasar();
+
 const _height = ref(props.height);
 const _width = ref(props.width);
 
-const layoutRefreshKey = ref(0);
+function maximize() {
+  _width.value = $q.screen.width - 8;
+}
 
-async function maximize() {
-  layoutRefreshKey.value++;
-  _width.value = 800;
+function close() {
+  _width.value = 700;
 }
 </script>
 

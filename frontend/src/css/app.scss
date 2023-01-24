@@ -1,1 +1,21 @@
 // app global css in SCSS form
+
+@font-face {
+  font-family: 'Inter';
+  src: url(../fonts/Inter-Medium.ttf);
+}
+
+// declare a class which applies it
+.inter-font {
+  font-family: 'Inter';
+}
+
+body {
+  font-family: 'Inter';
+}
+
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}

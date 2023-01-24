@@ -3,13 +3,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watchEffect, computed, nextTick } from 'vue';
+import { ref, watch, watchEffect, computed, nextTick } from 'vue';
 import { format as dateFormat } from 'date-fns';
 
 interface DateAxisProps {
   dates?: Date[];
   width?: number;
   height?: number;
+  update: boolean;
 }
 
 const props = defineProps<DateAxisProps>();
@@ -24,19 +25,30 @@ const ctxYBar = computed(() => {
   }
 });
 
+watch(() => props.update, async () => {
+  if (ctxYBar.value && props.dates?.length) {
+    await calculateDateAxis(ctxYBar.value, props.dates);
+  }
+})
+
 watchEffect(async () => {
   if (ctxYBar.value && props.dates?.length) {
+    await calculateDateAxis(ctxYBar.value, props.dates);
+  }
+});
+
+async function calculateDateAxis(ctx: CanvasRenderingContext2D, dates: Date[]) {
     await nextTick();
 
     const FONTSIZE = 14;
 
-    ctxYBar.value.font = `${FONTSIZE}px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif`;
+    ctx.font = `${FONTSIZE}px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif`;
     // Loop through the date array
-    for (let i = 0; i < props.dates?.length; i += 8) {
+    for (let i = 0; i < dates?.length; i += 8) {
       // Get the difference between the current date and the next date
       let diff = 0;
-      if (i < props.dates.length - 1) {
-        diff = props.dates[i + 1].getTime() - props.dates[i].getTime();
+      if (i < dates.length - 1) {
+        diff = dates[i + 1].getTime() -dates[i].getTime();
       }
 
       // Determine the format to display the date in based on the difference
@@ -51,14 +63,13 @@ watchEffect(async () => {
         format = 'yyyy';
       }
       // Draw the date on the canvas
-      ctxYBar.value.fillText(
-        dateFormat(props.dates[i], format),
+      ctx.fillText(
+        dateFormat(dates[i], format),
         20 + i * 20,
         20
       );
     }
-  }
-});
+}
 </script>
 
 <style lang="scss" scoped>

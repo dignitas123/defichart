@@ -1,9 +1,13 @@
 <template>
-  <canvas ref="xBarRef" id="XBarCanvas" :width="width" :height="height" />
+  <div ref="xBarRef" class="column prevent-select" id="priceAxis" :style="`width: ${width}px; height: ${height}px;`">
+    <div class="col" v-for="(price, i) in priceArray" :key="i" :style="`height: ${rowDistance}px;`">
+      {{ String(price) }}
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, watchEffect, ref, computed, withDefaults } from 'vue';
+import { watch, watchEffect, ref, computed, withDefaults } from 'vue';
 import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
@@ -13,6 +17,7 @@ export interface PriceAxisProps {
   scale?: string;
   maxScale?: number;
   tickSize?: number;
+  update: boolean;
 }
 
 const props = withDefaults(defineProps<PriceAxisProps>(), {
@@ -47,37 +52,43 @@ const rowDistance = computed(() => {
   }
 });
 
+const rowDistanceInPixel = computed(() => {
+  if(rowDistance.value) {
+    console.log(rowDistance.value)
+    return (rowDistance.value / 3) + 'px';
+  } else {
+    return undefined;
+  }
+})
+
 const xBarRef = ref<HTMLCanvasElement | null>(null);
 
+watch(() => props.update, async () => {
+  if(rowDistance.value) {
+    await calculatePriceAxis(rowDistance.value);
+  }
+})
+
 watchEffect(async () => {
-  if (
-    xBarRef.value &&
-    props.height &&
-    props.width &&
-    rowDistance.value &&
-    props.scale &&
-    props.highestPrice
-  ) {
-    const FONTSIZE = 14;
-    let pricePoint = rowDistance.value / 2;
-    const ctx = xBarRef.value?.getContext('2d');
-    if (ctx && priceArray.value && rowDistance.value) {
-      await nextTick();
-      ctx.font = `${FONTSIZE}px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif`;
-      for (let i = 0; i < priceArray.value.length; i++) {
-        const text = String(priceArray.value[i]);
-        ctx.fillText(text, 2, pricePoint + FONTSIZE / 3);
-        emit('horizontalLine', pricePoint);
-        pricePoint += rowDistance.value;
-      }
-    }
+  if (rowDistance.value) {
+    await calculatePriceAxis(rowDistance.value);
   }
 });
+
+async function calculatePriceAxis(rowDistance: number){
+  let pricePoint = rowDistance / 2; // start point on top
+    if (priceArray.value && rowDistance) {
+      for (let i = 0; i < priceArray.value.length; i++) {
+        emit('horizontalLine', pricePoint);
+        pricePoint += rowDistance;
+      }
+    }
+}
 </script>
 
 <style lang="scss" scoped>
-#XBarCanvas {
-  height: 100%;
-  width: 100%;
+#priceAxis {
+  padding-top: v-bind(rowDistanceInPixel);
+  // margin-bottom: v-bind(rowDistanceInPixel);
 }
 </style>

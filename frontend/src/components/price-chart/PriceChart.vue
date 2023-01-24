@@ -13,10 +13,11 @@
           <price-axis
             :highestPrice="maxCandleHigh"
             :width="priceAxisWidth"
-            :height="chartCanvasHeight"
+            :height="chartHeight"
             :scale="xScale"
             :maxScale="MAX_X_SCALE"
             :tickSize="DATA_TICKSIZE"
+            :update="updateYXaxis"
             @horizontalLine="drawHorizontalGridLine"
           />
         </div>
@@ -27,6 +28,7 @@
             :dates="data_dates"
             :height="DATE_BAR_HEIGHT"
             :width="chartWidth"
+            :update="updateYXaxis"
           />
         </div>
         <div
@@ -37,6 +39,7 @@
         </div>
       </div>
     </div>
+    <q-resize-observer @resize="onResize" />
   </chart-wrapper>
 </template>
 
@@ -57,6 +60,16 @@ const props = withDefaults(
   }
 );
 
+const updateYXaxis = ref(false);
+
+// size: {width: number; height: number;}
+function onResize() {
+  if(chartCanvasRef.value) {
+    calculateChart(chartCanvasRef.value);
+    updateYXaxis.value = !updateYXaxis.value;
+  }
+}
+
 const chartCanvasRef = ref<HTMLCanvasElement | null>(null);
 const chartRowRef = ref<HTMLElement | null>(null);
 
@@ -75,6 +88,14 @@ const DATE_BAR_HEIGHT = 35;
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 
 const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
+
+const chartHeight = computed(() => {
+  if(chartRowRef.value) {
+    return chartRowRef.value.clientHeight
+  } else {
+    return undefined
+  }
+})
 
 const data_dates = computed((): Date[] | undefined => {
   if (data_max_candles.value.length) {
@@ -137,13 +158,7 @@ const chartCanvasHeight = computed(() => {
   }
 });
 
-const chartWidth = computed(() => {
-  if (chartRowRef.value) {
-    return chartRowRef.value.clientWidth;
-  } else {
-    return undefined;
-  }
-});
+const chartWidth = ref(0);
 
 // @emit function
 function drawHorizontalGridLine(price: number) {
@@ -161,36 +176,28 @@ const priceAxisStandardWidthInPixel = computed(() => {
   return priceAxisWidth.value + 'px';
 });
 
-watchEffect(() => {
-  // set priceAxisWidth depending on digits
-  if (maxCandleHigh.value && DATA_TICKSIZE) {
-    const digits = getDigits(DATA_TICKSIZE);
-    const beforeComma = getBeforeComma(maxCandleHigh.value);
-    const widthPixelsSum = (digits + beforeComma) * 10;
-    const maxPriceAxisWidth = 100;
-    if (widthPixelsSum > maxPriceAxisWidth) {
-      priceAxisWidth.value = maxPriceAxisWidth;
-    } else {
-      priceAxisWidth.value = widthPixelsSum;
-    }
-  }
-});
-
 const ctxChart = computed(() => {
   return chartCanvasRef.value?.getContext('2d');
 });
 
 onMounted(() => {
   if (chartCanvasRef.value) {
-    const chartRow = chartRowRef.value;
+    calculateChart(chartCanvasRef.value);
+  }
+});
+
+function calculateChart(chart: HTMLCanvasElement) {
+  const chartRow = chartRowRef.value;
 
     if (ctxChart.value && chartRow) {
+      const clientWidth = chartRow.clientWidth
       const clientHeight = chartRow.clientHeight;
-      chartCanvasRef.value.width = chartRow.clientWidth;
-      chartCanvasRef.value.height = clientHeight - DATE_BAR_HEIGHT;
+      chart.width = clientWidth;
+      chartWidth.value = clientWidth;
+      chart.height = clientHeight - DATE_BAR_HEIGHT;
 
       const candle_width =
-        chartCanvasRef.value.width / MAX_CANDLES -
+        chart.width / MAX_CANDLES -
         CANDLE_DISTANCE -
         CANDLE_DISTANCE / MAX_CANDLES;
 
@@ -281,6 +288,20 @@ onMounted(() => {
           ctxChart.value.strokeRect(x, scaled_c, width, scaled_o - scaled_c);
         }
       }
+    }
+}
+
+watchEffect(() => {
+  // set priceAxisWidth depending on digits
+  if (maxCandleHigh.value && DATA_TICKSIZE) {
+    const digits = getDigits(DATA_TICKSIZE);
+    const beforeComma = getBeforeComma(maxCandleHigh.value);
+    const widthPixelsSum = (digits + beforeComma) * 10;
+    const maxPriceAxisWidth = 100;
+    if (widthPixelsSum > maxPriceAxisWidth) {
+      priceAxisWidth.value = maxPriceAxisWidth;
+    } else {
+      priceAxisWidth.value = widthPixelsSum;
     }
   }
 });
