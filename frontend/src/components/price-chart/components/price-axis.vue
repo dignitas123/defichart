@@ -1,7 +1,7 @@
 <template>
   <div
     ref="xBarRef"
-    class="column prevent-select"
+    class="column prevent-select q-ml-xs"
     id="priceAxis"
     :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
   >
@@ -17,13 +17,13 @@ import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
   update: boolean;
+  paddingTop: number; // padding top needs to be subtracted
   highestPrice?: number;
   width?: number;
   height?: number;
   scale?: string;
   maxScale?: number;
   tickSize?: number;
-  paddingTop: number; // padding top needs to be subtracted
 }
 
 const props = withDefaults(defineProps<PriceAxisProps>(), {
@@ -41,7 +41,7 @@ const priceArray = computed(() => {
     const scaleValue = parseFloat(props.scale);
     let returnArray: string[] = [];
     let price = props.highestPrice - scaleValue / 2;
-    for (let i = 0; i < props.maxScale; i++) {
+    for (let i = 0; i < props.maxScale - 1; i++) {
       returnArray.push(roundToTicksize(price, props.tickSize));
       price -= scaleValue;
     }
@@ -69,7 +69,7 @@ const rowDistance = computed(() => {
 
 const rowDistanceInPixel = computed(() => {
   if (rowDistance.value) {
-    return rowDistance.value / 3 + 'px';
+    return rowDistance.value / 4 + 'px';
   } else {
     return undefined;
   }
@@ -86,13 +86,13 @@ watch(
   }
 );
 
-watchEffect(async () => {
+watchEffect(() => {
   if (rowDistance.value) {
-    await calculatePriceAxis(rowDistance.value);
+    calculatePriceAxis(rowDistance.value);
   }
 });
 
-async function calculatePriceAxis(rowDistance: number) {
+function calculatePriceAxis(rowDistance: number) {
   let pricePoint = rowDistance / 2; // start point on top
   if (priceArray.value && rowDistance) {
     for (let i = 0; i < priceArray.value.length; i++) {
