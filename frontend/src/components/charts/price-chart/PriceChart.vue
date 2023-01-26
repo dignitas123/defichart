@@ -1,5 +1,9 @@
 <template>
   <chart-wrapper>
+    <!-- TODO: loading spinner when loading chart data -->
+    <div v-if="false" class="spinner-bar-wrapper">
+      <q-spinner-ios color="primary" size="xl" />
+    </div>
     <div class="price-chart" ref="chartRowRef">
       <div chartRowRef class="row" style="flex-grow: 1">
         <div class="col">
@@ -11,7 +15,7 @@
             :width="priceAxisWidth"
             :height="chartHeight"
             :scale="xScale"
-            :maxScale="MAX_X_SCALE"
+            :maxPriceLines="MAX_X_PRICE_LINES"
             :tickSize="DATA_TICKSIZE"
             :update="updateYXaxis"
             @horizontalLine="drawHorizontalGridLine"
@@ -76,7 +80,7 @@ const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
 const MAX_CANDLES = 40;
-const MAX_X_SCALE = 13;
+const MAX_X_PRICE_LINES = 13;
 const DATA_TICKSIZE = 0.00001;
 const PRICE_AXIS_STANDARD_WIDTH = 60;
 const DATE_BAR_HEIGHT = 35;
@@ -132,7 +136,7 @@ const candleH2L = computed(() => {
 
 const xScale = computed(() => {
   if (candleH2L.value) {
-    const distance = candleH2L.value / MAX_X_SCALE;
+    const distance = candleH2L.value / MAX_X_PRICE_LINES;
     return roundToTicksize(distance, DATA_TICKSIZE);
   } else {
     return undefined;
@@ -167,12 +171,6 @@ const priceAxisStandardWidthInPixel = computed(() => {
 
 const ctxChart = computed(() => {
   return chartCanvasRef.value?.getContext('2d');
-});
-
-onMounted(() => {
-  if (chartCanvasRef.value) {
-    calculateChart(chartCanvasRef.value);
-  }
 });
 
 function calculateChart(chart: HTMLCanvasElement) {
@@ -339,6 +337,12 @@ watchEffect(() => {
 </script>
 
 <style lang="scss" scoped>
+.spinner-bar-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  justify-content: center;
+}
 .price-chart {
   display: flex;
   flex-direction: column;

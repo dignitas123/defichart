@@ -3,10 +3,10 @@
     view="lHh lpr lFf"
     container
     :style="`height: ${
-      fullScreen
+      _fullScreen
         ? $q.screen.height - HEADER_HEIGHT - INDEX_PAGE_PADDING + 'px'
         : _height + 'px'
-    }; width: ${fullScreen ? '100%' : _width + 'px'}`"
+    }; width: ${_fullScreen ? '100%' : _width + 'px'}`"
     class="chart-wrapper"
   >
     <q-header elevated>
@@ -36,18 +36,18 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { onMounted, ref, withDefaults, nextTick } from 'vue';
+import { onMounted, ref, withDefaults } from 'vue';
 
 interface ChartWrapperProps {
   height?: number;
   width?: number;
-  fullWidth?: boolean;
+  fullScreen?: boolean;
 }
 
 const props = withDefaults(defineProps<ChartWrapperProps>(), {
   height: 600,
   width: 700,
-  fullScreen: false,
+  fullScreen: true,
 });
 
 const HEADER_HEIGHT = 69;
@@ -58,10 +58,10 @@ const _width = ref(props.width);
 
 const $q = useQuasar();
 
-const fullScreen = ref(false);
+const _fullScreen = ref(false);
 
 onMounted(() => {
-  fullScreen.value = props.fullScreen;
+  _fullScreen.value = props.fullScreen;
 });
 
 const updateKey = ref(0);
@@ -70,15 +70,14 @@ function onResize() {
   updateKey.value++;
 }
 
-async function maximize() {
-  await nextTick();
-  fullScreen.value = true;
+function maximize() {
+  _fullScreen.value = true;
   updateKey.value++;
 }
 
 function close() {
   _width.value = 700;
-  fullScreen.value = false;
+  _fullScreen.value = false;
   updateKey.value++;
 }
 </script>
