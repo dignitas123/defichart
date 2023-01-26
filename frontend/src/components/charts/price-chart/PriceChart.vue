@@ -41,8 +41,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watchEffect } from 'vue';
-import ChartWrapper from '../charts/ChartWrapper.vue';
-import { PriceSeries } from 'src/components/price-chart.model';
+import ChartWrapper from '../../charts/ChartWrapper.vue';
+import { PriceSeries } from './price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import DateAxis from './components/date-axis.vue';
 import { roundToTicksize, getDigits, getBeforeComma } from './helpers/digits';

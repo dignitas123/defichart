@@ -16,9 +16,15 @@
 
         <q-space />
 
-        <q-btn dense flat icon="minimize" />
-        <q-btn dense flat icon="crop_square" @click="maximize" />
-        <q-btn dense flat icon="close" @click="close" />
+        <q-btn dense flat :ripple="false" icon="minimize" />
+        <q-btn
+          dense
+          flat
+          :ripple="false"
+          icon="crop_square"
+          @click="maximize"
+        />
+        <q-btn dense flat :ripple="false" icon="close" @click="close" />
       </q-bar>
     </q-header>
     <q-page-container style="height: 100%">
@@ -30,7 +36,7 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { onMounted, ref, withDefaults } from 'vue';
+import { onMounted, ref, withDefaults, nextTick } from 'vue';
 
 interface ChartWrapperProps {
   height?: number;
@@ -64,7 +70,8 @@ function onResize() {
   updateKey.value++;
 }
 
-function maximize() {
+async function maximize() {
+  await nextTick();
   fullScreen.value = true;
   updateKey.value++;
 }

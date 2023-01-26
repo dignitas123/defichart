@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { PriceSeries } from 'src/components/price-chart.model';
-import PriceChart from 'src/components/price-chart/PriceChart.vue';
+import { PriceSeries } from 'src/components/charts/price-chart/price-chart.model';
+import PriceChart from 'src/components/charts/price-chart/PriceChart.vue';
 
 const priceSeriesData: PriceSeries[] = generateData();
 
