@@ -2,7 +2,11 @@
   <q-layout
     view="lHh lpr lFf"
     container
-    :style="`height: ${_height}px; width: ${_width}px`"
+    :style="`height: ${
+      fullScreen
+        ? $q.screen.height - HEADER_HEIGHT - INDEX_PAGE_PADDING + 'px'
+        : _height + 'px'
+    }; width: ${fullScreen ? '100%' : _width + 'px'}`"
     class="chart-wrapper"
   >
     <q-header elevated>
@@ -18,36 +22,57 @@
       </q-bar>
     </q-header>
     <q-page-container style="height: 100%">
-      <slot />
+      <slot :key="updateKey" />
     </q-page-container>
+    <q-resize-observer :onResize="onResize" />
   </q-layout>
 </template>
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults } from 'vue';
+import { onMounted, ref, withDefaults } from 'vue';
 
 interface ChartWrapperProps {
   height?: number;
   width?: number;
+  fullWidth?: boolean;
 }
 
 const props = withDefaults(defineProps<ChartWrapperProps>(), {
   height: 600,
   width: 700,
+  fullScreen: false,
 });
 
-const $q = useQuasar();
+const HEADER_HEIGHT = 69;
+const INDEX_PAGE_PADDING = 8;
 
 const _height = ref(props.height);
 const _width = ref(props.width);
 
+const $q = useQuasar();
+
+const fullScreen = ref(false);
+
+onMounted(() => {
+  fullScreen.value = props.fullScreen;
+});
+
+const updateKey = ref(0);
+
+function onResize() {
+  updateKey.value++;
+}
+
 function maximize() {
-  _width.value = $q.screen.width - 8;
+  fullScreen.value = true;
+  updateKey.value++;
 }
 
 function close() {
   _width.value = 700;
+  fullScreen.value = false;
+  updateKey.value++;
 }
 </script>
 

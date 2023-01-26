@@ -17,7 +17,7 @@ import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
   update: boolean;
-  paddingTop: number; // padding top needs to be subtracted
+  paddingTop?: number; // padding top needs to be subtracted
   highestPrice?: number;
   width?: number;
   height?: number;
