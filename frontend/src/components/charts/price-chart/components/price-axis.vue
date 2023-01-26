@@ -1,12 +1,11 @@
 <template>
   <div
     ref="xBarRef"
-    class="column prevent-select q-ml-xs"
-    id="priceAxis"
+    class="prevent-select q-ml-xs"
     :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
   >
-    <div class="col" v-for="(price, i) in priceArray" :key="i">
-      {{ String(price) }}
+    <div class="items-center price" v-for="(price, i) in priceArray" :key="i">
+      <span>{{ String(price) }}</span>
     </div>
   </div>
 </template>
@@ -69,7 +68,7 @@ const rowDistance = computed(() => {
 
 const rowDistanceInPixel = computed(() => {
   if (rowDistance.value) {
-    return rowDistance.value / 4 + 'px';
+    return `${rowDistance.value}px`;
   } else {
     return undefined;
   }
@@ -104,7 +103,8 @@ function calculatePriceAxis(rowDistance: number) {
 </script>
 
 <style lang="scss" scoped>
-#priceAxis {
-  padding-top: v-bind(rowDistanceInPixel);
+.price {
+  display: flex;
+  height: v-bind(rowDistanceInPixel);
 }
 </style>
