@@ -1,5 +1,5 @@
 <template>
-  <canvas id="YBarCanvas" ref="yBarRef" :width="width" :height="height" />
+  <div class="date-axis" />
 </template>
 
 <script lang="ts" setup>
@@ -8,8 +8,6 @@ import { format as dateFormat } from 'date-fns';
 
 interface DateAxisProps {
   dates?: Date[];
-  width?: number;
-  height?: number;
   update: boolean;
 }
 
@@ -72,8 +70,8 @@ async function calculateDateAxis(ctx: CanvasRenderingContext2D, dates: Date[]) {
 </script>
 
 <style lang="scss" scoped>
-#YBarCanvas {
-  height: 100%;
-  width: 100%;
+.date-axis {
+  height: 35px; // TODO: hat keine Auswirkungen, sehr störrisch
+  background: grey;
 }
 </style>

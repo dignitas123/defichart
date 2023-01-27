@@ -3,34 +3,28 @@
     class="prevent-select q-ml-xs"
     :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
   >
-    <div
-      class="items-center price"
-      v-for="(price, i) in priceArray"
-      :key="i"
-      v-memo="[height]"
-    >
+    <div class="items-center price" v-for="(price, i) in priceArray" :key="i">
       <span>{{ String(price) }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { watch, watchEffect, computed, withDefaults, ref } from 'vue';
+import { watch, computed, withDefaults } from 'vue';
+import { DATA_TICKSIZE } from '../consts';
 import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
   update: boolean;
+  h2l?: number;
   paddingTop?: number; // padding top needs to be subtracted
   highestPrice?: number;
   width?: number;
   height?: number;
-  scale?: string;
-  maxPriceLines?: number;
   tickSize?: number;
 }
 
 const props = withDefaults(defineProps<PriceAxisProps>(), {
-  maxPriceLines: 13,
   tickSize: 0.1,
   paddingTop: 32,
 });
@@ -39,19 +33,32 @@ const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
-const MIN_PRICE_HEIGHT = 30;
+const MIN_ROW_DISTANCE = 40; // in px
 
-const _maxPriceLines = ref(props.maxPriceLines);
+const priceLinesCount = computed(() => {
+  if (priceAxisHeight.value) {
+    return Math.round(priceAxisHeight.value / MIN_ROW_DISTANCE);
+  } else {
+    return undefined;
+  }
+});
 
-// TODO: do something with them
-const overflowPoints = ref(1);
+const priceDistance = computed(() => {
+  if (props.h2l && priceLinesCount.value) {
+    const distance = props.h2l / priceLinesCount.value;
+    return roundToTicksize(distance, DATA_TICKSIZE);
+  } else {
+    return undefined;
+  }
+});
 
 const priceArray = computed(() => {
-  if (props.scale && props.highestPrice) {
-    const scaleValue = parseFloat(props.scale);
+  // TODO: does the calcualation 3x on mounted - why
+  if (priceDistance.value && props.highestPrice && priceLinesCount.value) {
+    const scaleValue = parseFloat(priceDistance.value);
     let returnArray: string[] = [];
     let price = props.highestPrice - scaleValue / 2;
-    for (let i = 0; i < _maxPriceLines.value - overflowPoints.value; i++) {
+    for (let i = 0; i < priceLinesCount.value - 1; i++) {
       returnArray.push(roundToTicksize(price, props.tickSize));
       price -= scaleValue;
     }
@@ -71,8 +78,8 @@ const priceAxisHeight = computed(() => {
 });
 
 const rowDistance = computed(() => {
-  if (props.height) {
-    return props.height / _maxPriceLines.value;
+  if (props.height && priceLinesCount.value) {
+    return props.height / priceLinesCount.value;
   } else {
     return undefined;
   }
@@ -89,24 +96,18 @@ const rowDistanceInPixel = computed(() => {
 watch(
   () => props.update,
   () => {
-    if (rowDistance.value) {
-      calculatePriceAxis(rowDistance.value);
-    }
+    calculatePriceAxis();
   }
 );
 
-watchEffect(() => {
-  if (rowDistance.value && rowDistance.value < MIN_PRICE_HEIGHT) {
-    // TODO: reduce the number of horizontal lines to be drawn
-  }
-});
-
-function calculatePriceAxis(rowDistance: number) {
-  let pricePoint = rowDistance / 2; // start point on top
-  if (priceArray.value && rowDistance) {
-    for (let i = 0; i < priceArray.value.length; i++) {
-      emit('horizontalLine', pricePoint);
-      pricePoint += rowDistance;
+function calculatePriceAxis() {
+  if (rowDistance.value) {
+    let pricePoint = rowDistance.value / 2; // start point on top
+    if (priceArray.value && rowDistance) {
+      for (let i = 0; i < priceArray.value.length; i++) {
+        emit('horizontalLine', pricePoint);
+        pricePoint += rowDistance.value;
+      }
     }
   }
 }

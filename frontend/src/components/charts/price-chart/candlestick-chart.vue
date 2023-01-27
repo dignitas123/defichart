@@ -5,25 +5,24 @@
       <q-spinner-ios color="primary" size="xl" />
     </div>
     <div class="price-chart" ref="chartRowRef">
-      <div chartRowRef class="row" style="flex-grow: 1">
+      <div ref="chartRowRef" class="row test">
         <div class="col">
           <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
         <div class="col x-bar">
           <price-axis
             :highestPrice="maxCandleHigh"
+            :h2l="candleH2L"
             :width="priceAxisWidth"
             :height="chartHeight"
-            :scale="xScale"
-            :maxPriceLines="MAX_X_PRICE_LINES"
             :tickSize="DATA_TICKSIZE"
             :update="updateYXaxis"
             @horizontalLine="drawHorizontalGridLine"
           />
         </div>
       </div>
-      <div class="row time-row" :style="`height: ${DATE_BAR_HEIGHT}px`">
-        <div class="col" :style="`height: ${DATE_BAR_HEIGHT}px`">
+      <div class="row time-row">
+        <div class="col">
           <date-axis
             :dates="data_dates"
             :height="DATE_BAR_HEIGHT"
@@ -31,10 +30,7 @@
             :update="updateYXaxis"
           />
         </div>
-        <div
-          class="col settings-button"
-          :style="`height: ${DATE_BAR_HEIGHT}px`"
-        >
+        <div class="col settings-button">
           <q-icon color="dark" name="settings" size="xs" />
         </div>
       </div>
@@ -49,7 +45,8 @@ import ChartWrapper from '../ChartWrapper.vue';
 import { PriceSeries } from './price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import DateAxis from './components/date-axis.vue';
-import { roundToTicksize, getDigits, getBeforeComma } from './helpers/digits';
+import { getDigits, getBeforeComma } from './helpers/digits';
+import { DATA_TICKSIZE } from './consts';
 
 const props = withDefaults(
   defineProps<{
@@ -80,8 +77,6 @@ const CANDLE_BORDER = false;
 const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
 const MAX_CANDLES = 40;
-const MAX_X_PRICE_LINES = 13;
-const DATA_TICKSIZE = 0.00001;
 const PRICE_AXIS_STANDARD_WIDTH = 60;
 const DATE_BAR_HEIGHT = 35;
 const CANVAS_HD_SCALE_FACTOR = 5; // improves quality of Chart Canvas
@@ -134,15 +129,6 @@ const candleH2L = computed(() => {
   }
 });
 
-const xScale = computed(() => {
-  if (candleH2L.value) {
-    const distance = candleH2L.value / MAX_X_PRICE_LINES;
-    return roundToTicksize(distance, DATA_TICKSIZE);
-  } else {
-    return undefined;
-  }
-});
-
 const chartContext = computed(() => {
   if (chartCanvasRef.value) {
     return chartCanvasRef.value.getContext('2d');
@@ -174,14 +160,13 @@ const ctxChart = computed(() => {
 });
 
 function calculateChart(chart: HTMLCanvasElement) {
-  const chartRow = chartRowRef.value;
-  if (ctxChart.value && chartRow) {
-    const clientWidth = chartRow.clientWidth;
-    const clientHeight = chartRow.clientHeight;
+  if (ctxChart.value && chartRowRef.value) {
+    const clientWidth = chartRowRef.value.clientWidth;
+    const clientHeight = chartRowRef.value.clientHeight;
 
     // set the chart initial width and height
     chart.width = clientWidth;
-    chart.height = clientHeight - DATE_BAR_HEIGHT;
+    chart.height = clientHeight;
 
     const rect = chart.getBoundingClientRect();
 
@@ -325,7 +310,8 @@ watchEffect(() => {
   if (maxCandleHigh.value && DATA_TICKSIZE) {
     const digits = getDigits(DATA_TICKSIZE);
     const beforeComma = getBeforeComma(maxCandleHigh.value);
-    const widthPixelsSum = (digits + beforeComma) * 10;
+    const width_per_letter = 10.3;
+    const widthPixelsSum = (digits + beforeComma) * width_per_letter;
     const maxPriceAxisWidth = 100;
     if (widthPixelsSum > maxPriceAxisWidth) {
       priceAxisWidth.value = maxPriceAxisWidth;
@@ -344,11 +330,9 @@ watchEffect(() => {
   justify-content: center;
 }
 .price-chart {
-  flex-direction: column;
-  justify-content: flex-end;
   height: 100%;
+  width: 100%;
   .x-bar {
-    overflow: auto;
     min-width: v-bind(priceAxisStandardWidthInPixel);
     max-width: v-bind(priceAxisStandardWidthInPixel);
   }

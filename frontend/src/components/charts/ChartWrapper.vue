@@ -11,8 +11,7 @@
   >
     <q-header elevated>
       <q-bar>
-        <q-icon name="laptop_chromebook" />
-        <div>Chart</div>
+        <div>BTCUSD</div>
 
         <q-space />
 
@@ -50,7 +49,7 @@ const props = withDefaults(defineProps<ChartWrapperProps>(), {
   fullScreen: true,
 });
 
-const HEADER_HEIGHT = 69;
+const HEADER_HEIGHT = 32;
 const INDEX_PAGE_PADDING = 8;
 
 const _height = ref(props.height);
