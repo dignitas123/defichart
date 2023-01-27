@@ -3,7 +3,12 @@
     class="prevent-select q-ml-xs"
     :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
   >
-    <div class="items-center price" v-for="(price, i) in priceArray" :key="i">
+    <div
+      class="items-center price"
+      v-for="(price, i) in priceArray"
+      :key="i"
+      v-memo="[height]"
+    >
       <span>{{ String(price) }}</span>
     </div>
   </div>

@@ -44,8 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watchEffect } from 'vue';
-import ChartWrapper from '../../charts/ChartWrapper.vue';
+import { ref, computed, watchEffect } from 'vue';
+import ChartWrapper from '../ChartWrapper.vue';
 import { PriceSeries } from './price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import DateAxis from './components/date-axis.vue';
@@ -344,7 +344,6 @@ watchEffect(() => {
   justify-content: center;
 }
 .price-chart {
-  display: flex;
   flex-direction: column;
   justify-content: flex-end;
   height: 100%;

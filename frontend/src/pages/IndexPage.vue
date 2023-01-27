@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { PriceSeries } from 'src/components/charts/price-chart/price-chart.model';
-import PriceChart from 'src/components/charts/price-chart/PriceChart.vue';
+import PriceChart from 'src/components/charts/price-chart/price-chart.vue';
 
 const priceSeriesData: PriceSeries[] = generateData();
 
