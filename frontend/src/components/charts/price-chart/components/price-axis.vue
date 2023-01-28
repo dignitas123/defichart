@@ -108,7 +108,7 @@ function calculatePriceAxis() {
         emit('horizontalLine', pricePoint);
         pricePoint += rowDistance.value;
       }
-    }
+      }
   }
 }
 </script>

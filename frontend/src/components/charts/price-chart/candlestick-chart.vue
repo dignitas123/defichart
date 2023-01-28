@@ -25,8 +25,6 @@
         <div class="col">
           <date-axis
             :dates="data_dates"
-            :height="DATE_BAR_HEIGHT"
-            :width="chartWidth"
             :update="updateYXaxis"
           />
         </div>
@@ -78,13 +76,13 @@ const CANDLE_BORDER_COLOR = 'black';
 const CANDLE_DISTANCE = 5;
 const MAX_CANDLES = 40;
 const PRICE_AXIS_STANDARD_WIDTH = 60;
-const DATE_BAR_HEIGHT = 35;
 const CANVAS_HD_SCALE_FACTOR = 5; // improves quality of Chart Canvas
 
 const data_max_candles = ref(props.data.slice(-MAX_CANDLES));
 
 const priceAxisWidth = ref(PRICE_AXIS_STANDARD_WIDTH);
 
+// @dev: for price-axis
 const chartHeight = computed(() => {
   if (chartRowRef.value) {
     return chartRowRef.value.clientHeight;
@@ -175,13 +173,13 @@ function calculateChart(chart: HTMLCanvasElement) {
     chart.height = rect.height * CANVAS_HD_SCALE_FACTOR;
 
     // Scale the context to ensure correct drawing operations
-    ctxChart.value?.scale(CANVAS_HD_SCALE_FACTOR, CANVAS_HD_SCALE_FACTOR);
+    ctxChart.value.scale(CANVAS_HD_SCALE_FACTOR, CANVAS_HD_SCALE_FACTOR);
 
     // Set the "drawn" size of the canvas
     chart.style.width = `${rect.width}px`;
-    chart.style.height = `${rect.height}px`;
+    chart.style.height = `${rect.height - 35}px`;
 
-    // set the chartWidth value for the price-axis
+    // save the chartWidth value for the horizontal line calculation width
     chartWidth.value = clientWidth;
 
     let candle_width =
