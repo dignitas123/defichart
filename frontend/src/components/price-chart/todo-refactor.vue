@@ -1,15 +1,11 @@
 <template>
   <chart-wrapper>
-    <!-- TODO: loading spinner when loading chart data -->
-    <div v-if="false" class="spinner-bar-wrapper">
-      <q-spinner-ios color="primary" size="xl" />
-    </div>
-    <div class="price-chart" ref="chartRowRef">
-      <div ref="chartRowRef" class="row test">
-        <div class="col">
+    <!-- <div class="candlestick-chart" >
+      <div ref="chartRowRef">
+        <div style="background: red;">
           <canvas ref="chartCanvasRef" id="ChartCanvas" />
         </div>
-        <div class="col x-bar">
+        <div class="x-bar" style="background: yellow">
           <price-axis
             :highestPrice="maxCandleHigh"
             :h2l="candleH2L"
@@ -21,28 +17,26 @@
           />
         </div>
       </div>
-      <div class="row time-row">
-        <div class="col">
+      <div class="time-row">
+        <div>
           <date-axis
             :dates="data_dates"
             :update="updateYXaxis"
           />
         </div>
-        <div class="col settings-button">
+        <div class="settings-button">
           <q-icon color="dark" name="settings" size="xs" />
         </div>
       </div>
-    </div>
+    </div> -->
     <q-resize-observer @resize="onResize" />
   </chart-wrapper>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue';
-import ChartWrapper from '../ChartWrapper.vue';
+import ChartWrapper from './price-chart.vue';
 import { PriceSeries } from './price-chart.model';
-import PriceAxis from './components/price-axis.vue';
-import DateAxis from './components/date-axis.vue';
 import { getDigits, getBeforeComma } from './helpers/digits';
 import { DATA_TICKSIZE } from './consts';
 
@@ -320,37 +314,4 @@ watchEffect(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.spinner-bar-wrapper {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  justify-content: center;
-}
-.price-chart {
-  height: 100%;
-  width: 100%;
-  .x-bar {
-    min-width: v-bind(priceAxisStandardWidthInPixel);
-    max-width: v-bind(priceAxisStandardWidthInPixel);
-  }
-
-  .time-row {
-    width: 100%;
-  }
-
-  .settings-button {
-    overflow: auto;
-    min-width: v-bind(priceAxisStandardWidthInPixel);
-    max-width: v-bind(priceAxisStandardWidthInPixel);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #ChartCanvas {
-    height: 100%;
-    width: 100%;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

@@ -10,9 +10,9 @@
 </template>
 
 <script setup lang="ts">
+import { DATA_TICKSIZE } from 'src/components/price-chart/consts';
+import { roundToTicksize } from 'src/components/price-chart/helpers/digits';
 import { watch, computed, withDefaults } from 'vue';
-import { DATA_TICKSIZE } from '../consts';
-import { roundToTicksize } from '../helpers/digits';
 
 export interface PriceAxisProps {
   update: boolean;
@@ -108,7 +108,7 @@ function calculatePriceAxis() {
         emit('horizontalLine', pricePoint);
         pricePoint += rowDistance.value;
       }
-      }
+    }
   }
 }
 </script>

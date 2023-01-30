@@ -7,13 +7,7 @@
 
         <q-space />
 
-        <q-btn
-          rounded
-          :ripple="false"
-          color="accent"
-          label="Connect Wallet"
-          class="q-mx-xs"
-        />
+        <q-btn dense :ripple="false" color="secondary" label="Connect Wallet" />
       </q-bar>
     </q-header>
 
