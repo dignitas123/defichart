@@ -38,7 +38,7 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { watch, nextTick, ref, withDefaults } from 'vue';
+import { nextTick, ref, withDefaults } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { PriceSeries } from 'src/components/price-chart/price-chart.model';
@@ -71,9 +71,6 @@ const _fullScreen = ref(true);
 
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
-watch(chartRef, async () => {
-  await updateChartHeightAndWidth();
-});
 
 async function updateChartHeightAndWidth() {
   await nextTick();

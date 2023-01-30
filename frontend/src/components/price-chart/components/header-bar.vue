@@ -3,8 +3,8 @@
     <q-bar dark dense>
       <div>BTCUSD</div>
       <q-space />
-      <q-btn dense flat icon="crop_square" @click="$emit('maximize')" />
-      <q-btn dense flat icon="close" @click="$emit('close')" />
+      <q-btn dense flat icon="crop_square" :ripple="false" @click="$emit('maximize')" />
+      <q-btn dense flat icon="close" :ripple="false" @click="$emit('close')" />
     </q-bar>
   </div>
 </template>
