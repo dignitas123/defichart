@@ -1,5 +1,4 @@
-// app global css in SCSS form
-
+// Font
 @font-face {
   font-family: 'Inter';
   src: url(../fonts/Inter-Medium.ttf);
@@ -10,17 +9,24 @@
   font-family: 'Inter';
 }
 
+// body
 body {
   font-family: 'Inter';
 }
 
+// Quasar Overwrites
+.q-bar--standard,
+.q-bar--dense {
+  padding: 0 4px;
+}
+
+// Pseudo Classes
 .prevent-select {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
 
-.q-bar--standard,
-.q-bar--dense {
-  padding: 0 4px;
+.d-block {
+  display: block;
 }

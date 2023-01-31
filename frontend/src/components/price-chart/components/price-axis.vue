@@ -1,7 +1,7 @@
 <template>
   <div
     class="prevent-select q-ml-xs"
-    :style="`width: ${width}px; height: ${priceAxisHeight}px;`"
+    :style="`width: ${priceAxisWidth}px; height: ${props.height}px;`"
   >
     <div class="items-center price" v-for="(price, i) in priceArray" :key="i">
       <span>{{ String(price) }}</span>
@@ -11,41 +11,40 @@
 
 <script setup lang="ts">
 import { DATA_TICKSIZE } from 'src/components/price-chart/consts';
-import { roundToTicksize } from 'src/components/price-chart/helpers/digits';
-import { watch, computed, withDefaults } from 'vue';
+import {
+  getBeforeComma,
+  getDigits,
+  roundToTicksize,
+} from 'src/components/price-chart/helpers/digits';
+import { computed, watchEffect, withDefaults } from 'vue';
+import { PriceSeries, usePriceChartData } from '../price-chart.model';
 
-export interface PriceAxisProps {
-  update: boolean;
-  h2l?: number;
-  paddingTop?: number; // padding top needs to be subtracted
-  highestPrice?: number;
-  width?: number;
-  height?: number;
-  tickSize?: number;
-}
-
-const props = withDefaults(defineProps<PriceAxisProps>(), {
-  tickSize: 0.1,
-  paddingTop: 32,
-});
+const props = withDefaults(
+  defineProps<{
+    data: PriceSeries[];
+    height?: number;
+  }>(),
+  {
+    data: () => [],
+  }
+);
 
 const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
+const { candleH2L, maxCandleHigh } = usePriceChartData(props.data);
+
 const MIN_ROW_DISTANCE = 40; // in px
 
 const priceLinesCount = computed(() => {
-  if (priceAxisHeight.value) {
-    return Math.round(priceAxisHeight.value / MIN_ROW_DISTANCE);
-  } else {
-    return undefined;
-  }
+  if (!props.height) return undefined;
+  return Math.round(props.height / MIN_ROW_DISTANCE);
 });
 
 const priceDistance = computed(() => {
-  if (props.h2l && priceLinesCount.value) {
-    const distance = props.h2l / priceLinesCount.value;
+  if (candleH2L.value && priceLinesCount.value) {
+    const distance = candleH2L.value / priceLinesCount.value;
     return roundToTicksize(distance, DATA_TICKSIZE);
   } else {
     return undefined;
@@ -54,24 +53,15 @@ const priceDistance = computed(() => {
 
 const priceArray = computed(() => {
   // TODO: does the calcualation 3x on mounted - why
-  if (priceDistance.value && props.highestPrice && priceLinesCount.value) {
+  if (priceDistance.value && maxCandleHigh.value && priceLinesCount.value) {
     const scaleValue = parseFloat(priceDistance.value);
     let returnArray: string[] = [];
-    let price = props.highestPrice - scaleValue / 2;
-    for (let i = 0; i < priceLinesCount.value - 1; i++) {
-      returnArray.push(roundToTicksize(price, props.tickSize));
+    let price = maxCandleHigh.value - scaleValue / 2;
+    for (let i = 0; i < priceLinesCount.value; i++) {
+      returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
       price -= scaleValue;
     }
     return returnArray;
-  } else {
-    return undefined;
-  }
-});
-
-// is the same height like the chart height
-const priceAxisHeight = computed(() => {
-  if (props.height) {
-    return props.height - props.paddingTop;
   } else {
     return undefined;
   }
@@ -93,14 +83,23 @@ const rowDistanceInPixel = computed(() => {
   }
 });
 
-watch(
-  () => props.update,
-  () => {
-    calculatePriceAxis();
+const priceAxisWidth = computed(() => {
+  if (maxCandleHigh.value && DATA_TICKSIZE) {
+    const digits = getDigits(DATA_TICKSIZE);
+    const beforeComma = getBeforeComma(maxCandleHigh.value);
+    const width_per_letter = 10.3;
+    const widthPixelsSum = (digits + beforeComma) * width_per_letter;
+    const maxPriceAxisWidth = 100;
+    if (widthPixelsSum > maxPriceAxisWidth) {
+      return maxPriceAxisWidth;
+    } else {
+      return widthPixelsSum;
+    }
   }
-);
+  return 0;
+});
 
-function calculatePriceAxis() {
+function drawPrices() {
   if (rowDistance.value) {
     let pricePoint = rowDistance.value / 2; // start point on top
     if (priceArray.value && rowDistance) {
@@ -111,6 +110,13 @@ function calculatePriceAxis() {
     }
   }
 }
+
+watchEffect(() => {
+  if (!props.height) {
+    return;
+  }
+  drawPrices();
+});
 </script>
 
 <style lang="scss" scoped>

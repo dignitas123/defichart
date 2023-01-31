@@ -1,5 +1,26 @@
 <template>
-  <svg :width="width" :height="height" style="display: block">
+  <svg
+    :width="width"
+    :height="height"
+    class="price-lines-svg d-block absolute"
+    style="z-index: 1"
+  >
+    <line
+      v-for="(price, i) in priceLines"
+      :key="i"
+      :x1="0"
+      :y1="price"
+      :x2="width"
+      :y2="price"
+      :stroke="`rgb(0, 0, 0, ${PRICE_LINES_TRANSPARENCY})`"
+    />
+  </svg>
+  <svg
+    :width="width"
+    :height="height"
+    class="chart-svg d-block absolute"
+    style="z-index: 2"
+  >
     <g v-for="(candle, i) in candles" :key="i">
       <rect
         :x="candle.wX"
@@ -29,16 +50,20 @@
 
 <script lang="ts" setup>
 import { computed, ref, watchEffect } from 'vue';
+import { MAX_CANDLES_SHOW, PRICE_LINES_TRANSPARENCY } from '../consts';
 import { PriceSeries } from '../price-chart.model';
+import { usePriceChartData } from '../price-chart.model';
 
 const props = withDefaults(
   defineProps<{
+    data?: PriceSeries[];
     height?: number;
     width?: number;
-    data: PriceSeries[];
+    priceLines?: number[];
   }>(),
   {
     data: () => [],
+    priceLines: () => [],
   }
 );
 
@@ -54,7 +79,14 @@ interface Candle {
   fillColor: string;
 }
 
-const MAX_CANDLES_SHOW = 40;
+const {
+  starting_distance_difference,
+  data_max_candles_show,
+  candleH2L,
+  maxCandleHigh,
+  minCandleLow,
+} = usePriceChartData(props.data);
+
 const CANDLE_DISTANCE = 3; // in px
 const CANDLE_WICK_THICKNESS = 0.15; // in percent
 
@@ -63,42 +95,7 @@ const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 // const CANDLE_BORDER_COLOR = 'black';
 
-const data_max_candles_show = ref(props.data.slice(-MAX_CANDLES_SHOW));
-
-const starting_distance_difference = MAX_CANDLES_SHOW - props.data.length;
-
 const candles = ref<Candle[]>([]);
-
-const maxCandleHigh = computed(() => {
-  if (data_max_candles_show.value.length) {
-    return Math.max(
-      ...data_max_candles_show.value.map((ohlc) => Number(ohlc.h))
-    );
-  }
-  return undefined;
-});
-
-const maxCandleLow = computed(() => {
-  if (data_max_candles_show.value.length) {
-    return Math.min(
-      ...data_max_candles_show.value.map((ohlc) => Number(ohlc.l))
-    );
-  } else {
-    return undefined;
-  }
-});
-
-const candleH2L = computed(() => {
-  if (
-    maxCandleHigh.value &&
-    maxCandleLow.value &&
-    maxCandleHigh.value > maxCandleLow.value
-  ) {
-    return maxCandleHigh.value - maxCandleLow.value;
-  } else {
-    return undefined;
-  }
-});
 
 const candleWidth = computed(() => {
   if (props.width) {
@@ -146,10 +143,10 @@ function drawChart() {
     if (
       !candleH2L.value ||
       !maxCandleHigh.value ||
+      !minCandleLow.value ||
       !props.height ||
       !props.width ||
-      !candleWickWidth.value ||
-      !maxCandleLow.value
+      !candleWickWidth.value
     ) {
       return;
     }
@@ -196,7 +193,6 @@ function drawChart() {
   }
 }
 
-// executed initially and when width or height changes
 watchEffect(() => {
   if (!props.width || !props.height) {
     return;

@@ -21,15 +21,24 @@
             :data="priceSeriesData"
             :height="chartHeight"
             :width="chartWidth"
+            :priceLines="priceLines"
           />
         </div>
-        <div class="price" />
+        <div>
+          <PriceAxis
+            :data="priceSeriesData"
+            :height="chartHeight"
+            @horizontalLine="addHorizontalLineToPriceLines"
+          />
+        </div>
       </div>
       <div class="date-row">
         <div class="timestamps">
           <slot name="timestamps" />
         </div>
-        <div class="config-corner" />
+        <div class="config-corner">
+          <ConfigBottomRight />
+        </div>
       </div>
     </div>
     <q-resize-observer :debounce="0" :onResize="onResize" />
@@ -42,6 +51,8 @@ import { nextTick, ref, withDefaults } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { PriceSeries } from 'src/components/price-chart/price-chart.model';
+import PriceAxis from './components/price-axis.vue';
+import ConfigBottomRight from './components/config-bottom-right.vue';
 
 const priceSeriesData: PriceSeries[] = generateData();
 
@@ -103,6 +114,7 @@ function generateData() {
 
 async function onResize() {
   await updateChartHeightAndWidth();
+  priceLines.value = [];
 }
 
 function maximize() {
@@ -112,6 +124,13 @@ function maximize() {
 function close() {
   _width.value = 700;
   _fullScreen.value = false;
+}
+
+const priceLines = ref<number[]>([]);
+
+// @horizontalLine emit
+function addHorizontalLineToPriceLines(price: number) {
+  priceLines.value.push(price);
 }
 </script>
 
@@ -149,11 +168,6 @@ function close() {
         flex: 1;
         height: 100%;
         width: calc(100% - 80px);
-      }
-
-      .price {
-        width: 80px;
-        background-color: blue;
       }
     }
 
