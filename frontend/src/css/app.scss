@@ -12,6 +12,11 @@
 // body
 body {
   font-family: 'Inter';
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
 
 // Quasar Overwrites

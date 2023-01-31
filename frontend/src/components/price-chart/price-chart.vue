@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { nextTick, ref, withDefaults } from 'vue';
+import { ref, withDefaults } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { PriceSeries } from 'src/components/price-chart/price-chart.model';
@@ -83,8 +83,7 @@ const _fullScreen = ref(true);
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
 
-async function updateChartHeightAndWidth() {
-  await nextTick();
+function updateChartHeightAndWidth() {
   chartHeight.value = chartRef.value?.clientHeight;
   chartWidth.value = chartRef.value?.clientWidth;
 }
@@ -112,8 +111,8 @@ function generateData() {
   return data;
 }
 
-async function onResize() {
-  await updateChartHeightAndWidth();
+function onResize() {
+  updateChartHeightAndWidth();
   priceLines.value = [];
 }
 
