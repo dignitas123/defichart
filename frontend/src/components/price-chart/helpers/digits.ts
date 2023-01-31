@@ -9,7 +9,6 @@ export function getDigits(ticksize: number, seperator = '.') {
 
 export function getBeforeComma(ticksize: number, seperator = '.') {
   const splitStringNumByComma = ticksize.toString().split(seperator)[0];
-  console.log("ticksize", ticksize, splitStringNumByComma ? splitStringNumByComma.length : 0);
   return splitStringNumByComma ? splitStringNumByComma.length : 0;
 }
 

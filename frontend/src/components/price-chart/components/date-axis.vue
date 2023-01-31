@@ -1,7 +1,10 @@
 <template>
-  <span class="date-axis-text" v-for="(text, i) in dateTextArray" :key="i">{{
-    text
-  }}</span>
+  <span
+    class="date-axis-text text-center d-inline-block prevent-select"
+    v-for="(text, i) in dateTextArray"
+    :key="i"
+    >{{ text }}</span
+  >
 </template>
 
 <script lang="ts" setup>
@@ -26,7 +29,7 @@ const emit = defineEmits<{
 
 const { dataDates } = usePriceChartData(props.data);
 
-const MIN_CELL_DISTANCE = 40;
+const MIN_CELL_DISTANCE = 100;
 
 const dateStampCount = computed(() => {
   if (!props.width) {
@@ -35,28 +38,30 @@ const dateStampCount = computed(() => {
   return Math.round(props.width / MIN_CELL_DISTANCE);
 });
 
-const datesDistance = computed(() => {
-  if(MAX_CANDLES_SHOW <= 0 || !dateStampCount.value && dateStampCount.value > 0) {
+const datesDistanceX = computed(() => {
+  if (
+    MAX_CANDLES_SHOW <= 0 ||
+    (!dateStampCount.value && dateStampCount.value > 0)
+  ) {
     return undefined;
   }
   return Math.round(MAX_CANDLES_SHOW / dateStampCount.value);
 });
 
 const dateTextArray = computed(() => {
-  if(!datesDistance.value || !dataDates.value) return [];
+  if (!datesDistanceX.value || !dataDates.value) return [];
   let returnArray: string[] = [];
-  let candleX = Math.round(datesDistance.value / 2);
+  let candleX = Math.round(datesDistanceX.value / 2);
   for (let i = 0; i < dateStampCount.value; i++) {
-    if(candleX < dataDates.value.length) {
+    if (candleX < dataDates.value.length) {
       returnArray.push(calculateTimeForX(candleX));
-      candleX += datesDistance.value;
+      candleX += datesDistanceX.value;
     }
   }
   return returnArray;
 });
 
 function calculateTimeForX(x: number) {
-  console.log("time for", x)
   if (!dataDates.value) return '';
   // Get the difference between the current date and the next date
   let diff = 0;
@@ -76,13 +81,23 @@ function calculateTimeForX(x: number) {
     format = 'yyyy';
   }
 
-  // x: 20 + i * 20
-  console.log("dataDates.value[x]", dataDates.value[x])
-  return(dateFormat(dataDates.value[x], format));
+  return dateFormat(dataDates.value[x], format);
 }
 
+const datesDistance = computed(() => {
+  if (!props.width || !dateStampCount.value) {
+    return undefined;
+  }
+  return props.width / dateStampCount.value;
+});
+
+const datesDistanceInPx = computed(() => {
+  if (!datesDistance.value) return;
+  return datesDistance.value + 'px';
+});
+
 function drawDateStamps() {
-  if(!datesDistance.value) return;
+  if (!datesDistance.value) return;
 
   let xCandleScaledPixelPoint = datesDistance.value / 2; // start point on left bottom
   if (dateTextArray.value && datesDistance.value) {
@@ -103,6 +118,6 @@ watchEffect(() => {
 
 <style lang="scss" scoped>
 .date-axis-text {
-  margin-right: 40px;
+  width: v-bind(datesDistanceInPx);
 }
 </style>

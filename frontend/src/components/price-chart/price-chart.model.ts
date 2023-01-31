@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue';
-import { MAX_CANDLES_SHOW } from './consts';
+import { DATA_TICKSIZE, MAX_CANDLES_SHOW } from './consts';
+import { getBeforeComma, getDigits } from './helpers/digits';
 
 export interface PriceSeries {
   d: Date;
@@ -16,7 +17,7 @@ export function usePriceChartData(data: PriceSeries[]) {
   const starting_distance_difference = MAX_CANDLES_SHOW - data.length;
 
   const dataDates = computed(() => {
-    if(!data_max_candles_show.value.length) {
+    if (!data_max_candles_show.value.length) {
       return undefined;
     }
     return data_max_candles_show.value.map((ohlc) => ohlc.d);
@@ -48,6 +49,25 @@ export function usePriceChartData(data: PriceSeries[]) {
     return maxCandleHigh.value - minCandleLow.value;
   });
 
+  const priceAxisWidth = computed(() => {
+    if (maxCandleHigh.value && DATA_TICKSIZE) {
+      const digits = getDigits(DATA_TICKSIZE);
+      const beforeComma =
+        minCandleLow.value > 0
+          ? getBeforeComma(maxCandleHigh.value)
+          : getBeforeComma(minCandleLow.value);
+      const width_per_letter = 10.3;
+      const widthPixelsSum = (digits + beforeComma) * width_per_letter;
+      const maxPriceAxisWidth = 100;
+      if (widthPixelsSum > maxPriceAxisWidth) {
+        return maxPriceAxisWidth;
+      } else {
+        return widthPixelsSum;
+      }
+    }
+    return 0;
+  });
+
   return {
     data_max_candles_show,
     starting_distance_difference,
@@ -55,5 +75,6 @@ export function usePriceChartData(data: PriceSeries[]) {
     maxCandleHigh,
     minCandleLow,
     candleH2L,
+    priceAxisWidth,
   };
 }

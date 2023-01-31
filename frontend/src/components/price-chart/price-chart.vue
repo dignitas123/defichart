@@ -28,6 +28,7 @@
           <PriceAxis
             :data="priceSeriesData"
             :height="chartHeight"
+            :width="priceAxisWidth"
             @horizontalLine="addHorizontalLineToPriceLines"
           />
         </div>
@@ -47,10 +48,13 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults, nextTick, watch } from 'vue';
+import { ref, withDefaults, nextTick, watch, computed } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
-import { PriceSeries } from 'src/components/price-chart/price-chart.model';
+import {
+  PriceSeries,
+  usePriceChartData,
+} from 'src/components/price-chart/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import ConfigBottomRight from './components/config-bottom-right.vue';
 import DateAxis from './components/date-axis.vue';
@@ -133,6 +137,13 @@ const priceLines = ref<number[]>([]);
 function addHorizontalLineToPriceLines(price: number) {
   priceLines.value.push(price);
 }
+
+const { priceAxisWidth } = usePriceChartData(priceSeriesData);
+
+const priceAxisWidthInPx = computed(() => {
+  if (!priceAxisWidth.value) return undefined;
+  return priceAxisWidth.value + 'px';
+});
 </script>
 
 <style lang="scss">
@@ -145,6 +156,8 @@ function addHorizontalLineToPriceLines(price: number) {
 </style>
 
 <style lang="scss" scoped>
+$price-axis-width: v-bind('priceAxisWidthInPx');
+
 .chart-wrapper {
   border: 1px solid var(--q-primary);
   border-radius: 3px;
@@ -168,7 +181,7 @@ function addHorizontalLineToPriceLines(price: number) {
       .chart {
         flex: 1;
         height: 100%;
-        width: calc(100% - 80px);
+        width: calc(100% - #{$price-axis-width});
       }
     }
 
@@ -181,7 +194,7 @@ function addHorizontalLineToPriceLines(price: number) {
       }
 
       .config-corner {
-        width: 80px;
+        width: $price-axis-width;
       }
     }
   }
