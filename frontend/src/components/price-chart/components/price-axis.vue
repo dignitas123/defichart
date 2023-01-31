@@ -10,13 +10,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed, watchEffect, withDefaults } from 'vue';
 import { DATA_TICKSIZE } from '../consts';
 import {
   getBeforeComma,
   getDigits,
   roundToTicksize,
 } from '../helpers/digits';
-import { computed, watchEffect, withDefaults } from 'vue';
 import { PriceSeries, usePriceChartData } from '../price-chart.model';
 
 const props = withDefaults(
@@ -33,19 +33,19 @@ const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
-const { candleH2L, maxCandleHigh } = usePriceChartData(props.data);
+const { candleH2L, maxCandleHigh, minCandleLow } = usePriceChartData(props.data);
 
 const MIN_ROW_DISTANCE = 40; // in px
 
 const priceLinesCount = computed(() => {
   if (!props.height) {
-    return undefined;
+    return 0;
   }
   return Math.round(props.height / MIN_ROW_DISTANCE);
 });
 
 const priceDistance = computed(() => {
-  if (candleH2L.value && priceLinesCount.value) {
+  if (candleH2L.value && priceLinesCount.value && priceLinesCount.value > 0) {
     const distance = candleH2L.value / priceLinesCount.value;
     return roundToTicksize(distance, DATA_TICKSIZE);
   } else {
@@ -54,9 +54,7 @@ const priceDistance = computed(() => {
 });
 
 const priceArray = computed(() => {
-  if (!priceDistance.value || !maxCandleHigh.value || !priceLinesCount.value) {
-    return undefined;
-  }
+  if (!priceDistance.value || !maxCandleHigh.value || !priceLinesCount.value) return [];
   const scaleValue = parseFloat(priceDistance.value);
   let returnArray: string[] = [];
   let price = maxCandleHigh.value - scaleValue / 2;
@@ -85,7 +83,10 @@ const rowDistanceInPixel = computed(() => {
 const priceAxisWidth = computed(() => {
   if (maxCandleHigh.value && DATA_TICKSIZE) {
     const digits = getDigits(DATA_TICKSIZE);
-    const beforeComma = getBeforeComma(maxCandleHigh.value);
+    let beforeComma = getBeforeComma(maxCandleHigh.value);
+    if(minCandleLow.value < 0) {
+      beforeComma = getBeforeComma(minCandleLow.value);
+    }
     const width_per_letter = 10.3;
     const widthPixelsSum = (digits + beforeComma) * width_per_letter;
     const maxPriceAxisWidth = 100;
@@ -98,7 +99,7 @@ const priceAxisWidth = computed(() => {
   return 0;
 });
 
-function drawPrices() {
+function drawPriceLines() {
   if (rowDistance.value) {
     let pricePoint = rowDistance.value / 2; // start point on top
     if (priceArray.value && rowDistance) {
@@ -114,7 +115,7 @@ watchEffect(() => {
   if (!props.height) {
     return;
   }
-  drawPrices();
+  drawPriceLines();
 });
 </script>
 

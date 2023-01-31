@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults } from 'vue';
+import { ref, withDefaults, nextTick, watch } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { PriceSeries } from 'src/components/price-chart/price-chart.model';
@@ -93,7 +93,7 @@ function generateData() {
   const data = [];
   let o = 100;
   let currentDate = new Date();
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 400; i++) {
     currentDate.setMinutes(currentDate.getMinutes() + 5);
     const d = new Date(currentDate);
     const h = o + Math.random() * 5;
@@ -112,8 +112,9 @@ function generateData() {
   return data;
 }
 
-function onResize() {
+async function onResize() {
   updateChartHeightAndWidth();
+  await nextTick();
   priceLines.value = [];
 }
 

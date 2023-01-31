@@ -15,12 +15,11 @@ export function usePriceChartData(data: PriceSeries[]) {
 
   const starting_distance_difference = MAX_CANDLES_SHOW - data.length;
 
-  const dataDates = computed((): Date[] | undefined => {
-    if (data_max_candles_show.value.length) {
-      return data_max_candles_show.value.map((ohlc) => ohlc.d);
-    } else {
+  const dataDates = computed(() => {
+    if(!data_max_candles_show.value.length) {
       return undefined;
     }
+    return data_max_candles_show.value.map((ohlc) => ohlc.d);
   });
 
   const maxCandleHigh = computed(() => {
@@ -43,15 +42,10 @@ export function usePriceChartData(data: PriceSeries[]) {
   });
 
   const candleH2L = computed(() => {
-    if (
-      maxCandleHigh.value &&
-      minCandleLow.value &&
-      maxCandleHigh.value > minCandleLow.value
-    ) {
-      return maxCandleHigh.value - minCandleLow.value;
-    } else {
-      return Infinity;
+    if (!maxCandleHigh.value || !minCandleLow.value) {
+      return undefined;
     }
+    return maxCandleHigh.value - minCandleLow.value;
   });
 
   return {
