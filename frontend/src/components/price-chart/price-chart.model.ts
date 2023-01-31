@@ -15,6 +15,14 @@ export function usePriceChartData(data: PriceSeries[]) {
 
   const starting_distance_difference = MAX_CANDLES_SHOW - data.length;
 
+  const dataDates = computed((): Date[] | undefined => {
+    if (data_max_candles_show.value.length) {
+      return data_max_candles_show.value.map((ohlc) => ohlc.d);
+    } else {
+      return undefined;
+    }
+  });
+
   const maxCandleHigh = computed(() => {
     if (data_max_candles_show.value.length) {
       return Math.max(
@@ -49,6 +57,7 @@ export function usePriceChartData(data: PriceSeries[]) {
   return {
     data_max_candles_show,
     starting_distance_difference,
+    dataDates,
     maxCandleHigh,
     minCandleLow,
     candleH2L,

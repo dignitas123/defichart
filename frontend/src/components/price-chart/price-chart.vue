@@ -34,7 +34,7 @@
       </div>
       <div class="date-row">
         <div class="timestamps">
-          <slot name="timestamps" />
+          <DateAxis :data="priceSeriesData" :width="chartWidth" />
         </div>
         <div class="config-corner">
           <ConfigBottomRight />
@@ -53,6 +53,7 @@ import HeaderBar from './components/header-bar.vue';
 import { PriceSeries } from 'src/components/price-chart/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import ConfigBottomRight from './components/config-bottom-right.vue';
+import DateAxis from './components/date-axis.vue';
 
 const priceSeriesData: PriceSeries[] = generateData();
 
@@ -176,7 +177,6 @@ function addHorizontalLineToPriceLines(price: number) {
 
       .timestamps {
         flex: 1;
-        background-color: green;
       }
 
       .config-corner {

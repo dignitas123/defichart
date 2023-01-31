@@ -1,55 +1,54 @@
 <template>
-  <div class="date-axis" />
+  <span class="date-axis-text" v-for="(text, i) in dateTexts" :key="i">{{
+    text
+  }}</span>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, watchEffect, computed, nextTick } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { format as dateFormat } from 'date-fns';
+import { PriceSeries, usePriceChartData } from '../price-chart.model';
 
-interface DateAxisProps {
-  dates?: Date[];
-  update: boolean;
-}
-
-const props = defineProps<DateAxisProps>();
-
-const yBarRef = ref<HTMLCanvasElement | null>(null);
-
-const ctxYBar = computed(() => {
-  if (yBarRef.value) {
-    return yBarRef.value.getContext('2d');
-  } else {
-    return undefined;
-  }
-});
-
-watch(
-  () => props.update,
-  async () => {
-    if (ctxYBar.value && props.dates?.length) {
-      await calculateDateAxis(ctxYBar.value, props.dates);
-    }
+const props = withDefaults(
+  defineProps<{
+    data: PriceSeries[];
+    width?: number;
+  }>(),
+  {
+    data: () => [],
   }
 );
 
-watchEffect(async () => {
-  if (ctxYBar.value && props.dates?.length) {
-    await calculateDateAxis(ctxYBar.value, props.dates);
+const emit = defineEmits<{
+  (event: 'verticalLine', price: number): void;
+}>();
+
+const { dataDates } = usePriceChartData(props.data);
+
+const dateTexts = ref<string[]>([]);
+
+const priceArray = computed(() => {
+  if (!priceDistance.value || !maxCandleHigh.value || !priceLinesCount.value) {
+    return undefined;
   }
+  const scaleValue = parseFloat(priceDistance.value);
+  let returnArray: string[] = [];
+  let price = maxCandleHigh.value - scaleValue / 2;
+  for (let i = 0; i < priceLinesCount.value; i++) {
+    returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
+    price -= scaleValue;
+  }
+  return returnArray;
 });
 
-async function calculateDateAxis(ctx: CanvasRenderingContext2D, dates: Date[]) {
-  await nextTick();
-
-  const FONTSIZE = 14;
-
-  ctx.font = `${FONTSIZE}px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif`;
+function drawDateStamps() {
+  if (!dataDates.value) return;
   // Loop through the date array
-  for (let i = 0; i < dates?.length; i += 8) {
+  for (let i = 0; i < dataDates.value.length; i += 8) {
     // Get the difference between the current date and the next date
     let diff = 0;
-    if (i < dates.length - 1) {
-      diff = dates[i + 1].getTime() - dates[i].getTime();
+    if (i < dataDates.value.length - 1) {
+      diff = dataDates.value[i + 1].getTime() - dataDates.value[i].getTime();
     }
 
     // Determine the format to display the date in based on the difference
@@ -63,15 +62,22 @@ async function calculateDateAxis(ctx: CanvasRenderingContext2D, dates: Date[]) {
     } else {
       format = 'yyyy';
     }
-    // Draw the date on the canvas
-    ctx.fillText(dateFormat(dates[i], format), 20 + i * 20, 20);
+
+    // x: 20 + i * 20
+    dateTexts.value.push(dateFormat(dataDates.value[i], format));
   }
 }
+
+watchEffect(() => {
+  if (!props.width) {
+    return;
+  }
+  drawDateStamps();
+});
 </script>
 
 <style lang="scss" scoped>
-.date-axis {
-  height: 35px; // TODO: hat keine Auswirkungen, sehr störrisch
-  background: grey;
+.date-axis-text {
+  margin-right: 40px;
 }
 </style>

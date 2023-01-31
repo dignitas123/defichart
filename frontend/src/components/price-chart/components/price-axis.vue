@@ -10,12 +10,12 @@
 </template>
 
 <script setup lang="ts">
-import { DATA_TICKSIZE } from 'src/components/price-chart/consts';
+import { DATA_TICKSIZE } from '../consts';
 import {
   getBeforeComma,
   getDigits,
   roundToTicksize,
-} from 'src/components/price-chart/helpers/digits';
+} from '../helpers/digits';
 import { computed, watchEffect, withDefaults } from 'vue';
 import { PriceSeries, usePriceChartData } from '../price-chart.model';
 
@@ -38,7 +38,9 @@ const { candleH2L, maxCandleHigh } = usePriceChartData(props.data);
 const MIN_ROW_DISTANCE = 40; // in px
 
 const priceLinesCount = computed(() => {
-  if (!props.height) return undefined;
+  if (!props.height) {
+    return undefined;
+  }
   return Math.round(props.height / MIN_ROW_DISTANCE);
 });
 
@@ -52,27 +54,24 @@ const priceDistance = computed(() => {
 });
 
 const priceArray = computed(() => {
-  // TODO: does the calcualation 3x on mounted - why
-  if (priceDistance.value && maxCandleHigh.value && priceLinesCount.value) {
-    const scaleValue = parseFloat(priceDistance.value);
-    let returnArray: string[] = [];
-    let price = maxCandleHigh.value - scaleValue / 2;
-    for (let i = 0; i < priceLinesCount.value; i++) {
-      returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
-      price -= scaleValue;
-    }
-    return returnArray;
-  } else {
+  if (!priceDistance.value || !maxCandleHigh.value || !priceLinesCount.value) {
     return undefined;
   }
+  const scaleValue = parseFloat(priceDistance.value);
+  let returnArray: string[] = [];
+  let price = maxCandleHigh.value - scaleValue / 2;
+  for (let i = 0; i < priceLinesCount.value; i++) {
+    returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
+    price -= scaleValue;
+  }
+  return returnArray;
 });
 
 const rowDistance = computed(() => {
-  if (props.height && priceLinesCount.value) {
-    return props.height / priceLinesCount.value;
-  } else {
+  if (!props.height || !priceLinesCount.value) {
     return undefined;
   }
+  return props.height / priceLinesCount.value;
 });
 
 const rowDistanceInPixel = computed(() => {
