@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { DATA_TICKSIZE, MAX_CANDLES_SHOW } from './consts';
+import { DATA_TICKSIZE } from './consts';
 import { getBeforeComma, getDigits } from './helpers/digits';
 
 export interface PriceSeries {
@@ -11,31 +11,56 @@ export interface PriceSeries {
   v: number;
 }
 
-export function usePriceChartData(data: PriceSeries[]) {
-  const data_max_candles_show = ref(data.slice(-MAX_CANDLES_SHOW));
+const max_candles_show = ref(30);
+const data = ref<PriceSeries[]>([]);
 
-  const starting_distance_difference = MAX_CANDLES_SHOW - data.length;
+export function usePriceChartData() {
+  // Setter
+  function setData(d: PriceSeries[]) {
+    data.value = d;
+  }
+  function setMaxCandlesShow(x: number) {
+    max_candles_show.value = x;
+  }
+  function decreaseMaxCandleShow() {
+    max_candles_show.value--;
+  }
+  function inceaseMaxCandleShow() {
+    max_candles_show.value++;
+  }
+  // Getter
+  const maxCandlesShow = computed(() => {
+    return max_candles_show.value;
+  });
+
+  const dataMaxCandlesShow = computed(() => {
+    return data.value.slice(-max_candles_show.value);
+  });
+
+  const startingDistanceDifference = computed(() => {
+    return max_candles_show.value - data.value.length;
+  });
 
   const dataDates = computed(() => {
-    if (!data_max_candles_show.value.length) {
+    if (!dataMaxCandlesShow.value.length) {
       return undefined;
     }
-    return data_max_candles_show.value.map((ohlc) => ohlc.d);
+    return dataMaxCandlesShow.value.map((ohlc) => ohlc.d);
   });
 
   const maxCandleHigh = computed(() => {
-    if (data_max_candles_show.value.length) {
+    if (dataMaxCandlesShow.value.length) {
       return Math.max(
-        ...data_max_candles_show.value.map((ohlc) => Number(ohlc.h))
+        ...dataMaxCandlesShow.value.map((ohlc) => Number(ohlc.h))
       );
     }
     return Infinity;
   });
 
   const minCandleLow = computed(() => {
-    if (data_max_candles_show.value.length) {
+    if (dataMaxCandlesShow.value.length) {
       return Math.min(
-        ...data_max_candles_show.value.map((ohlc) => Number(ohlc.l))
+        ...dataMaxCandlesShow.value.map((ohlc) => Number(ohlc.l))
       );
     } else {
       return 0;
@@ -69,8 +94,13 @@ export function usePriceChartData(data: PriceSeries[]) {
   });
 
   return {
-    data_max_candles_show,
-    starting_distance_difference,
+    setData,
+    setMaxCandlesShow,
+    maxCandlesShow,
+    decreaseMaxCandleShow,
+    inceaseMaxCandleShow,
+    dataMaxCandlesShow,
+    startingDistanceDifference,
     dataDates,
     maxCandleHigh,
     minCandleLow,

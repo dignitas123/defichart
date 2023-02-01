@@ -10,24 +10,17 @@
 <script lang="ts" setup>
 import { computed, watchEffect } from 'vue';
 import { format as dateFormat } from 'date-fns';
-import { PriceSeries, usePriceChartData } from '../price-chart.model';
-import { MAX_CANDLES_SHOW } from '../consts';
+import { usePriceChartData } from '../price-chart.model';
 
-const props = withDefaults(
-  defineProps<{
-    data: PriceSeries[];
-    width?: number;
-  }>(),
-  {
-    data: () => [],
-  }
-);
+const props = defineProps<{
+  width?: number;
+}>();
 
 const emit = defineEmits<{
   (event: 'verticalLine', price: number): void;
 }>();
 
-const { dataDates } = usePriceChartData(props.data);
+const { dataDates, maxCandlesShow } = usePriceChartData();
 
 const MIN_CELL_DISTANCE = 100;
 
@@ -40,12 +33,12 @@ const dateStampCount = computed(() => {
 
 const datesDistanceX = computed(() => {
   if (
-    MAX_CANDLES_SHOW <= 0 ||
+    maxCandlesShow.value <= 0 ||
     (!dateStampCount.value && dateStampCount.value > 0)
   ) {
     return undefined;
   }
-  return Math.round(MAX_CANDLES_SHOW / dateStampCount.value);
+  return Math.round(maxCandlesShow.value / dateStampCount.value);
 });
 
 const dateTextArray = computed(() => {

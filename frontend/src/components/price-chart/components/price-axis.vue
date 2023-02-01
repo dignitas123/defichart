@@ -12,25 +12,19 @@
 <script setup lang="ts">
 import { DATA_TICKSIZE } from '../consts';
 import { roundToTicksize } from '../helpers/digits';
-import { computed, watchEffect, withDefaults } from 'vue';
-import { PriceSeries, usePriceChartData } from '../price-chart.model';
+import { computed, watchEffect } from 'vue';
+import { usePriceChartData } from '../price-chart.model';
 
-const props = withDefaults(
-  defineProps<{
-    data: PriceSeries[];
-    height?: number;
-    width?: number;
-  }>(),
-  {
-    data: () => [],
-  }
-);
+const props = defineProps<{
+  height?: number;
+  width?: number;
+}>();
 
 const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
-const { candleH2L, maxCandleHigh } = usePriceChartData(props.data);
+const { candleH2L, maxCandleHigh } = usePriceChartData();
 
 const MIN_ROW_DISTANCE = 40; // in px
 

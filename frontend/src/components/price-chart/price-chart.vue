@@ -18,7 +18,6 @@
       <div class="price-row">
         <div class="chart" ref="chartRef">
           <CandlestickChart
-            :data="priceSeriesData"
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
@@ -26,7 +25,6 @@
         </div>
         <div>
           <PriceAxis
-            :data="priceSeriesData"
             :height="chartHeight"
             :width="priceAxisWidth"
             @horizontalLine="addHorizontalLineToPriceLines"
@@ -34,8 +32,13 @@
         </div>
       </div>
       <div class="date-row">
-        <div class="timestamps">
-          <DateAxis :data="priceSeriesData" :width="chartWidth" />
+        <div
+          class="timestamps"
+          @mousedown="startXDrag"
+          @mousemove="onXDrag"
+          @mouseup="stopXDrag"
+        >
+          <DateAxis :width="chartWidth" />
         </div>
         <div class="config-corner">
           <ConfigBottomRight />
@@ -48,18 +51,13 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults, nextTick, watch, computed } from 'vue';
+import { ref, withDefaults, nextTick, computed, watch } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
-import {
-  PriceSeries,
-  usePriceChartData,
-} from 'src/components/price-chart/price-chart.model';
+import { usePriceChartData } from 'src/components/price-chart/price-chart.model';
 import PriceAxis from './components/price-axis.vue';
 import ConfigBottomRight from './components/config-bottom-right.vue';
 import DateAxis from './components/date-axis.vue';
-
-const priceSeriesData: PriceSeries[] = generateData();
 
 interface ChartWrapperProps {
   height?: number;
@@ -75,18 +73,53 @@ const props = withDefaults(defineProps<ChartWrapperProps>(), {
 
 const HEADER_HEIGHT = 32;
 const INDEX_PAGE_PADDING = 2 * 4;
+const X_SCALE_SPEED = 8;
+
+const {
+  setData,
+  priceAxisWidth,
+  maxCandlesShow,
+  inceaseMaxCandleShow,
+  decreaseMaxCandleShow,
+} = usePriceChartData();
+
+setData(generateData());
+
+const $q = useQuasar();
 
 const chartRef = ref<HTMLCanvasElement | null>(null);
 
 const _height = ref(props.height);
 const _width = ref(props.width);
 
-const $q = useQuasar();
-
 const _fullScreen = ref(true);
 
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
+
+const xDragging = ref(false);
+const xDraggingStart = ref(0);
+
+function startXDrag(event: MouseEvent) {
+  xDragging.value = true;
+  xDraggingStart.value = event.clientX;
+}
+
+function onXDrag(event: MouseEvent) {
+  if (!xDragging.value) return;
+  console.log(event.clientX, xDraggingStart.value);
+  if (event.clientX > xDraggingStart.value + X_SCALE_SPEED) {
+    inceaseMaxCandleShow();
+    xDraggingStart.value = event.clientX;
+  } else if (event.clientX < xDraggingStart.value - X_SCALE_SPEED) {
+    decreaseMaxCandleShow();
+    xDraggingStart.value = event.clientX;
+  }
+}
+
+function stopXDrag() {
+  xDragging.value = false;
+}
 
 function updateChartHeightAndWidth() {
   chartHeight.value = chartRef.value?.clientHeight;
@@ -116,11 +149,14 @@ function generateData() {
   return data;
 }
 
-async function onResize() {
+function onResize() {
   updateChartHeightAndWidth();
+}
+
+watch([chartHeight, chartWidth, maxCandlesShow], async () => {
   await nextTick();
   priceLines.value = [];
-}
+});
 
 function maximize() {
   _fullScreen.value = true;
@@ -138,22 +174,11 @@ function addHorizontalLineToPriceLines(price: number) {
   priceLines.value.push(price);
 }
 
-const { priceAxisWidth } = usePriceChartData(priceSeriesData);
-
 const priceAxisWidthInPx = computed(() => {
   if (!priceAxisWidth.value) return undefined;
   return priceAxisWidth.value + 'px';
 });
 </script>
-
-<style lang="scss">
-.chart-wrapper {
-  .q-layout {
-    position: absolute;
-    height: 100%;
-  }
-}
-</style>
 
 <style lang="scss" scoped>
 $price-axis-width: v-bind('priceAxisWidthInPx');
@@ -191,6 +216,9 @@ $price-axis-width: v-bind('priceAxisWidthInPx');
 
       .timestamps {
         flex: 1;
+        &:hover {
+          cursor: ew-resize;
+        }
       }
 
       .config-corner {
