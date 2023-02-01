@@ -6,6 +6,8 @@
         ? $q.screen.height - HEADER_HEIGHT - INDEX_PAGE_PADDING + 'px'
         : _height + 'px'
     }; width: ${_fullScreen ? '100%' : _width + 'px'}`"
+    @mouseup="stopXDrag"
+    @mousemove="onXDrag"
   >
     <!-- TODO: loading spinner when loading chart data -->
     <div v-if="false" class="spinner-bar-wrapper">
@@ -32,12 +34,7 @@
         </div>
       </div>
       <div class="date-row">
-        <div
-          class="timestamps"
-          @mousedown="startXDrag"
-          @mousemove="onXDrag"
-          @mouseup="stopXDrag"
-        >
+        <div class="timestamps" @mousedown="startXDrag">
           <DateAxis :width="chartWidth" />
         </div>
         <div class="config-corner">
@@ -73,7 +70,6 @@ const props = withDefaults(defineProps<ChartWrapperProps>(), {
 
 const HEADER_HEIGHT = 32;
 const INDEX_PAGE_PADDING = 2 * 4;
-const X_SCALE_SPEED = 8;
 
 const {
   setData,
@@ -107,12 +103,11 @@ function startXDrag(event: MouseEvent) {
 
 function onXDrag(event: MouseEvent) {
   if (!xDragging.value) return;
-  console.log(event.clientX, xDraggingStart.value);
-  if (event.clientX > xDraggingStart.value + X_SCALE_SPEED) {
-    inceaseMaxCandleShow();
+  if (event.clientX > xDraggingStart.value + 5) {
+    inceaseMaxCandleShow(2);
     xDraggingStart.value = event.clientX;
-  } else if (event.clientX < xDraggingStart.value - X_SCALE_SPEED) {
-    decreaseMaxCandleShow();
+  } else if (event.clientX < xDraggingStart.value - 5) {
+    decreaseMaxCandleShow(2);
     xDraggingStart.value = event.clientX;
   }
 }

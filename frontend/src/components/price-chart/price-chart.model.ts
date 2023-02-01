@@ -22,11 +22,11 @@ export function usePriceChartData() {
   function setMaxCandlesShow(x: number) {
     max_candles_show.value = x;
   }
-  function decreaseMaxCandleShow() {
-    max_candles_show.value--;
+  function decreaseMaxCandleShow(n = 1) {
+    max_candles_show.value += n;
   }
-  function inceaseMaxCandleShow() {
-    max_candles_show.value++;
+  function inceaseMaxCandleShow(n = 1) {
+    max_candles_show.value -= n;
   }
   // Getter
   const maxCandlesShow = computed(() => {
