@@ -23,7 +23,7 @@ export function usePriceChartData() {
     max_candles_show.value = x;
   }
   function decreaseMaxCandleShow(n = 1) {
-    if(max_candles_show.value - n > 1) {
+    if (max_candles_show.value - n > 1) {
       max_candles_show.value -= n;
     } else {
       max_candles_show.value = 1;
@@ -50,6 +50,13 @@ export function usePriceChartData() {
       return undefined;
     }
     return dataMaxCandlesShow.value.map((ohlc) => ohlc.d);
+  });
+
+  const maxCandleHighAll = computed(() => {
+    if (data.value.length) {
+      return Math.max(...data.value.map((ohlc) => Number(ohlc.h)));
+    }
+    return Infinity;
   });
 
   const maxCandleHigh = computed(() => {
@@ -79,22 +86,26 @@ export function usePriceChartData() {
   });
 
   const priceAxisWidth = computed(() => {
-    if (maxCandleHigh.value && DATA_TICKSIZE) {
-      const digits = getDigits(DATA_TICKSIZE);
-      const beforeComma =
-        minCandleLow.value > 0
-          ? getBeforeComma(maxCandleHigh.value)
-          : getBeforeComma(minCandleLow.value);
-      const width_per_letter = 10.3;
-      const widthPixelsSum = (digits + beforeComma) * width_per_letter;
-      const maxPriceAxisWidth = 100;
-      if (widthPixelsSum > maxPriceAxisWidth) {
-        return maxPriceAxisWidth;
-      } else {
-        return widthPixelsSum;
-      }
+    if (!maxCandleHighAll.value || !DATA_TICKSIZE) {
+      return 70;
     }
-    return 0;
+    const digits = getDigits(DATA_TICKSIZE);
+    let beforeComma = 0;
+    if (
+      String(maxCandleHighAll.value).length >= String(minCandleLow.value).length
+    ) {
+      beforeComma = getBeforeComma(maxCandleHighAll.value);
+    } else {
+      beforeComma = getBeforeComma(minCandleLow.value);
+    }
+    const width_per_letter = 10.3;
+    const widthPixelsSum = (digits + beforeComma) * width_per_letter;
+    const maxPriceAxisWidth = 100;
+    if (widthPixelsSum > maxPriceAxisWidth) {
+      return maxPriceAxisWidth;
+    } else {
+      return widthPixelsSum;
+    }
   });
 
   return {

@@ -1,6 +1,6 @@
 <template>
   <span
-    class="date-axis-text text-center d-inline-block prevent-select"
+    class="date-axis-text text-center d-inline-block prevent-select float-right"
     v-for="(text, i) in dateTextArray"
     :key="i"
     >{{ text }}</span

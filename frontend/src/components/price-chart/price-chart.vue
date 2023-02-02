@@ -103,11 +103,12 @@ function startXDrag(event: MouseEvent) {
 
 function onXDrag(event: MouseEvent) {
   if (!xDragging.value) return;
-  if (event.clientX > xDraggingStart.value + 5) {
-    inceaseMaxCandleShow(2);
+  let candlesToIncrease = Math.round(maxCandlesShow.value / 30);
+  if (event.clientX > xDraggingStart.value) {
+    inceaseMaxCandleShow(candlesToIncrease);
     xDraggingStart.value = event.clientX;
-  } else if (event.clientX < xDraggingStart.value - 5) {
-    decreaseMaxCandleShow(2);
+  } else if (event.clientX < xDraggingStart.value) {
+    decreaseMaxCandleShow(candlesToIncrease);
     xDraggingStart.value = event.clientX;
   }
 }
