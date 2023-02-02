@@ -13,7 +13,7 @@
     <div v-if="false" class="spinner-bar-wrapper">
       <q-spinner-ios color="primary" size="xl" />
     </div>
-    <div class="container">
+    <div class="container" @wheel="onWheel">
       <div class="header-bar">
         <HeaderBar @maximize="maximize" @close="close" />
       </div>
@@ -119,6 +119,18 @@ function stopXDrag() {
 function updateChartHeightAndWidth() {
   chartHeight.value = chartRef.value?.clientHeight;
   chartWidth.value = chartRef.value?.clientWidth;
+}
+
+const wheelDragginStart = ref(0);
+
+function onWheel(event: WheelEvent) {
+  if (event.deltaY > wheelDragginStart.value + 10) {
+    inceaseMaxCandleShow();
+    wheelDragginStart.value = 0;
+  } else if (event.deltaY < wheelDragginStart.value - 10) {
+    decreaseMaxCandleShow();
+    wheelDragginStart.value = 0;
+  }
 }
 
 function generateData() {

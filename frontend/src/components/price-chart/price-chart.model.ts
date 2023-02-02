@@ -11,7 +11,7 @@ export interface PriceSeries {
   v: number;
 }
 
-const max_candles_show = ref(30);
+const max_candles_show = ref(40);
 const data = ref<PriceSeries[]>([]);
 
 export function usePriceChartData() {
@@ -23,10 +23,14 @@ export function usePriceChartData() {
     max_candles_show.value = x;
   }
   function decreaseMaxCandleShow(n = 1) {
-    max_candles_show.value += n;
+    if(max_candles_show.value - n > 1) {
+      max_candles_show.value -= n;
+    } else {
+      max_candles_show.value = 1;
+    }
   }
   function inceaseMaxCandleShow(n = 1) {
-    max_candles_show.value -= n;
+    max_candles_show.value += n;
   }
   // Getter
   const maxCandlesShow = computed(() => {
