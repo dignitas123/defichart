@@ -37,7 +37,7 @@
         <div class="timestamps" @mousedown="startXDrag">
           <DateAxis :width="chartWidth" />
         </div>
-        <div class="config-corner">
+        <div :style="`width: ${priceAxisWidth}px`">
           <ConfigBottomRight />
         </div>
       </div>
@@ -48,7 +48,7 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults, nextTick, computed, watch } from 'vue';
+import { ref, withDefaults, nextTick, watch } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { usePriceChartData } from 'src/components/price-chart/price-chart.model';
@@ -185,16 +185,9 @@ const priceLines = ref<number[]>([]);
 function addHorizontalLineToPriceLines(price: number) {
   priceLines.value.push(price);
 }
-
-const priceAxisWidthInPx = computed(() => {
-  if (!priceAxisWidth.value) return undefined;
-  return priceAxisWidth.value + 'px';
-});
 </script>
 
 <style lang="scss" scoped>
-$price-axis-width: v-bind('priceAxisWidthInPx');
-
 .chart-wrapper {
   border: 1px solid var(--q-primary);
   border-radius: 3px;
@@ -218,7 +211,6 @@ $price-axis-width: v-bind('priceAxisWidthInPx');
       .chart {
         flex: 1;
         height: 100%;
-        width: calc(100% - #{$price-axis-width});
       }
     }
 
@@ -231,10 +223,6 @@ $price-axis-width: v-bind('priceAxisWidthInPx');
         &:hover {
           cursor: ew-resize;
         }
-      }
-
-      .config-corner {
-        width: $price-axis-width;
       }
     }
   }
