@@ -8,13 +8,15 @@
     }; width: ${_fullScreen ? '100%' : _width + 'px'}`"
     @mouseup="stopXDrag"
     @mousemove="onXDrag"
+    @mouseleave="onChartContainterLeave"
   >
     <!-- TODO: loading spinner when loading chart data -->
     <div v-if="false" class="spinner-bar-wrapper">
       <q-spinner-ios color="primary" size="xl" />
     </div>
     <div class="container" @wheel="onWheel">
-      <div class="header-bar">
+      <div class="resize-area" />
+      <div class="header-bar prevent-select">
         <HeaderBar @maximize="maximize" @close="close" />
       </div>
       <div class="price-row">
@@ -88,7 +90,7 @@ const chartRef = ref<HTMLCanvasElement | null>(null);
 const _height = ref(props.height);
 const _width = ref(props.width);
 
-const _fullScreen = ref(true);
+const _fullScreen = ref(false);
 
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
@@ -101,15 +103,19 @@ function startXDrag(event: MouseEvent) {
   xDraggingStart.value = event.clientX;
 }
 
+function onChartContainterLeave() {
+  xDragging.value = false;
+}
+
 function onXDrag(event: MouseEvent) {
   if (!xDragging.value) return;
-  let candlesToIncrease = Math.round(maxCandlesShow.value / 30);
-  if (event.clientX > xDraggingStart.value) {
+  let candlesToIncrease = Math.ceil(maxCandlesShow.value / 30);
+  if (event.x > xDraggingStart.value) {
     inceaseMaxCandleShow(candlesToIncrease);
-    xDraggingStart.value = event.clientX;
-  } else if (event.clientX < xDraggingStart.value) {
+    xDraggingStart.value = event.x;
+  } else if (event.x < xDraggingStart.value) {
     decreaseMaxCandleShow(candlesToIncrease);
-    xDraggingStart.value = event.clientX;
+    xDraggingStart.value = event.x;
   }
 }
 
@@ -190,12 +196,24 @@ function addHorizontalLineToPriceLines(price: number) {
 <style lang="scss" scoped>
 .chart-wrapper {
   border: 1px solid var(--q-primary);
-  border-radius: 3px;
+  // border-radius: 3px; // TODO: not sure if should have border radius
 
   .container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
+
+    .resize-area {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 25px;
+      height: 25px;
+      &:hover {
+        cursor: nwse-resize;
+      }
+    }
 
     .header-bar {
       display: flex;
