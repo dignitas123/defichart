@@ -124,11 +124,15 @@ function updateChartHeightAndWidth() {
 const wheelDragginStart = ref(0);
 
 function onWheel(event: WheelEvent) {
-  if (event.deltaY > wheelDragginStart.value + 10) {
-    inceaseMaxCandleShow();
+  let candleToIncrease = 2;
+  if (maxCandlesShow.value < 15) {
+    candleToIncrease = 1;
+  }
+  if (event.deltaY > wheelDragginStart.value) {
+    inceaseMaxCandleShow(candleToIncrease);
     wheelDragginStart.value = 0;
-  } else if (event.deltaY < wheelDragginStart.value - 10) {
-    decreaseMaxCandleShow();
+  } else if (event.deltaY < wheelDragginStart.value) {
+    decreaseMaxCandleShow(candleToIncrease);
     wheelDragginStart.value = 0;
   }
 }

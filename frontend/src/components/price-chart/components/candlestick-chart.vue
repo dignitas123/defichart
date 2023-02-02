@@ -50,7 +50,7 @@
 
 <script lang="ts" setup>
 import { computed, ref, watchEffect } from 'vue';
-import { CANDLE_DISTANCE, PRICE_LINES_TRANSPARENCY } from '../consts';
+import { PRICE_LINES_TRANSPARENCY } from '../consts';
 import { PriceSeries } from '../price-chart.model';
 import { usePriceChartData } from '../price-chart.model';
 
@@ -99,8 +99,8 @@ const candleWidth = computed(() => {
   if (props.width) {
     return (
       props.width / maxCandlesShow.value -
-      CANDLE_DISTANCE -
-      CANDLE_DISTANCE / maxCandlesShow.value
+      candleDistance.value -
+      candleDistance.value / maxCandlesShow.value
     );
   }
   return 0;
@@ -113,6 +113,27 @@ const candleWickWidth = computed(() => {
   return undefined;
 });
 
+// x-distance between candles
+const candleDistance = computed(() => {
+  const cW = candleWidth.value;
+  if (cW) {
+    if (cW > 40) {
+      return 5;
+    } else if (cW > 16) {
+      return 4;
+    } else if (cW > 20) {
+      return 3;
+    } else if (cW > 6.5) {
+      return 2;
+    } else if (cW > 4) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  return 3;
+});
+
 function drawChart() {
   if (!props.width || !props.height) {
     return;
@@ -123,12 +144,12 @@ function drawChart() {
     (startingDistanceDifference.value > 0
       ? startingDistanceDifference.value
       : 0) *
-      (candleWidth.value + CANDLE_DISTANCE) +
-    CANDLE_DISTANCE;
+      (candleWidth.value + candleDistance.value) +
+    candleDistance.value;
 
   dataMaxCandlesShow.value.forEach((ohlc) => {
     drawCandle(xPositionCandlestick, ohlc, candleWidth.value);
-    xPositionCandlestick += candleWidth.value + CANDLE_DISTANCE;
+    xPositionCandlestick += candleWidth.value + candleDistance.value;
   });
 
   function drawCandle(
