@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watchEffect } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import { PRICE_LINES_TRANSPARENCY } from '../consts';
 import { PriceSeries } from '../price-chart.model';
 import { usePriceChartData } from '../price-chart.model';
@@ -95,6 +95,8 @@ const CANDLE_BORDER = false;
 
 const candles = ref<Candle[]>([]);
 
+const candleDistance = ref(3); // inital 3 as standard
+
 const candleWidth = computed(() => {
   if (props.width) {
     return (
@@ -113,8 +115,13 @@ const candleWickWidth = computed(() => {
   return undefined;
 });
 
+// candleDistance has to calculate after candleWidth
+watch(candleWidth, () => {
+  candleDistance.value = calcCandleDistance();
+});
+
 // x-distance between candles
-const candleDistance = computed(() => {
+function calcCandleDistance() {
   const cW = candleWidth.value;
   if (cW) {
     if (cW > 40) {
@@ -132,7 +139,7 @@ const candleDistance = computed(() => {
     }
   }
   return 3;
-});
+}
 
 function drawChart() {
   if (!props.width || !props.height) {
@@ -219,5 +226,6 @@ watchEffect(() => {
     return;
   }
   drawChart();
+  candleDistance.value = calcCandleDistance();
 });
 </script>
