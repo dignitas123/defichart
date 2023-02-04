@@ -44,3 +44,7 @@ body {
 .float-right {
   float: right;
 }
+
+.bg-shadow {
+  box-shadow: 0 0 2px var(--q-secondary);
+}

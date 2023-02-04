@@ -1,6 +1,10 @@
 <template>
+  <q-page class="q-pa-xs"
+    @mouseup="stopResizeDrag"
+    @mousemove="onResizeDrag">
   <div
     class="chart-wrapper"
+    :class="{'bg-shadow': chartWrapperShadow}"
     :style="`height: ${
       _fullScreen
         ? $q.screen.height - HEADER_HEIGHT - INDEX_PAGE_PADDING + 'px'
@@ -9,13 +13,16 @@
     @mouseup="stopXDrag"
     @mousemove="onXDrag"
     @mouseleave="onChartContainterLeave"
+    @mouseover="chartWrapperShadow = true"
   >
     <!-- TODO: loading spinner when loading chart data -->
     <div v-if="false" class="spinner-bar-wrapper">
       <q-spinner-ios color="primary" size="xl" />
     </div>
     <div class="container" @wheel="onWheel">
-      <div class="resize-area" />
+      <div class="resize-area"
+        @mousedown="startOnResizeDrag"
+      />
       <div class="header-bar prevent-select">
         <HeaderBar @maximize="maximize" @close="close" />
       </div>
@@ -46,11 +53,12 @@
     </div>
     <q-resize-observer :debounce="0" :onResize="onResize" />
   </div>
+</q-page>
 </template>
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
-import { ref, withDefaults, nextTick, watch } from 'vue';
+import { ref, withDefaults, nextTick, watch, reactive } from 'vue';
 import CandlestickChart from './components/candlestick-chart.vue';
 import HeaderBar from './components/header-bar.vue';
 import { usePriceChartData } from 'src/components/price-chart/price-chart.model';
@@ -72,6 +80,8 @@ const props = withDefaults(defineProps<ChartWrapperProps>(), {
 
 const HEADER_HEIGHT = 32;
 const INDEX_PAGE_PADDING = 2 * 4;
+const MIN_CHART_HEIGHT = 300;
+const MIN_CHART_WIDTH = 300;
 
 const {
   setData,
@@ -86,6 +96,8 @@ setData(generateData());
 const $q = useQuasar();
 
 const chartRef = ref<HTMLCanvasElement | null>(null);
+
+const chartWrapperShadow = ref(false);
 
 const _height = ref(props.height);
 const _width = ref(props.width);
@@ -105,6 +117,7 @@ function startXDrag(event: MouseEvent) {
 
 function onChartContainterLeave() {
   xDragging.value = false;
+  chartWrapperShadow.value = false;
 }
 
 function onXDrag(event: MouseEvent) {
@@ -121,6 +134,45 @@ function onXDrag(event: MouseEvent) {
 
 function stopXDrag() {
   xDragging.value = false;
+}
+
+const resizeDrag = ref(false);
+const resizeDragStart = reactive({
+  x: 0,
+  y: 0
+});
+
+console.log('resizeDragStart', resizeDragStart, _width.value, _height.value);
+
+function startOnResizeDrag() {
+  resizeDrag.value = true;
+}
+
+function stopResizeDrag() {
+  resizeDrag.value = false;
+}
+
+function onResizeDrag(event: MouseEvent) {
+  if(!resizeDrag.value) {
+    return;
+  }
+  if(!resizeDragStart.x || !resizeDragStart.y) {
+    resizeDragStart.x = event.x;
+    resizeDragStart.y = event.y;
+    return;
+  }
+  const xDiff = event.x - resizeDragStart.x;
+  const newChartWidth = _width.value + xDiff;
+  if(newChartWidth >= MIN_CHART_WIDTH) {
+    _width.value = newChartWidth;
+    resizeDragStart.x = event.x;
+  }
+  const yDiff = event.y - resizeDragStart.y;
+  const newChartHeight = _height.value + yDiff;
+  if(newChartHeight >= MIN_CHART_HEIGHT) {
+    _height.value = newChartHeight;
+    resizeDragStart.y = event.y;
+  }
 }
 
 function updateChartHeightAndWidth() {
