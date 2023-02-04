@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, watchEffect } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { PRICE_LINES_TRANSPARENCY } from '../consts';
 import { PriceSeries } from '../price-chart.model';
 import { usePriceChartData } from '../price-chart.model';
@@ -95,34 +95,15 @@ const CANDLE_BORDER = false;
 
 const candles = ref<Candle[]>([]);
 
-const candleDistance = ref(3); // inital 3 as standard
+const candleWidth = ref(0);
+const candleWickWidth = ref(0);
 
-const candleWidth = computed(() => {
-  if (props.width) {
-    return (
-      props.width / maxCandlesShow.value -
-      candleDistance.value -
-      candleDistance.value / maxCandlesShow.value
-    );
-  }
-  return 0;
-});
-
-const candleWickWidth = computed(() => {
-  if (candleWidth.value) {
-    return candleWidth.value * CANDLE_WICK_THICKNESS;
-  }
-  return undefined;
-});
-
-// candleDistance has to calculate after candleWidth
-watch(candleWidth, () => {
-  candleDistance.value = calcCandleDistance();
-});
+function getCandleWickWidth(cW: number) {
+  return cW * CANDLE_WICK_THICKNESS;
+}
 
 // x-distance between candles
-function calcCandleDistance() {
-  const cW = candleWidth.value;
+function calcCandleDistance(cW: number) {
   if (cW) {
     if (cW > 40) {
       return 5;
@@ -130,7 +111,7 @@ function calcCandleDistance() {
       return 4;
     } else if (cW > 20) {
       return 3;
-    } else if (cW > 6.5) {
+    } else if (cW > 6.6) {
       return 2;
     } else if (cW > 4) {
       return 1;
@@ -147,22 +128,34 @@ function drawChart() {
   }
   candles.value = [];
 
+  const candleWidthWithoutCandleDistance = props.width / maxCandlesShow.value;
+  const cD = calcCandleDistance(candleWidthWithoutCandleDistance);
+  candleWidth.value =
+    candleWidthWithoutCandleDistance - cD - cD / maxCandlesShow.value;
+  candleWickWidth.value = getCandleWickWidth(candleWidth.value);
+
   let xPositionCandlestick =
     (startingDistanceDifference.value > 0
       ? startingDistanceDifference.value
       : 0) *
-      (candleWidth.value + candleDistance.value) +
-    candleDistance.value;
+      (candleWidth.value + cD) +
+    cD;
 
   dataMaxCandlesShow.value.forEach((ohlc) => {
-    drawCandle(xPositionCandlestick, ohlc, candleWidth.value);
-    xPositionCandlestick += candleWidth.value + candleDistance.value;
+    drawCandle(
+      xPositionCandlestick,
+      ohlc,
+      candleWidth.value,
+      candleWickWidth.value
+    );
+    xPositionCandlestick += candleWidth.value + cD;
   });
 
   function drawCandle(
     x: number,
     ohlc: PriceSeries,
     width: number,
+    candleWickWidth: number,
     bull_color: string = CANDLE_BULL_COLOR,
     bear_color: string = CANDLE_BEAR_COLOR,
     candle_border: boolean = CANDLE_BORDER
@@ -173,8 +166,7 @@ function drawChart() {
       !maxCandleHigh.value ||
       !minCandleLow.value ||
       !props.height ||
-      !props.width ||
-      !candleWickWidth.value
+      !props.width
     ) {
       return;
     }
@@ -182,7 +174,7 @@ function drawChart() {
 
     candle.x = x;
     const xStartingPoint = x + width / 2;
-    const candleWickDistance = candleWickWidth.value / 2;
+    const candleWickDistance = candleWickWidth / 2;
     const xWickPoint = xStartingPoint - candleWickDistance;
 
     candle.wX = xWickPoint;
@@ -226,6 +218,5 @@ watchEffect(() => {
     return;
   }
   drawChart();
-  candleDistance.value = calcCandleDistance();
 });
 </script>
