@@ -1,8 +1,8 @@
 {
   "name": "defichart",
   "version": "0.0.1",
-  "description": "A DeFi Chart Software",
-  "productName": "DeFi Chart",
+  "description": "A DeFi Charting Software",
+  "productName": "DefiCharts",
   "author": "Niclas Hummel <niclashummel.fx@gmail.com>",
   "private": true,
   "scripts": {

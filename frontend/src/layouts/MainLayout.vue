@@ -2,8 +2,8 @@
   <q-layout view="lHh lpr lFf" container style="height: 100vh">
     <q-header elevated>
       <q-bar>
-        <q-icon name="analytics" />
-        <div class="prevent-select">Defi Charts</div>
+        <q-icon name="img:deficharts.svg" />
+        <div class="prevent-select text-weight-bold">DefiCharts</div>
 
         <q-space />
 
