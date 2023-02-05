@@ -98,7 +98,7 @@ export function usePriceChartData() {
     } else {
       beforeComma = getBeforeComma(minCandleLow.value);
     }
-    const width_per_letter = 10.3;
+    const width_per_letter = 10.35;
     const widthPixelsSum = (digits + beforeComma) * width_per_letter;
     const maxPriceAxisWidth = 100;
     if (widthPixelsSum > maxPriceAxisWidth) {

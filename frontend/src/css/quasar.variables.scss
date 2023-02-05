@@ -14,7 +14,7 @@
 
 $primary: #182825;
 $secondary: #22aed1;
-$accent: #22aed1aa;
+$accent: rgba(red($secondary), green($secondary), blue($secondary), 0.25);
 
 $dark: #919191;
 $dark-page: #575757;

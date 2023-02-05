@@ -2,7 +2,7 @@
   <svg
     :width="width"
     :height="height"
-    class="price-lines-svg d-block absolute"
+    class="d-block absolute"
     style="z-index: 1"
   >
     <line
@@ -18,7 +18,7 @@
   <svg
     :width="width"
     :height="height"
-    class="chart-svg d-block absolute"
+    class="d-block absolute"
     style="z-index: 2"
   >
     <g v-for="(candle, i) in candles" :key="i">
@@ -28,7 +28,6 @@
         :width="candleWickWidth"
         :height="candle.uwHeight"
         :style="`fill: ${candle.fillColor}`"
-        class="test"
       />
       <rect
         :x="candle.x"

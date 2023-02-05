@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-bar>
         <q-icon name="analytics" />
-        <div>Defi Charts</div>
+        <div class="prevent-select">Defi Charts</div>
 
         <q-space />
 
@@ -12,7 +12,7 @@
     </q-header>
 
     <q-page-container>
-        <router-view />
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
