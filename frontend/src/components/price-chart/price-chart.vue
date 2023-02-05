@@ -345,6 +345,8 @@ watch([chartHeight, chartWidth, maxCandlesShow], async () => {
 function maximize() {
   _fullHeightScreen.value = true;
   _fullWidthScreen.value = true;
+  _width.value = maxChartWidth.value;
+  _height.value = maxChartHeight.value;
 }
 
 function close() {
