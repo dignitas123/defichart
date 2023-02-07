@@ -122,7 +122,8 @@ const {
   decreaseMaxCandleShow,
 } = usePriceChartData();
 
-setData(generateData());
+const data = generateData();
+setData(data);
 
 window.addEventListener('keydown', handleKeyDown);
 window.addEventListener('keyup', handleKeyUp);
@@ -313,8 +314,13 @@ function onWheel(event: WheelEvent) {
 function generateData() {
   const data = [];
   let o = 100;
-  let currentDate = new Date();
-  for (let i = 0; i < 400; i++) {
+  const roundedMinutes = 5;
+  const date = new Date();
+  let currentDate = new Date(
+    Math.round(date.getTime() / (1000 * 60 * roundedMinutes)) *
+      (1000 * 60 * roundedMinutes)
+  );
+  for (let i = 0; i < 200; i++) {
     currentDate.setMinutes(currentDate.getMinutes() + 5);
     const d = new Date(currentDate);
     const h = o + Math.random() * 5;

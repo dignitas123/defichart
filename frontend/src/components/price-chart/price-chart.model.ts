@@ -11,8 +11,15 @@ export interface PriceSeries {
   v: number;
 }
 
+interface DatePositionEntry {
+  x: number;
+  date: string;
+  bold: boolean;
+}
+
 const max_candles_show = ref(40);
 const data = ref<PriceSeries[]>([]);
+const datePositionEntries = ref<DatePositionEntry[]>([]);
 
 export function usePriceChartData() {
   // Setter
@@ -32,9 +39,19 @@ export function usePriceChartData() {
   function inceaseMaxCandleShow(n = 1) {
     max_candles_show.value += n;
   }
+  function addToDatePositionEntries(entry: DatePositionEntry) {
+    datePositionEntries.value.push(entry);
+  }
+  function resetDatePositionEntries() {
+    datePositionEntries.value = [];
+  }
   // Getter
   const maxCandlesShow = computed(() => {
     return max_candles_show.value;
+  });
+
+  const allDatePositionEntries = computed(() => {
+    return datePositionEntries.value;
   });
 
   const dataMaxCandlesShow = computed(() => {
@@ -115,6 +132,9 @@ export function usePriceChartData() {
     decreaseMaxCandleShow,
     inceaseMaxCandleShow,
     dataMaxCandlesShow,
+    addToDatePositionEntries,
+    allDatePositionEntries,
+    resetDatePositionEntries,
     startingDistanceDifference,
     dataDates,
     maxCandleHigh,

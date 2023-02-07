@@ -49,9 +49,16 @@
 
 <script lang="ts" setup>
 import { ref, watchEffect } from 'vue';
-import { PRICE_LINES_TRANSPARENCY } from '../consts';
+import { DATE_BOX_WIDTH, PRICE_LINES_TRANSPARENCY } from '../consts';
 import { PriceSeries } from '../price-chart.model';
 import { usePriceChartData } from '../price-chart.model';
+import { format as dateFormat } from 'date-fns';
+import {
+  Candle,
+  TimeDisplayProperties,
+  TimeMode,
+  TimeModePeriod,
+} from './candlestick-chart.interface';
 
 const props = withDefaults(
   defineProps<{
@@ -64,18 +71,6 @@ const props = withDefaults(
   }
 );
 
-interface Candle {
-  x: number;
-  wX: number;
-  y: number;
-  uwY: number;
-  lwY: number;
-  height: number;
-  uwHeight: number;
-  lwHeight: number;
-  fillColor: string;
-}
-
 const {
   dataMaxCandlesShow,
   maxCandlesShow,
@@ -83,6 +78,9 @@ const {
   maxCandleHigh,
   minCandleLow,
   startingDistanceDifference,
+  dataDates,
+  addToDatePositionEntries,
+  resetDatePositionEntries,
 } = usePriceChartData();
 
 const CANDLE_WICK_THICKNESS = 0.15; // in percent
@@ -91,6 +89,11 @@ const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
 // const CANDLE_BORDER_COLOR = 'black';
+const MIN = 1000 * 60;
+const HOUR = MIN * 60;
+const DAY = HOUR * 24;
+const WEEK = DAY * 7;
+const MONTH = DAY * 30;
 
 const candles = ref<Candle[]>([]);
 
@@ -121,12 +124,16 @@ function calcCandleDistance(cW: number) {
   return 3;
 }
 
-function drawChart() {
-  if (!props.width || !props.height) {
+function drawChart(onlyHeightChange = false) {
+  let makeDateCalculation = !onlyHeightChange;
+  if (!props.width || !props.height || !dataDates.value) {
     return;
   }
   candles.value = [];
 
+  if (makeDateCalculation) {
+    resetDatePositionEntries();
+  }
   const candleWidthWithoutCandleDistance = props.width / maxCandlesShow.value;
   const cD = calcCandleDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
@@ -140,21 +147,131 @@ function drawChart() {
       (candleWidth.value + cD) +
     cD;
 
+  const overCandles = maxCandlesShow.value - dataDates.value.length;
+  const candleSumWidthPx =
+    (candleWidth.value + cD) * (maxCandlesShow.value - overCandles);
+  const timeDisplayProps: TimeDisplayProperties =
+    timeDisplayProperties(candleSumWidthPx);
+
   dataMaxCandlesShow.value.forEach((ohlc) => {
-    drawCandle(
-      xPositionCandlestick,
-      ohlc,
-      candleWidth.value,
-      candleWickWidth.value
-    );
+    drawCandle(xPositionCandlestick, ohlc);
+    if (makeDateCalculation) {
+      addDate(ohlc.d);
+    }
     xPositionCandlestick += candleWidth.value + cD;
   });
+
+  function addDate(date: Date) {
+    let formattedDate = '';
+    let bold = false;
+
+    if (timeDisplayProps.period === TimeModePeriod.Minute) {
+      const MINutes = date.getMinutes();
+      if (MINutes % timeDisplayProps.timeDifferential === 0) {
+        if (timeDisplayProps.mode === TimeMode.M5 && MINutes % 15 === 0) {
+          bold = true;
+        } else if (
+          timeDisplayProps.mode === TimeMode.M10 &&
+          MINutes % 30 === 0
+        ) {
+          bold = true;
+        } else if (timeDisplayProps.mode === TimeMode.M15 && MINutes === 0) {
+          bold = true;
+        } else if (
+          timeDisplayProps.mode === TimeMode.M30 &&
+          date.getHours() % 2 === 0 &&
+          MINutes === 0
+        ) {
+          bold = true;
+        }
+        formattedDate = dateFormat(date, 'hh:mm');
+      }
+    } else if (timeDisplayProps.period === TimeModePeriod.Hour) {
+      const HOURs = date.getHours();
+      const MINutes = date.getMinutes();
+      if (MINutes % 60 === 0) {
+        let _format = 'hh:mm';
+        if (HOURs % 0) {
+          _format = 'dd'; // TODO: maybe add MONTH but must be local (dd/mm, dd:mm etc.)
+          bold = true;
+        }
+        if (timeDisplayProps.mode === TimeMode.H1) {
+          if (HOURs % 4 === 0) {
+            bold = true;
+          }
+          formattedDate = dateFormat(date, _format);
+        } else if (timeDisplayProps.mode === TimeMode.H3) {
+          if (HOURs % 9 === 0) {
+            bold = true;
+          }
+          if (HOURs % 3 === 0) {
+            formattedDate = dateFormat(date, _format);
+          }
+        } else if (timeDisplayProps.mode === TimeMode.H6) {
+          if (HOURs % 12 === 0) {
+            bold = true;
+          }
+          if (HOURs % 6 === 0) {
+            formattedDate = dateFormat(date, _format);
+          }
+        }
+      }
+    } else if (timeDisplayProps.period === TimeModePeriod.Day) {
+      const DAYs = date.getDate();
+      if (DAYs % timeDisplayProps.timeDifferential === 0) {
+        if (timeDisplayProps.mode === TimeMode.W2) {
+          if (DAYs % 15 === 0 && DAYs !== 30) {
+            formattedDate = dateFormat(date, 'dd');
+          }
+        } else {
+          formattedDate = dateFormat(date, 'dd');
+        }
+        if (DAYs === 1) {
+          formattedDate = dateFormat(date, 'MM');
+        }
+        if (date.getMonth() === 1) {
+          formattedDate = dateFormat(date, 'YYYY');
+          bold = true;
+        }
+      }
+    } else if (timeDisplayProps.period === TimeModePeriod.Month) {
+      const MONTH = date.getMonth();
+      let _format = 'MM';
+      if (MONTH % timeDisplayProps.timeDifferential === 0) {
+        if (MONTH === 1) {
+          bold = true;
+          _format = 'YYYY';
+        }
+        formattedDate = dateFormat(date, _format);
+      }
+    } else if (timeDisplayProps.period === TimeModePeriod.Year) {
+      if (date.getFullYear() % 10 === 0) {
+        bold = true;
+      }
+      formattedDate = dateFormat(date, 'YYYY');
+    }
+
+    if (!formattedDate) {
+      return;
+    }
+
+    const xPosition =
+      xPositionCandlestick - DATE_BOX_WIDTH / 2 + candleWidth.value / 2;
+
+    if (!props.width || xPosition < 0 || xPosition > props.width) {
+      return;
+    }
+
+    addToDatePositionEntries({
+      x: xPosition,
+      date: formattedDate,
+      bold: bold,
+    });
+  }
 
   function drawCandle(
     x: number,
     ohlc: PriceSeries,
-    width: number,
-    candleWickWidth: number,
     bull_color: string = CANDLE_BULL_COLOR,
     bear_color: string = CANDLE_BEAR_COLOR,
     candle_border: boolean = CANDLE_BORDER
@@ -172,8 +289,8 @@ function drawChart() {
     const candle: Candle = {} as Candle;
 
     candle.x = x;
-    const xStartingPoint = x + width / 2;
-    const candleWickDistance = candleWickWidth / 2;
+    const xStartingPoint = x + candleWidth.value / 2;
+    const candleWickDistance = candleWickWidth.value / 2;
     const xWickPoint = xStartingPoint - candleWickDistance;
 
     candle.wX = xWickPoint;
@@ -212,10 +329,106 @@ function drawChart() {
   }
 }
 
+function timeDisplayProperties(candleSumWidthPx: number) {
+  let mode = TimeMode.Y1;
+  let period = TimeModePeriod.Year;
+  let timeDifferential = 1;
+  if (!props.width || !dataDates.value) {
+    return {
+      mode: mode,
+      period: period,
+      timeDifferential: timeDifferential,
+    };
+  }
+
+  const diff =
+    dataDates.value[dataDates.value.length - 1].getTime() -
+    dataDates.value[0].getTime();
+
+  // This is the time difference, that fits in one time display
+  const tDifDB = diff * (DATE_BOX_WIDTH / candleSumWidthPx);
+
+  if (tDifDB < 3 * MIN) {
+    mode = TimeMode.M1;
+    timeDifferential = 1;
+  } else if (tDifDB < 7 * MIN) {
+    mode = TimeMode.M5;
+    timeDifferential = 5;
+  } else if (tDifDB < 12 * MIN) {
+    mode = TimeMode.M10;
+    timeDifferential = 10;
+  } else if (tDifDB < 16 * MIN) {
+    mode = TimeMode.M15;
+    timeDifferential = 15;
+  } else if (tDifDB < 20 * MIN) {
+    mode = TimeMode.M30;
+    timeDifferential = 30;
+  } else if (tDifDB < 66 * MIN) {
+    mode = TimeMode.H1;
+    timeDifferential = 1;
+  } else if (tDifDB < 190 * MIN) {
+    mode = TimeMode.H3;
+    timeDifferential = 2;
+  } else if (tDifDB < 6 * HOUR) {
+    mode = TimeMode.H6;
+    timeDifferential = 6;
+  } else if (tDifDB < 12 * HOUR) {
+    mode = TimeMode.H12;
+    timeDifferential = 12;
+  } else if (tDifDB < 3 * DAY) {
+    mode = TimeMode.D1;
+    timeDifferential = 1;
+  } else if (tDifDB < 8 * DAY) {
+    mode = TimeMode.W1;
+    timeDifferential = 7;
+  } else if (tDifDB < 13 * DAY) {
+    mode = TimeMode.W2;
+    timeDifferential = 15;
+  } else if (tDifDB < 15 * WEEK) {
+    mode = TimeMode.MN1;
+    timeDifferential = 1;
+  } else if (tDifDB < 5 * MONTH) {
+    mode = TimeMode.MN6;
+    timeDifferential = 6;
+  }
+
+  if (
+    [
+      TimeMode.M1,
+      TimeMode.M5,
+      TimeMode.M10,
+      TimeMode.M15,
+      TimeMode.M30,
+    ].includes(mode)
+  ) {
+    period = TimeModePeriod.Minute;
+  } else if (
+    [TimeMode.H1, TimeMode.H3, TimeMode.H6, TimeMode.H12].includes(mode)
+  ) {
+    period = TimeModePeriod.Hour;
+  } else if ([TimeMode.D1, TimeMode.W1, TimeMode.W2].includes(mode)) {
+    period = TimeModePeriod.Day;
+  } else if ([TimeMode.MN1, TimeMode.MN6].includes(mode)) {
+    period = TimeModePeriod.Month;
+  }
+
+  return {
+    mode: mode,
+    period: period,
+    timeDifferential: timeDifferential,
+  };
+}
+
+let lastWidth = 0;
+let lastMaxCandlesShow = 0;
 watchEffect(() => {
   if (!props.width || !props.height) {
     return;
   }
-  drawChart();
+  drawChart(
+    props.width === lastWidth && lastMaxCandlesShow === maxCandlesShow.value
+  );
+  lastWidth = props.width;
+  lastMaxCandlesShow = maxCandlesShow.value;
 });
 </script>
