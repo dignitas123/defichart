@@ -45,6 +45,10 @@ body {
   float: right;
 }
 
-.bg-shadow {
+.bg-shadow-primary {
+  box-shadow: 0 0 2px var(--q-primary);
+}
+
+.bg-shadow-secondary {
   box-shadow: 0 0 2px var(--q-secondary);
 }

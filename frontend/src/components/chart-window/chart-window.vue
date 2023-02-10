@@ -2,12 +2,12 @@
   <div
     class="chart-wrapper"
     :class="{
-      'bg-shadow': chartWrapperShadow,
+      'bg-shadow-primary': selected,
+      'bg-shadow-secondary': chartWrapperShadow && !selected,
       'full-width-chart': fullWidth,
       'normal-width-chart': !fullWidth,
       'full-height-chart': fullHeight,
       'normal-height-chart': !fullHeight,
-      selected: selected,
     }"
     @mouseup="stopXDrag"
     @mousemove="onYDrag"
@@ -278,7 +278,7 @@ function addHorizontalLineToPriceLines(price: number) {
 .chart-wrapper {
   border: 1px solid var(--q-primary);
 
-  .selected {
+  &.selected {
     border: 1px solid var(--q-secondary);
   }
 
