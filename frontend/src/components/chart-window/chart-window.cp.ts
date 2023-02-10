@@ -3,82 +3,80 @@ import { computed, Ref } from 'vue';
 import { DATA_TICKSIZE } from '../../pages/broker-charts/consts';
 import { getBeforeComma, getDigits } from './helpers/digits';
 
-export function usePriceChartData(
-  data: Ref<OHLC[]>,
-  maxCandlesShow: Ref<number>
-) {
-  function decreaseMaxCandleShow(n = 1) {
-    if (maxCandlesShow.value - n > 1) {
-      maxCandlesShow.value -= n;
+export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
+  function decreaseCandlesShow(n = 1) {
+    if (candlesShow.value - n > 1) {
+      candlesShow.value -= n;
     } else {
-      maxCandlesShow.value = 1;
+      candlesShow.value = 1;
     }
   }
 
-  function inceaseMaxCandleShow(n = 1) {
-    maxCandlesShow.value += n;
+  function increaseCandlesShow(n = 1) {
+    candlesShow.value += n;
   }
 
-  const dataMaxCandlesShow = computed(() => {
-    return data.value.slice(-maxCandlesShow.value);
+  const candlesInChartData = computed(() => {
+    return data.value.slice(-candlesShow.value);
   });
 
   const startingDistanceDifference = computed(() => {
-    return maxCandlesShow.value - data.value.length;
+    return candlesShow.value - data.value.length;
   });
 
   const dataDates = computed(() => {
-    if (!dataMaxCandlesShow.value.length) {
+    if (!candlesInChartData.value.length) {
       return undefined;
     }
-    return dataMaxCandlesShow.value.map((ohlc) => ohlc.d);
+    return candlesInChartData.value.map((ohlc) => ohlc.d);
   });
 
-  const maxCandleHighAll = computed(() => {
+  const allCandlesHigh = computed(() => {
     if (data.value.length) {
       return Math.max(...data.value.map((ohlc) => Number(ohlc.h)));
     }
     return Infinity;
   });
 
-  const maxCandleHigh = computed(() => {
-    if (dataMaxCandlesShow.value.length) {
+  const candlesInChartHigh = computed(() => {
+    if (candlesInChartData.value.length) {
       return Math.max(
-        ...dataMaxCandlesShow.value.map((ohlc) => Number(ohlc.h))
+        ...candlesInChartData.value.map((ohlc) => Number(ohlc.h))
       );
     }
     return Infinity;
   });
 
-  const minCandleLow = computed(() => {
-    if (dataMaxCandlesShow.value.length) {
+  const candlesInChartLow = computed(() => {
+    if (candlesInChartData.value.length) {
       return Math.min(
-        ...dataMaxCandlesShow.value.map((ohlc) => Number(ohlc.l))
+        ...candlesInChartData.value.map((ohlc) => Number(ohlc.l))
       );
     } else {
       return 0;
     }
   });
 
-  const candleH2L = computed(() => {
-    if (!maxCandleHigh.value || !minCandleLow.value) {
+  const candlesInChartH2L = computed(() => {
+    if (!candlesInChartHigh.value || !candlesInChartLow.value) {
       return undefined;
     }
-    return maxCandleHigh.value - minCandleLow.value;
+    return candlesInChartHigh.value - candlesInChartLow.value;
   });
 
   const priceAxisWidth = computed(() => {
-    if (!maxCandleHighAll.value || !DATA_TICKSIZE) {
+    if (!allCandlesHigh.value || !DATA_TICKSIZE) {
       return 70;
     }
     const digits = getDigits(DATA_TICKSIZE);
     let beforeComma = 0;
     if (
-      String(maxCandleHighAll.value).length >= String(minCandleLow.value).length
+      String(allCandlesHigh.value).length >=
+      String(candlesInChartLow.value).length
     ) {
-      beforeComma = getBeforeComma(maxCandleHighAll.value);
+      beforeComma = getBeforeComma(allCandlesHigh.value);
     } else {
-      beforeComma = getBeforeComma(minCandleLow.value);
+      beforeComma = getBeforeComma(candlesInChartLow.value);
     }
     const width_per_letter = 10.35;
     const widthPixelsSum = (digits + beforeComma) * width_per_letter;
@@ -91,15 +89,14 @@ export function usePriceChartData(
   });
 
   return {
-    maxCandlesShow,
-    decreaseMaxCandleShow,
-    inceaseMaxCandleShow,
-    dataMaxCandlesShow,
-    startingDistanceDifference,
+    decreaseCandlesShow,
+    increaseCandlesShow,
+    candlesInChartData,
+    candlesInChartHigh,
+    candlesInChartLow,
+    candlesInChartH2L,
     dataDates,
-    maxCandleHigh,
-    minCandleLow,
-    candleH2L,
     priceAxisWidth,
+    startingDistanceDifference,
   };
 }

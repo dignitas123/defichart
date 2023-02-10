@@ -60,22 +60,24 @@ import {
   TimeMode,
   TimeModePeriod,
 } from './candlestick-chart.if';
-import { DatePositionEntry } from '../price-charts.if';
-import { OHLC } from '../helpers/fake-data-generator.if';
+import {
+  DatePositionEntry,
+  OHLC,
+} from 'src/pages/broker-charts/broker-charts.if';
 
 const props = withDefaults(
   defineProps<{
-    dataMaxCandlesShow: OHLC[];
+    data: OHLC[];
+    candleCount: number;
+    h2l?: number;
+    high: number;
+    low: number;
     height?: number;
     width?: number;
     priceLines?: number[];
     dataDates?: Date[];
     datePositionEntries: DatePositionEntry[];
-    maxCandlesShow: number;
     startingDistanceDifference: number;
-    candleH2L?: number;
-    maxCandleHigh: number;
-    minCandleLow: number;
   }>(),
   {
     priceLines: () => [],
@@ -143,10 +145,10 @@ function drawChart(onlyHeightChange = false) {
   if (makeDateCalculation) {
     datePositionEntries.value = [];
   }
-  const candleWidthWithoutCandleDistance = props.width / props.maxCandlesShow;
+  const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   const cD = calcCandleDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
-    candleWidthWithoutCandleDistance - cD - cD / props.maxCandlesShow;
+    candleWidthWithoutCandleDistance - cD - cD / props.candleCount;
   candleWickWidth.value = getCandleWickWidth(candleWidth.value);
 
   let xPositionCandlestick =
@@ -156,13 +158,13 @@ function drawChart(onlyHeightChange = false) {
       (candleWidth.value + cD) +
     cD;
 
-  const overCandles = props.maxCandlesShow - props.dataDates.length;
+  const overCandles = props.candleCount - props.dataDates.length;
   const candleSumWidthPx =
-    (candleWidth.value + cD) * (props.maxCandlesShow - overCandles);
+    (candleWidth.value + cD) * (props.candleCount - overCandles);
   const timeDisplayProps: TimeDisplayProperties =
     timeDisplayProperties(candleSumWidthPx);
 
-  props.dataMaxCandlesShow.forEach((ohlc) => {
+  props.data.forEach((ohlc) => {
     drawCandle(xPositionCandlestick, ohlc);
     if (makeDateCalculation) {
       addDate(ohlc.d);
@@ -287,9 +289,9 @@ function drawChart(onlyHeightChange = false) {
     // candle_border_color: string = CANDLE_BORDER_COLOR
   ) {
     if (
-      !props.candleH2L ||
-      !props.maxCandleHigh ||
-      !props.minCandleLow ||
+      !props.h2l ||
+      !props.high ||
+      !props.low ||
       !props.height ||
       !props.width
     ) {
@@ -305,8 +307,8 @@ function drawChart(onlyHeightChange = false) {
     candle.wX = xWickPoint;
 
     const convert_to_scale = (val: number) => {
-      if (props.height && props.maxCandleHigh && props.candleH2L)
-        return props.height * ((props.maxCandleHigh - val) / props.candleH2L);
+      if (props.height && props.high && props.h2l)
+        return props.height * ((props.high - val) / props.h2l);
     };
 
     const o = convert_to_scale(ohlc.c) ?? 0;
@@ -435,9 +437,9 @@ watchEffect(() => {
     return;
   }
   drawChart(
-    props.width === lastWidth && lastMaxCandlesShow === props.maxCandlesShow
+    props.width === lastWidth && lastMaxCandlesShow === props.candleCount
   );
   lastWidth = props.width;
-  lastMaxCandlesShow = props.maxCandlesShow;
+  lastMaxCandlesShow = props.candleCount;
 });
 </script>

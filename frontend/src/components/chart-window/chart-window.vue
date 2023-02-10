@@ -39,23 +39,23 @@
         <div class="chart" ref="chartRef">
           <CandlestickChart
             v-if="chartHeightWidthUpdated"
-            :dataMaxCandlesShow="dataMaxCandlesShow"
+            :data="candlesInChartData"
+            :candleCount="candlesShow"
+            :h2l="candlesInChartH2L"
+            :high="candlesInChartHigh"
+            :low="candlesInChartLow"
             :dataDates="dataDates"
             v-model:datePositionEntries="datePositionEntries"
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
-            :maxCandlesShow="maxCandlesShow"
             :startingDistanceDifference="startingDistanceDifference"
-            :candleH2L="candleH2L"
-            :maxCandleHigh="maxCandleHigh"
-            :minCandleLow="minCandleLow"
           />
         </div>
         <div>
           <PriceAxis
-            :candleH2L="candleH2L"
-            :maxCandleHigh="maxCandleHigh"
+            :h2l="candlesInChartH2L"
+            :high="candlesInChartHigh"
             :height="chartHeight"
             :width="priceAxisWidth"
             @horizontalLine="addHorizontalLineToPriceLines"
@@ -87,8 +87,8 @@ import {
   DatePositionEntry,
   OHLC,
 } from 'src/pages/broker-charts/broker-charts.if';
-import { usePriceChart } from 'src/pages/broker-charts/broker-charts.cp';
-import { usePriceChartData } from './chart-window.cp';
+import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
+import { useChartData } from './chart-window.cp';
 
 const props = defineProps<{
   id: string;
@@ -96,6 +96,8 @@ const props = defineProps<{
   height: number;
   fullWidth: boolean;
   fullHeight: boolean;
+  candlesShow: number;
+  selected: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -105,38 +107,22 @@ const emit = defineEmits<{
   (event: 'update:height', height: number): void;
   (event: 'update:fullWidth', fullWidth: boolean): void;
   (event: 'update:fullHeight', fullHeight: boolean): void;
+  (event: 'update:candlesShow', candles: number): void;
+  (event: 'update:selected', selected: boolean): void;
 }>();
 
 const HEADER_BAR_HEIGHT = 22;
 const DATEROW_HEIGHT = 22;
 
-const maxCandlesShow = ref(40);
 const data = ref<OHLC[]>([]);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
-
-const {
-  dataMaxCandlesShow,
-  candleH2L,
-  maxCandleHigh,
-  minCandleLow,
-  priceAxisWidth,
-  inceaseMaxCandleShow,
-  decreaseMaxCandleShow,
-  dataDates,
-  startingDistanceDifference,
-} = usePriceChartData(data, maxCandlesShow);
-
-const { maxChartHeight, maxChartWidth } = usePriceChart();
-
-const selected = ref(false);
-const chartWrapperShadow = ref(false);
-
-const chartRef = ref<HTMLCanvasElement | null>(null);
 
 const width = ref(props.width);
 const height = ref(props.height);
 const fullWidth = ref(props.fullWidth);
 const fullHeight = ref(props.fullHeight);
+const candlesShow = ref(props.candlesShow);
+const selected = ref(props.selected);
 
 watch(width, () => {
   emit('update:width', width.value);
@@ -174,6 +160,42 @@ watch(
     fullHeight.value = props.fullHeight;
   }
 );
+watch(candlesShow, () => {
+  emit('update:candlesShow', candlesShow.value);
+});
+watch(
+  () => props.candlesShow,
+  () => {
+    candlesShow.value = props.candlesShow;
+  }
+);
+watch(selected, () => {
+  emit('update:selected', selected.value);
+});
+watch(
+  () => props.selected,
+  () => {
+    selected.value = props.selected;
+  }
+);
+
+const {
+  candlesInChartData,
+  candlesInChartH2L,
+  candlesInChartHigh,
+  candlesInChartLow,
+  increaseCandlesShow,
+  decreaseCandlesShow,
+  priceAxisWidth,
+  dataDates,
+  startingDistanceDifference,
+} = useChartData(data, candlesShow);
+
+const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
+
+const chartWrapperShadow = ref(false);
+
+const chartRef = ref<HTMLCanvasElement | null>(null);
 
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
@@ -201,12 +223,12 @@ function onChartContainterLeave() {
 // @mousemove emit
 function onYDrag(event: MouseEvent) {
   if (!xDragging.value) return;
-  let candlesToIncrease = Math.ceil(maxCandlesShow.value / 30);
+  let candlesToIncrease = Math.ceil(candlesShow.value / 30);
   if (event.x > xDraggingStart.value) {
-    inceaseMaxCandleShow(candlesToIncrease);
+    increaseCandlesShow(candlesToIncrease);
     xDraggingStart.value = event.x;
   } else if (event.x < xDraggingStart.value) {
-    decreaseMaxCandleShow(candlesToIncrease);
+    decreaseCandlesShow(candlesToIncrease);
     xDraggingStart.value = event.x;
   }
 }
@@ -221,14 +243,14 @@ const wheelDraggingStart = ref(0);
 // @wheel emit
 function onWheel(event: WheelEvent) {
   let candles = 2;
-  if (maxCandlesShow.value < 15) {
+  if (candlesShow.value < 15) {
     candles = 1;
   }
   if (event.deltaY > wheelDraggingStart.value) {
-    inceaseMaxCandleShow(candles);
+    increaseCandlesShow(candles);
     wheelDraggingStart.value = 0;
   } else if (event.deltaY < wheelDraggingStart.value) {
-    decreaseMaxCandleShow(candles);
+    decreaseCandlesShow(candles);
     wheelDraggingStart.value = 0;
   }
 }
@@ -246,7 +268,7 @@ onMounted(async () => {
   chartHeightWidthUpdated.value = true;
 });
 
-watch([chartHeight, chartWidth, maxCandlesShow], async () => {
+watch([chartHeight, chartWidth, candlesShow], async () => {
   await nextTick();
   priceLines.value = [];
 });

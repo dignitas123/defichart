@@ -15,8 +15,8 @@ import { roundToTicksize } from '../helpers/digits';
 import { computed, watchEffect } from 'vue';
 
 const props = defineProps<{
-  candleH2L?: number;
-  maxCandleHigh?: number;
+  h2l?: number;
+  high?: number;
   height?: number;
   width?: number;
 }>();
@@ -35,8 +35,8 @@ const priceLinesCount = computed(() => {
 });
 
 const priceDistance = computed(() => {
-  if (props.candleH2L && priceLinesCount.value) {
-    const distance = props.candleH2L / priceLinesCount.value;
+  if (props.h2l && priceLinesCount.value) {
+    const distance = props.h2l / priceLinesCount.value;
     return roundToTicksize(distance, DATA_TICKSIZE);
   } else {
     return undefined;
@@ -44,12 +44,12 @@ const priceDistance = computed(() => {
 });
 
 const priceArray = computed(() => {
-  if (!priceDistance.value || !props.maxCandleHigh || !priceLinesCount.value) {
+  if (!priceDistance.value || !props.high || !priceLinesCount.value) {
     return undefined;
   }
   const scaleValue = parseFloat(priceDistance.value);
   let returnArray: string[] = [];
-  let price = props.maxCandleHigh - scaleValue / 2;
+  let price = props.high - scaleValue / 2;
   for (let i = 0; i < priceLinesCount.value; i++) {
     returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
     price -= scaleValue;

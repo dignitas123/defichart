@@ -9,6 +9,8 @@ export const defaultOptions: Chart = {
   height: 500,
   fullWidth: false,
   fullHeight: false,
+  candlesShow: 40,
+  selected: true,
 };
 
 export function generateChartObject(

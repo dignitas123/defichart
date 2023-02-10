@@ -2,7 +2,7 @@ import { useQuasar } from 'quasar';
 import { computed } from 'vue';
 import { HEADER_HEIGHT, PAGE_PADDING } from './consts';
 
-export function usePriceChart() {
+export function useBrokerChartSizes() {
   const $q = useQuasar();
 
   const maxChartHeight = computed(() => {

@@ -19,6 +19,8 @@ export interface Chart {
   height: number;
   fullWidth: boolean;
   fullHeight: boolean;
+  candlesShow: number;
+  selected: boolean;
 }
 
 export interface DatePositionEntry {

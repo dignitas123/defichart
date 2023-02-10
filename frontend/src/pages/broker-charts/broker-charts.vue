@@ -15,6 +15,8 @@
       v-model:height="chart.height"
       v-model:fullWidth="chart.fullWidth"
       v-model:fullHeight="chart.fullHeight"
+      v-model:candlesShow="chart.candlesShow"
+      v-model:selected="chart.selected"
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
     />
@@ -29,7 +31,7 @@
 import { onUnmounted, reactive, ref } from 'vue';
 import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
-import { usePriceChart } from './broker-charts.cp';
+import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
 
 const MIN_CHART_HEIGHT = 300;
@@ -44,7 +46,7 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyUp);
 });
 
-const { maxChartHeight, maxChartWidth } = usePriceChart();
+const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
 // TODO: make real charts created by users and saved in localStorage
 const nonStandardChart = generateChartObject({
@@ -55,6 +57,8 @@ const nonStandardChart = generateChartObject({
   height: 300,
   fullWidth: false,
   fullHeight: false,
+  candlesShow: 80,
+  selected: false,
 });
 
 const testCharts = {
@@ -75,6 +79,12 @@ const shiftKeyActive = ref(false);
 function handleKeyDown(event: KeyboardEvent) {
   if (event.shiftKey) {
     shiftKeyActive.value = true;
+  } else if (event.code === 'ArrowUp') {
+    charts[selectedChartId.value].candlesShow++;
+  } else if (event.code === 'ArrowDown') {
+    if (charts[selectedChartId.value].candlesShow > 0) {
+      charts[selectedChartId.value].candlesShow--;
+    }
   }
 }
 
@@ -96,8 +106,13 @@ function onStartResizeDrag(xOnly: boolean, yOnly: boolean) {
 }
 
 function resetResizeDragStart() {
-  resizeDragStart.x = 0;
-  resizeDragStart.y = 0;
+  if (
+    !charts[selectedChartId.value].fullWidth &&
+    !charts[selectedChartId.value].fullHeight
+  ) {
+    resizeDragStart.x = 0;
+    resizeDragStart.y = 0;
+  }
   resizeDrag.value = false;
   snapActive.value = false;
   resizeDragXOnly.value = false;
