@@ -1,65 +1,30 @@
-import { computed, ref } from 'vue';
-import { DATA_TICKSIZE } from './consts';
+import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
+import { computed, Ref } from 'vue';
+import { DATA_TICKSIZE } from '../../pages/broker-charts/consts';
 import { getBeforeComma, getDigits } from './helpers/digits';
 
-export interface PriceSeries {
-  d: Date;
-  o: number;
-  h: number;
-  l: number;
-  c: number;
-  v: number;
-}
-
-interface DatePositionEntry {
-  x: number;
-  date: string;
-  bold: boolean;
-}
-
-const max_candles_show = ref(40);
-const data = ref<PriceSeries[]>([]);
-const datePositionEntries = ref<DatePositionEntry[]>([]);
-
-export function usePriceChartData() {
-  // Setter
-  function setData(d: PriceSeries[]) {
-    data.value = d;
-  }
-  function setMaxCandlesShow(x: number) {
-    max_candles_show.value = x;
-  }
+export function usePriceChartData(
+  data: Ref<OHLC[]>,
+  maxCandlesShow: Ref<number>
+) {
   function decreaseMaxCandleShow(n = 1) {
-    if (max_candles_show.value - n > 1) {
-      max_candles_show.value -= n;
+    if (maxCandlesShow.value - n > 1) {
+      maxCandlesShow.value -= n;
     } else {
-      max_candles_show.value = 1;
+      maxCandlesShow.value = 1;
     }
   }
-  function inceaseMaxCandleShow(n = 1) {
-    max_candles_show.value += n;
-  }
-  function addToDatePositionEntries(entry: DatePositionEntry) {
-    datePositionEntries.value.push(entry);
-  }
-  function resetDatePositionEntries() {
-    datePositionEntries.value = [];
-  }
-  // Getter
-  const maxCandlesShow = computed(() => {
-    return max_candles_show.value;
-  });
 
-  const allDatePositionEntries = computed(() => {
-    return datePositionEntries.value;
-  });
+  function inceaseMaxCandleShow(n = 1) {
+    maxCandlesShow.value += n;
+  }
 
   const dataMaxCandlesShow = computed(() => {
-    return data.value.slice(-max_candles_show.value);
+    return data.value.slice(-maxCandlesShow.value);
   });
 
   const startingDistanceDifference = computed(() => {
-    return max_candles_show.value - data.value.length;
+    return maxCandlesShow.value - data.value.length;
   });
 
   const dataDates = computed(() => {
@@ -126,15 +91,10 @@ export function usePriceChartData() {
   });
 
   return {
-    setData,
-    setMaxCandlesShow,
     maxCandlesShow,
     decreaseMaxCandleShow,
     inceaseMaxCandleShow,
     dataMaxCandlesShow,
-    addToDatePositionEntries,
-    allDatePositionEntries,
-    resetDatePositionEntries,
     startingDistanceDifference,
     dataDates,
     maxCandleHigh,

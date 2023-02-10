@@ -10,12 +10,13 @@
 </template>
 
 <script setup lang="ts">
-import { DATA_TICKSIZE } from '../consts';
+import { DATA_TICKSIZE } from '../../../pages/broker-charts/consts';
 import { roundToTicksize } from '../helpers/digits';
 import { computed, watchEffect } from 'vue';
-import { usePriceChartData } from '../price-chart.model';
 
 const props = defineProps<{
+  candleH2L?: number;
+  maxCandleHigh?: number;
   height?: number;
   width?: number;
 }>();
@@ -23,8 +24,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
-
-const { candleH2L, maxCandleHigh } = usePriceChartData();
 
 const MIN_ROW_DISTANCE = 40; // in px
 
@@ -36,8 +35,8 @@ const priceLinesCount = computed(() => {
 });
 
 const priceDistance = computed(() => {
-  if (candleH2L.value && priceLinesCount.value) {
-    const distance = candleH2L.value / priceLinesCount.value;
+  if (props.candleH2L && priceLinesCount.value) {
+    const distance = props.candleH2L / priceLinesCount.value;
     return roundToTicksize(distance, DATA_TICKSIZE);
   } else {
     return undefined;
@@ -45,12 +44,12 @@ const priceDistance = computed(() => {
 });
 
 const priceArray = computed(() => {
-  if (!priceDistance.value || !maxCandleHigh.value || !priceLinesCount.value) {
+  if (!priceDistance.value || !props.maxCandleHigh || !priceLinesCount.value) {
     return undefined;
   }
   const scaleValue = parseFloat(priceDistance.value);
   let returnArray: string[] = [];
-  let price = maxCandleHigh.value - scaleValue / 2;
+  let price = props.maxCandleHigh - scaleValue / 2;
   for (let i = 0; i < priceLinesCount.value; i++) {
     returnArray.push(roundToTicksize(price, DATA_TICKSIZE));
     price -= scaleValue;

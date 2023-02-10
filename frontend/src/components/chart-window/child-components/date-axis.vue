@@ -1,7 +1,7 @@
 <template>
   <span
     class="date-axis-text text-center absolute prevent-select"
-    v-for="(entry, i) in allDatePositionEntries"
+    v-for="(entry, i) in entries"
     :key="i"
     :style="`left: ${entry.x}px`"
     :class="{ 'text-weight-bold': entry.bold }"
@@ -10,18 +10,17 @@
 </template>
 
 <script lang="ts" setup>
-import { DATE_BOX_WIDTH } from '../consts';
-import { usePriceChartData } from '../price-chart.model';
+import { DATE_BOX_WIDTH } from '../../../pages/broker-charts/consts';
+import { DatePositionEntry } from '../price-charts.if';
 
 const props = defineProps<{
+  entries: DatePositionEntry[];
   width?: number;
 }>();
 
 const emit = defineEmits<{
   (event: 'verticalLine', price: number): void;
 }>();
-
-const { allDatePositionEntries } = usePriceChartData();
 </script>
 
 <style lang="scss" scoped>
