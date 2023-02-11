@@ -36,7 +36,7 @@
         <HeaderBar @maximize="maximize" @close="close" />
       </div>
       <div class="price-row">
-        <div class="chart" ref="chartRef">
+        <div class="chart" ref="chartRef" @mousemove="updateMouseContainer" @mouseleave="onChartLeave">
           <CandlestickChart
             v-if="chartHeightWidthUpdated"
             :data="candlesInChartData"
@@ -51,6 +51,7 @@
             :priceLines="priceLines"
             :startingDistanceDifference="startingDistanceDifference"
           />
+          <CrossHair v-if="crossHairShow" :x="chX" :y="chY"/>
         </div>
         <div>
           <PriceAxis
@@ -89,6 +90,7 @@ import {
 } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
+import CrossHair from './child-components/cross-hair.vue';
 
 const props = defineProps<{
   id: string;
@@ -123,6 +125,29 @@ const fullWidth = ref(props.fullWidth);
 const fullHeight = ref(props.fullHeight);
 const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
+
+// crosshair positions
+const chX = ref(0);
+const chY = ref(0);
+const crossHairShow = ref(false);
+
+// @mousemove emit (.chart)
+function updateMouseContainer(event: MouseEvent) {
+  if(!chartRef.value) {
+    return;
+  }
+  crossHairShow.value = true;
+  chX.value = event.clientX - chartRef.value.getBoundingClientRect().left;
+  chY.value = event.clientY - chartRef.value.getBoundingClientRect().top;
+  if(chX.value < 0 || chY.value < 0) {
+    crossHairShow.value = false;
+  }
+}
+
+// @mouseleave emit (.chart)
+function onChartLeave() {
+  crossHairShow.value = false;
+}
 
 watch(width, () => {
   emit('update:width', width.value);
@@ -367,6 +392,8 @@ function addHorizontalLineToPriceLines(price: number) {
       .chart {
         flex: 1;
         height: 100%;
+        cursor: crosshair;
+        position: relative;
       }
     }
 
