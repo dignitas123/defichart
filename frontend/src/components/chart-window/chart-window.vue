@@ -36,22 +36,29 @@
         <HeaderBar @maximize="maximize" @close="close" />
       </div>
       <div class="price-row">
-        <div class="chart" ref="chartRef" @mousemove="updateMouseContainer" @mouseleave="onChartLeave">
+        <div
+          class="chart"
+          ref="chartRef"
+          @mousemove="updateMouseContainer"
+          @mouseleave="onChartLeave"
+        >
           <CandlestickChart
-            v-if="chartHeightWidthUpdated"
+            v-if="afterMountUpdated"
             :data="candlesInChartData"
             :candleCount="candlesShow"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
             :low="candlesInChartLow"
             :dataDates="dataDates"
-            v-model:datePositionEntries="datePositionEntries"
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
             :startingDistanceDifference="startingDistanceDifference"
+            v-model:datePositionEntries="datePositionEntries"
+            v-model:candleWidth="candleWidth"
+            v-model:candleDistance="candleDistance"
           />
-          <CrossHair v-if="crossHairShow" :x="chX" :y="chY"/>
+          <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
         </div>
         <div>
           <PriceAxis
@@ -77,7 +84,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch, onMounted } from 'vue';
+import { ref, nextTick, watch, onMounted, reactive, computed } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -126,27 +133,41 @@ const fullHeight = ref(props.fullHeight);
 const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
 
-// crosshair positions
-const chX = ref(0);
-const chY = ref(0);
-const crossHairShow = ref(false);
+const candleWidth = ref(0);
+const candleDistance = ref(0);
+
+const crosshair = reactive({
+  x: 0,
+  y: 0,
+  show: false,
+});
 
 // @mousemove emit (.chart)
 function updateMouseContainer(event: MouseEvent) {
-  if(!chartRef.value) {
+  if (!chartRef.value) {
     return;
   }
-  crossHairShow.value = true;
-  chX.value = event.clientX - chartRef.value.getBoundingClientRect().left;
-  chY.value = event.clientY - chartRef.value.getBoundingClientRect().top;
-  if(chX.value < 0 || chY.value < 0) {
-    crossHairShow.value = false;
+  crosshair.show = true;
+  let newX = event.clientX - chartRef.value.getBoundingClientRect().left;
+  crosshair.x = findCandleMidpoint(newX);
+  crosshair.y = event.clientY - chartRef.value.getBoundingClientRect().top;
+  if (crosshair.x < 0 || crosshair.y < 0) {
+    crosshair.show = false;
   }
+  lastChX = newX;
+}
+
+function findCandleMidpoint(x: number) {
+  let cD = candleDistance.value;
+  let cW = candleWidth.value;
+  let wW = 1;
+  let start = Math.floor(x / (cW + cD)) * (cW + cD) + cD;
+  return start + cW / 2 - wW / 2;
 }
 
 // @mouseleave emit (.chart)
 function onChartLeave() {
-  crossHairShow.value = false;
+  crosshair.show = false;
 }
 
 watch(width, () => {
@@ -284,13 +305,13 @@ function onResize() {
   updateChartHeightAndWidth();
 }
 
-const chartHeightWidthUpdated = ref(false);
+const afterMountUpdated = ref(false);
 
 onMounted(async () => {
   data.value = generateData();
   await nextTick();
   updateChartHeightAndWidth();
-  chartHeightWidthUpdated.value = true;
+  afterMountUpdated.value = true;
 });
 
 watch([chartHeight, chartWidth, candlesShow], async () => {

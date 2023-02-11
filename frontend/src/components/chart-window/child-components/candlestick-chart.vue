@@ -78,6 +78,8 @@ const props = withDefaults(
     dataDates?: Date[];
     datePositionEntries: DatePositionEntry[];
     startingDistanceDifference: number;
+    candleWidth: number;
+    candleDistance: number;
   }>(),
   {
     priceLines: () => [],
@@ -86,9 +88,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:datePositionEntries', entries: DatePositionEntry[]): void;
+  (event: 'update:candleWidth', width: number): void;
+  (event: 'update:candleDistance', distance: number): void;
 }>();
 
-const CANDLE_WICK_THICKNESS = 0.15; // in percent
+const CANDLE_WICK_THICKNESS = 1;
 
 const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
@@ -101,19 +105,23 @@ const WEEK = DAY * 7;
 const MONTH = DAY * 30;
 
 const datePositionEntries = ref(props.datePositionEntries);
+const candleWidth = ref(props.candleWidth);
+const candleDistance = ref(props.candleDistance);
 
 watch(datePositionEntries, () => {
   emit('update:datePositionEntries', datePositionEntries.value);
 });
 
+watch(candleWidth, () => {
+  emit('update:candleWidth', candleWidth.value);
+});
+
+watch(candleDistance, () => {
+  emit('update:candleDistance', candleDistance.value);
+});
+
 const candles = ref<Candle[]>([]);
-
-const candleWidth = ref(0);
 const candleWickWidth = ref(0);
-
-function getCandleWickWidth(cW: number) {
-  return cW * CANDLE_WICK_THICKNESS;
-}
 
 // x-distance between candles
 function calcCandleDistance(cW: number) {
@@ -146,21 +154,23 @@ function drawChart(onlyHeightChange = false) {
     datePositionEntries.value = [];
   }
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
-  const cD = calcCandleDistance(candleWidthWithoutCandleDistance);
+  candleDistance.value = calcCandleDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
-    candleWidthWithoutCandleDistance - cD - cD / props.candleCount;
-  candleWickWidth.value = getCandleWickWidth(candleWidth.value);
+    candleWidthWithoutCandleDistance -
+    candleDistance.value -
+    candleDistance.value / props.candleCount;
 
   let xPositionCandlestick =
     (props.startingDistanceDifference > 0
       ? props.startingDistanceDifference
       : 0) *
-      (candleWidth.value + cD) +
-    cD;
+      (candleWidth.value + candleDistance.value) +
+    candleDistance.value;
 
   const overCandles = props.candleCount - props.dataDates.length;
   const candleSumWidthPx =
-    (candleWidth.value + cD) * (props.candleCount - overCandles);
+    (candleWidth.value + candleDistance.value) *
+    (props.candleCount - overCandles);
   const timeDisplayProps: TimeDisplayProperties =
     timeDisplayProperties(candleSumWidthPx);
 
@@ -169,7 +179,7 @@ function drawChart(onlyHeightChange = false) {
     if (makeDateCalculation) {
       addDate(ohlc.d);
     }
-    xPositionCandlestick += candleWidth.value + cD;
+    xPositionCandlestick += candleWidth.value + candleDistance.value;
   });
 
   function addDate(date: Date) {
@@ -301,7 +311,7 @@ function drawChart(onlyHeightChange = false) {
 
     candle.x = x;
     const xStartingPoint = x + candleWidth.value / 2;
-    const candleWickDistance = candleWickWidth.value / 2;
+    const candleWickDistance = CANDLE_WICK_THICKNESS / 2;
     const xWickPoint = xStartingPoint - candleWickDistance;
 
     candle.wX = xWickPoint;
