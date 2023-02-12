@@ -82,7 +82,7 @@ function handleKeyDown(event: KeyboardEvent) {
   } else if (event.code === 'ArrowUp') {
     charts[selectedChartId.value].candlesShow++;
   } else if (event.code === 'ArrowDown') {
-    if (charts[selectedChartId.value].candlesShow > 0) {
+    if (charts[selectedChartId.value].candlesShow > 1) {
       charts[selectedChartId.value].candlesShow--;
     }
   }

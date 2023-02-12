@@ -84,7 +84,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch, onMounted, reactive, computed } from 'vue';
+import { ref, nextTick, watch, onMounted, reactive } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -98,6 +98,7 @@ import {
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
+import { CANDLE_WICK_THICKNESS } from 'src/pages/broker-charts/consts';
 
 const props = defineProps<{
   id: string;
@@ -142,6 +143,7 @@ const crosshair = reactive({
   show: false,
 });
 
+let lastChX = 0;
 // @mousemove emit (.chart)
 function updateMouseContainer(event: MouseEvent) {
   if (!chartRef.value) {
@@ -149,7 +151,10 @@ function updateMouseContainer(event: MouseEvent) {
   }
   crosshair.show = true;
   let newX = event.clientX - chartRef.value.getBoundingClientRect().left;
-  crosshair.x = findCandleMidpoint(newX);
+  let newCandleMidpoint = findCandleMidpoint(newX);
+  if (newCandleMidpoint) {
+    crosshair.x = newCandleMidpoint;
+  }
   crosshair.y = event.clientY - chartRef.value.getBoundingClientRect().top;
   if (crosshair.x < 0 || crosshair.y < 0) {
     crosshair.show = false;
@@ -157,12 +162,40 @@ function updateMouseContainer(event: MouseEvent) {
   lastChX = newX;
 }
 
+watch(candlesShow, () => {
+  setTimeout(() => {
+    let newCandleMidpoint = findCandleMidpointAfterZoom(lastChX);
+    if (newCandleMidpoint) {
+      crosshair.x = newCandleMidpoint;
+    }
+  }, 500)
+})
+
 function findCandleMidpoint(x: number) {
   let cD = candleDistance.value;
   let cW = candleWidth.value;
-  let wW = 1;
   let start = Math.floor(x / (cW + cD)) * (cW + cD) + cD;
-  return start + cW / 2 - wW / 2;
+  if (x > start) {
+    return start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
+  } else {
+    return 0;
+  }
+}
+
+function findCandleMidpointAfterZoom(x: number) {
+  if(!chartWidth.value) {
+    return;
+  }
+  let cD = candleDistance.value;
+  let cW = candleWidth.value;
+  let start = Math.floor(x / (cW + cD)) * (cW + cD) + cD;
+  let ret = start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
+  if(ret > chartWidth.value) {
+    start = Math.floor((x - candleWidth.value) / (cW + cD)) * (cW + cD) + cD;
+    return start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
+  } else {
+    return ret;
+  }
 }
 
 // @mouseleave emit (.chart)

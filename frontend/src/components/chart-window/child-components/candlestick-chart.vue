@@ -25,7 +25,7 @@
       <rect
         :x="candle.wX"
         :y="candle.uwY"
-        :width="candleWickWidth"
+        :width="CANDLE_WICK_THICKNESS"
         :height="candle.uwHeight"
         :style="`fill: ${candle.fillColor}`"
       />
@@ -39,7 +39,7 @@
       <rect
         :x="candle.wX"
         :y="candle.lwY"
-        :width="candleWickWidth"
+        :width="CANDLE_WICK_THICKNESS"
         :height="candle.lwHeight"
         :style="`fill: ${candle.fillColor}`"
       />
@@ -49,10 +49,6 @@
 
 <script lang="ts" setup>
 import { ref, watch, watchEffect } from 'vue';
-import {
-  DATE_BOX_WIDTH,
-  PRICE_LINES_TRANSPARENCY,
-} from '../../../pages/broker-charts/consts';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -64,6 +60,11 @@ import {
   DatePositionEntry,
   OHLC,
 } from 'src/pages/broker-charts/broker-charts.if';
+import {
+CANDLE_WICK_THICKNESS,
+  DATE_BOX_WIDTH,
+  PRICE_LINES_TRANSPARENCY,
+} from 'src/pages/broker-charts/consts';
 
 const props = withDefaults(
   defineProps<{
@@ -92,8 +93,6 @@ const emit = defineEmits<{
   (event: 'update:candleDistance', distance: number): void;
 }>();
 
-const CANDLE_WICK_THICKNESS = 1;
-
 const CANDLE_BULL_COLOR = 'green';
 const CANDLE_BEAR_COLOR = 'red';
 const CANDLE_BORDER = false;
@@ -121,7 +120,6 @@ watch(candleDistance, () => {
 });
 
 const candles = ref<Candle[]>([]);
-const candleWickWidth = ref(0);
 
 // x-distance between candles
 function calcCandleDistance(cW: number) {

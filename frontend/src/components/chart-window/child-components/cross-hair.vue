@@ -18,6 +18,7 @@ defineProps<{
   width: 100%;
   border: none;
   border-top: 1px dashed rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 
 .crosshair-y {
@@ -25,5 +26,6 @@ defineProps<{
   height: 100%;
   border: none;
   border-left: 1px dashed rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 </style>
