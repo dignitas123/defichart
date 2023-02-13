@@ -61,7 +61,7 @@ import {
   OHLC,
 } from 'src/pages/broker-charts/broker-charts.if';
 import {
-CANDLE_WICK_THICKNESS,
+  CANDLE_WICK_THICKNESS,
   DATE_BOX_WIDTH,
   PRICE_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
@@ -69,6 +69,7 @@ CANDLE_WICK_THICKNESS,
 const props = withDefaults(
   defineProps<{
     data: OHLC[];
+    dates?: Date[];
     candleCount: number;
     h2l?: number;
     high: number;
@@ -76,7 +77,6 @@ const props = withDefaults(
     height?: number;
     width?: number;
     priceLines?: number[];
-    dataDates?: Date[];
     datePositionEntries: DatePositionEntry[];
     startingDistanceDifference: number;
     candleWidth: number;
@@ -143,7 +143,7 @@ function calcCandleDistance(cW: number) {
 
 function drawChart(onlyHeightChange = false) {
   let makeDateCalculation = !onlyHeightChange;
-  if (!props.width || !props.height || !props.dataDates) {
+  if (!props.width || !props.height || !props.dates) {
     return;
   }
   candles.value = [];
@@ -165,126 +165,139 @@ function drawChart(onlyHeightChange = false) {
       (candleWidth.value + candleDistance.value) +
     candleDistance.value;
 
-  const overCandles = props.candleCount - props.dataDates.length;
+  const overCandles = props.candleCount - props.dates.length;
   const candleSumWidthPx =
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
   const timeDisplayProps: TimeDisplayProperties =
     timeDisplayProperties(candleSumWidthPx);
 
-  props.data.forEach((ohlc) => {
+  props.data.forEach((ohlc, index) => {
     drawCandle(xPositionCandlestick, ohlc);
     if (makeDateCalculation) {
-      addDate(ohlc.d);
+      addDate(ohlc.d, index);
     }
     xPositionCandlestick += candleWidth.value + candleDistance.value;
   });
 
-  function addDate(date: Date) {
+  function addDate(date: Date, index: number) {
     let formattedDate = '';
     let bold = false;
+    let format = '';
 
     if (timeDisplayProps.period === TimeModePeriod.Minute) {
-      const MINutes = date.getMinutes();
-      if (MINutes % timeDisplayProps.timeDifferential === 0) {
-        if (timeDisplayProps.mode === TimeMode.M5 && MINutes % 15 === 0) {
+      const minutes = date.getMinutes();
+      format = 'hh:mm';
+      if (minutes % timeDisplayProps.timeDifferential === 0) {
+        if (timeDisplayProps.mode === TimeMode.M5 && minutes % 15 === 0) {
           bold = true;
         } else if (
           timeDisplayProps.mode === TimeMode.M10 &&
-          MINutes % 30 === 0
+          minutes % 30 === 0
         ) {
           bold = true;
-        } else if (timeDisplayProps.mode === TimeMode.M15 && MINutes === 0) {
+        } else if (timeDisplayProps.mode === TimeMode.M15 && minutes === 0) {
           bold = true;
         } else if (
           timeDisplayProps.mode === TimeMode.M30 &&
           date.getHours() % 2 === 0 &&
-          MINutes === 0
+          minutes === 0
         ) {
           bold = true;
         }
-        formattedDate = dateFormat(date, 'hh:mm');
+        formattedDate = dateFormat(date, format);
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Hour) {
-      const HOURs = date.getHours();
-      const MINutes = date.getMinutes();
-      if (MINutes % 60 === 0) {
-        let _format = 'hh:mm';
-        if (HOURs % 0) {
-          _format = 'dd'; // TODO: maybe add MONTH but must be local (dd/mm, dd:mm etc.)
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      format = 'hh:mm';
+      if (minutes % 60 === 0) {
+        if (hours % 0) {
+          format = 'dd'; // TODO: maybe add MONTH but must be local (dd/mm, dd:mm etc.)
           bold = true;
         }
         if (timeDisplayProps.mode === TimeMode.H1) {
-          if (HOURs % 4 === 0) {
+          if (hours % 4 === 0) {
             bold = true;
           }
-          formattedDate = dateFormat(date, _format);
+          formattedDate = dateFormat(date, format);
         } else if (timeDisplayProps.mode === TimeMode.H3) {
-          if (HOURs % 9 === 0) {
+          if (hours % 9 === 0) {
             bold = true;
           }
-          if (HOURs % 3 === 0) {
-            formattedDate = dateFormat(date, _format);
+          if (hours % 3 === 0) {
+            formattedDate = dateFormat(date, format);
           }
         } else if (timeDisplayProps.mode === TimeMode.H6) {
-          if (HOURs % 12 === 0) {
+          if (hours % 12 === 0) {
             bold = true;
           }
-          if (HOURs % 6 === 0) {
-            formattedDate = dateFormat(date, _format);
+          if (hours % 6 === 0) {
+            formattedDate = dateFormat(date, format);
           }
         }
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Day) {
-      const DAYs = date.getDate();
-      if (DAYs % timeDisplayProps.timeDifferential === 0) {
+      const days = date.getDate();
+      format = 'dd';
+      if (days % timeDisplayProps.timeDifferential === 0) {
         if (timeDisplayProps.mode === TimeMode.W2) {
-          if (DAYs % 15 === 0 && DAYs !== 30) {
-            formattedDate = dateFormat(date, 'dd');
+          if (days % 15 === 0 && days !== 30) {
+            formattedDate = dateFormat(date, format);
           }
         } else {
-          formattedDate = dateFormat(date, 'dd');
+          formattedDate = dateFormat(date, format);
         }
-        if (DAYs === 1) {
-          formattedDate = dateFormat(date, 'MM');
+        if (days === 1) {
+          format = 'MM';
+          formattedDate = dateFormat(date, format);
         }
         if (date.getMonth() === 1) {
-          formattedDate = dateFormat(date, 'YYYY');
+          format = 'YYYY';
+          formattedDate = dateFormat(date, format);
           bold = true;
         }
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Month) {
-      const MONTH = date.getMonth();
-      let _format = 'MM';
-      if (MONTH % timeDisplayProps.timeDifferential === 0) {
-        if (MONTH === 1) {
+      const month = date.getMonth();
+      format = 'MM';
+      if (month % timeDisplayProps.timeDifferential === 0) {
+        if (month === 1) {
           bold = true;
-          _format = 'YYYY';
+          format = 'YYYY';
         }
-        formattedDate = dateFormat(date, _format);
+        formattedDate = dateFormat(date, format);
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Year) {
+      format = 'YYYY';
       if (date.getFullYear() % 10 === 0) {
         bold = true;
       }
-      formattedDate = dateFormat(date, 'YYYY');
-    }
-
-    if (!formattedDate) {
-      return;
+      formattedDate = dateFormat(date, format);
     }
 
     const xPosition =
       xPositionCandlestick - DATE_BOX_WIDTH / 2 + candleWidth.value / 2;
 
-    if (!props.width || xPosition < 0 || xPosition > props.width) {
+    if (!formattedDate) {
+      datePositionEntries.value.push({
+        index: index,
+        x: xPosition,
+        date: dateFormat(date, format),
+        bold: bold,
+        show: false,
+      });
       return;
     }
 
+    // || xPosition < 0 || xPosition > props.width
+
     datePositionEntries.value.push({
+      index: index,
       x: xPosition,
       date: formattedDate,
       bold: bold,
+      show: true,
     });
   }
 
@@ -352,7 +365,7 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   let mode = TimeMode.Y1;
   let period = TimeModePeriod.Year;
   let timeDifferential = 1;
-  if (!props.width || !props.dataDates) {
+  if (!props.width || !props.dates) {
     return {
       mode: mode,
       period: period,
@@ -361,8 +374,7 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   }
 
   const diff =
-    props.dataDates[props.dataDates.length - 1].getTime() -
-    props.dataDates[0].getTime();
+    props.dates[props.dates.length - 1].getTime() - props.dates[0].getTime();
 
   // This is the time difference, that fits in one time display
   const tDifDB = diff * (DATE_BOX_WIDTH / candleSumWidthPx);

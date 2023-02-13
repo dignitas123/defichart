@@ -31,6 +31,10 @@ export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
     return candlesInChartData.value.map((ohlc) => ohlc.d);
   });
 
+  const dataDatesCount = computed(() => {
+    return dataDates.value?.length;
+  });
+
   const allCandlesHigh = computed(() => {
     if (data.value.length) {
       return Math.max(...data.value.map((ohlc) => Number(ohlc.h)));
@@ -96,6 +100,7 @@ export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
     candlesInChartLow,
     candlesInChartH2L,
     dataDates,
+    dataDatesCount,
     priceAxisWidth,
     startingDistanceDifference,
   };

@@ -45,11 +45,11 @@
           <CandlestickChart
             v-if="afterMountUpdated"
             :data="candlesInChartData"
+            :dates="dataDates"
             :candleCount="candlesShow"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
             :low="candlesInChartLow"
-            :dataDates="dataDates"
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
@@ -72,7 +72,16 @@
       </div>
       <div class="date-row">
         <div class="timestamps" @mousedown="startXDrag">
-          <DateAxis :entries="datePositionEntries" :width="chartWidth" />
+          <DateAxis
+            :selectedCandleIndex="selectedCandleIndex"
+            :entries="datePositionEntries"
+            :width="chartWidth"
+            :candleWidth="candleWidth"
+            :candleDistance="candleDistance"
+            :candlesShow="candlesShow"
+            :datesCount="dataDatesCount"
+            :badgeShow="crosshair.show"
+          />
         </div>
         <div :style="`width: ${priceAxisWidth}px`">
           <ConfigBottomRight />
@@ -143,6 +152,8 @@ const crosshair = reactive({
   show: false,
 });
 
+const selectedCandleIndex = ref(0);
+
 let lastChX = 0;
 // @mousemove emit (.chart)
 function updateMouseContainer(event: MouseEvent) {
@@ -162,20 +173,14 @@ function updateMouseContainer(event: MouseEvent) {
   lastChX = newX;
 }
 
-watch(candlesShow, () => {
-  setTimeout(() => {
-    let newCandleMidpoint = findCandleMidpointAfterZoom(lastChX);
-    if (newCandleMidpoint) {
-      crosshair.x = newCandleMidpoint;
-    }
-  }, 500)
-})
-
 function findCandleMidpoint(x: number) {
   let cD = candleDistance.value;
   let cW = candleWidth.value;
-  let start = Math.floor(x / (cW + cD)) * (cW + cD) + cD;
+  let dist = cW + cD;
+  let candleIndex = Math.floor(x / dist);
+  let start = candleIndex * dist + cD;
   if (x > start) {
+    selectedCandleIndex.value = candleIndex;
     return start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
   } else {
     return 0;
@@ -183,14 +188,17 @@ function findCandleMidpoint(x: number) {
 }
 
 function findCandleMidpointAfterZoom(x: number) {
-  if(!chartWidth.value) {
+  if (!chartWidth.value) {
     return;
   }
   let cD = candleDistance.value;
   let cW = candleWidth.value;
-  let start = Math.floor(x / (cW + cD)) * (cW + cD) + cD;
+  let dist = cW + cD;
+  let candleIndex = Math.floor(x / dist);
+  let start = candleIndex * dist + cD;
   let ret = start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
-  if(ret > chartWidth.value) {
+  selectedCandleIndex.value = candleIndex;
+  if (ret > chartWidth.value) {
     start = Math.floor((x - candleWidth.value) / (cW + cD)) * (cW + cD) + cD;
     return start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
   } else {
@@ -239,8 +247,14 @@ watch(
     fullHeight.value = props.fullHeight;
   }
 );
-watch(candlesShow, () => {
+
+watch(candlesShow, async () => {
+  await nextTick();
   emit('update:candlesShow', candlesShow.value);
+  let newCandleMidpoint = findCandleMidpointAfterZoom(lastChX);
+  if (newCandleMidpoint) {
+    crosshair.x = newCandleMidpoint;
+  }
 });
 watch(
   () => props.candlesShow,
@@ -267,6 +281,7 @@ const {
   decreaseCandlesShow,
   priceAxisWidth,
   dataDates,
+  dataDatesCount,
   startingDistanceDifference,
 } = useChartData(data, candlesShow);
 
@@ -457,6 +472,9 @@ function addHorizontalLineToPriceLines(price: number) {
 
       .timestamps {
         flex: 1;
+        overflow: hidden;
+        position: relative;
+
         &:hover {
           cursor: ew-resize;
         }

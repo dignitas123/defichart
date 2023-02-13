@@ -24,7 +24,9 @@ export interface Chart {
 }
 
 export interface DatePositionEntry {
+  index: number;
   x: number;
   date: string;
   bold: boolean;
+  show: boolean;
 }
