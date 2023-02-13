@@ -123,22 +123,21 @@ const candles = ref<Candle[]>([]);
 
 // x-distance between candles
 function calcCandleDistance(cW: number) {
-  if (cW) {
-    if (cW > 40) {
-      return 5;
-    } else if (cW > 16) {
-      return 4;
-    } else if (cW > 20) {
-      return 3;
-    } else if (cW > 6.6) {
-      return 2;
-    } else if (cW > 4) {
-      return 1;
-    } else {
-      return 0;
-    }
+  if (cW > 80) {
+    return 20;
+  } else if (cW > 40) {
+    return 5;
+  } else if (cW > 20) {
+    return 4;
+  } else if (cW > 16) {
+    return 3;
+  } else if (cW > 6.6) {
+    return 2;
+  } else if (cW > 4) {
+    return 1;
+  } else {
+    return 0;
   }
-  return 3;
 }
 
 function drawChart(onlyHeightChange = false) {

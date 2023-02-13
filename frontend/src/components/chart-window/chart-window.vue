@@ -339,6 +339,12 @@ function onWheel(event: WheelEvent) {
   let candles = 2;
   if (candlesShow.value < 15) {
     candles = 1;
+  } else if (candlesShow.value > 70) {
+    candles = 5;
+  } else if (candlesShow.value > 100) {
+    candles = 10;
+  } else if (candlesShow.value > 150) {
+    candles = 20;
   }
   if (event.deltaY > wheelDraggingStart.value) {
     increaseCandlesShow(candles);

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="x || y">
+  <div v-if="x && y">
     <div class="crosshair-x" :style="`top: ${y}px;`" />
     <div class="crosshair-y" :style="`left: ${x}px`" />
   </div>
