@@ -12,7 +12,16 @@
       :y1="price"
       :x2="width"
       :y2="price"
-      :stroke="`rgb(0, 0, 0, ${PRICE_LINES_TRANSPARENCY})`"
+      :stroke="`rgb(0, 0, 0, ${GRID_LINES_TRANSPARENCY})`"
+    />
+    <line
+      v-for="(dateX, i) in dateLines"
+      :key="i"
+      :x1="dateX"
+      :y1="0"
+      :x2="dateX"
+      :y2="height"
+      :stroke="`rgb(0, 0, 0, ${GRID_LINES_TRANSPARENCY})`"
     />
   </svg>
   <svg
@@ -63,8 +72,9 @@ import {
 import {
   CANDLE_WICK_THICKNESS,
   DATE_BOX_WIDTH,
-  PRICE_LINES_TRANSPARENCY,
+  GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
+import { useLanguageStore } from 'src/stores/language';
 
 const props = withDefaults(
   defineProps<{
@@ -77,6 +87,7 @@ const props = withDefaults(
     height?: number;
     width?: number;
     priceLines?: number[];
+    dateLines?: number[];
     datePositionEntries: DatePositionEntry[];
     startingDistanceDifference: number;
     candleWidth: number;
@@ -84,6 +95,7 @@ const props = withDefaults(
   }>(),
   {
     priceLines: () => [],
+    dateLines: () => [],
   }
 );
 
@@ -140,6 +152,8 @@ function calcCandleDistance(cW: number) {
   }
 }
 
+const languageStore = useLanguageStore();
+
 function drawChart(onlyHeightChange = false) {
   let makeDateCalculation = !onlyHeightChange;
   if (!props.width || !props.height || !props.dates) {
@@ -184,9 +198,14 @@ function drawChart(onlyHeightChange = false) {
     let bold = false;
     let format = '';
 
+    const minutes = date.getMinutes();
+    const hours = date.getHours();
+
     if (timeDisplayProps.period === TimeModePeriod.Minute) {
-      const minutes = date.getMinutes();
-      format = 'hh:mm';
+      format = 'HH:mm';
+      if (minutes === 0 && hours === 0) {
+        format = 'dd.MM';
+      }
       if (minutes % timeDisplayProps.timeDifferential === 0) {
         if (timeDisplayProps.mode === TimeMode.M5 && minutes % 15 === 0) {
           bold = true;
@@ -204,56 +223,54 @@ function drawChart(onlyHeightChange = false) {
         ) {
           bold = true;
         }
-        formattedDate = dateFormat(date, format);
+        formattedDate = formatDate(date, format);
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Hour) {
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      format = 'hh:mm';
+      format = 'HH:mm';
       if (minutes % 60 === 0) {
-        if (hours % 0) {
-          format = 'dd'; // TODO: maybe add MONTH but must be local (dd/mm, dd:mm etc.)
+        if (hours === 0) {
+          format = 'dd.MM';
           bold = true;
         }
         if (timeDisplayProps.mode === TimeMode.H1) {
           if (hours % 4 === 0) {
             bold = true;
           }
-          formattedDate = dateFormat(date, format);
+          formattedDate = formatDate(date, format);
         } else if (timeDisplayProps.mode === TimeMode.H3) {
           if (hours % 9 === 0) {
             bold = true;
           }
           if (hours % 3 === 0) {
-            formattedDate = dateFormat(date, format);
+            formattedDate = formatDate(date, format);
           }
         } else if (timeDisplayProps.mode === TimeMode.H6) {
           if (hours % 12 === 0) {
             bold = true;
           }
           if (hours % 6 === 0) {
-            formattedDate = dateFormat(date, format);
+            formattedDate = formatDate(date, format);
           }
         }
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Day) {
       const days = date.getDate();
-      format = 'dd';
+      format = 'dd.MM';
       if (days % timeDisplayProps.timeDifferential === 0) {
         if (timeDisplayProps.mode === TimeMode.W2) {
           if (days % 15 === 0 && days !== 30) {
-            formattedDate = dateFormat(date, format);
+            formattedDate = formatDate(date, format);
           }
         } else {
-          formattedDate = dateFormat(date, format);
+          formattedDate = formatDate(date, format);
         }
         if (days === 1) {
           format = 'MM';
-          formattedDate = dateFormat(date, format);
+          formattedDate = formatDate(date, format);
         }
         if (date.getMonth() === 1) {
           format = 'YYYY';
-          formattedDate = dateFormat(date, format);
+          formattedDate = formatDate(date, format);
           bold = true;
         }
       }
@@ -265,14 +282,14 @@ function drawChart(onlyHeightChange = false) {
           bold = true;
           format = 'YYYY';
         }
-        formattedDate = dateFormat(date, format);
+        formattedDate = formatDate(date, format);
       }
     } else if (timeDisplayProps.period === TimeModePeriod.Year) {
       format = 'YYYY';
       if (date.getFullYear() % 10 === 0) {
         bold = true;
       }
-      formattedDate = dateFormat(date, format);
+      formattedDate = formatDate(date, format);
     }
 
     const xPosition =
@@ -282,14 +299,12 @@ function drawChart(onlyHeightChange = false) {
       datePositionEntries.value.push({
         index: index,
         x: xPosition,
-        date: dateFormat(date, format),
+        date: formatDate(date, format),
         bold: bold,
         show: false,
       });
       return;
     }
-
-    // || xPosition < 0 || xPosition > props.width
 
     datePositionEntries.value.push({
       index: index,
@@ -360,6 +375,10 @@ function drawChart(onlyHeightChange = false) {
   }
 }
 
+function formatDate(date: Date, format: string) {
+  return dateFormat(date, format, { locale: languageStore.language });
+}
+
 function timeDisplayProperties(candleSumWidthPx: number) {
   let mode = TimeMode.Y1;
   let period = TimeModePeriod.Year;
@@ -381,10 +400,10 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   if (tDifDB < 3 * MIN) {
     mode = TimeMode.M1;
     timeDifferential = 1;
-  } else if (tDifDB < 7 * MIN) {
+  } else if (tDifDB < 6 * MIN) {
     mode = TimeMode.M5;
     timeDifferential = 5;
-  } else if (tDifDB < 12 * MIN) {
+  } else if (tDifDB < 10 * MIN) {
     mode = TimeMode.M10;
     timeDifferential = 10;
   } else if (tDifDB < 16 * MIN) {

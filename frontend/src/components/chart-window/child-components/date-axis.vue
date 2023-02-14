@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
 import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 
@@ -34,7 +34,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (event: 'verticalLine', price: number): void;
+  (event: 'verticalLines', lines: number[]): void;
 }>();
 
 const crosshairBadgeRef = ref<HTMLElement>();
@@ -86,6 +86,13 @@ const badgeXposition = computed(() => {
 
 const dateEntriesShow = computed(() => {
   return props.entries.filter((entry) => entry.show);
+});
+
+watch(dateEntriesShow, () => {
+  emit(
+    'verticalLines',
+    dateEntriesShow.value.map((entry) => entry.x + DATE_BOX_WIDTH / 2)
+  );
 });
 </script>
 

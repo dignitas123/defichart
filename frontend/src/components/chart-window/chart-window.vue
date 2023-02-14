@@ -53,6 +53,7 @@
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
+            :dateLines="dateLines"
             :startingDistanceDifference="startingDistanceDifference"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
@@ -81,6 +82,7 @@
             :candlesShow="candlesShow"
             :datesCount="dataDatesCount"
             :badgeShow="crosshair.show"
+            @verticalLines="setVerticalLines"
           />
         </div>
         <div :style="`width: ${priceAxisWidth}px`">
@@ -389,10 +391,16 @@ function close() {
 }
 
 const priceLines = ref<number[]>([]);
+const dateLines = ref<number[]>([]);
 
 // @horizontalLine emit
 function addHorizontalLineToPriceLines(price: number) {
   priceLines.value.push(price);
+}
+
+// @verticalLines emit
+function setVerticalLines(lines: number[]) {
+  dateLines.value = lines;
 }
 </script>
 
