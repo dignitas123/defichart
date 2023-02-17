@@ -22,8 +22,12 @@ export function useChartData(
 
   const candlesInChartData = computed(() => {
     const dataLength = data.value.length;
+    let startSlice = dataLength - candlesShow.value + offset.value;
+    if(startSlice < 0) {
+      startSlice = 0
+    }
     return data.value.slice(
-      dataLength - candlesShow.value + offset.value,
+      startSlice,
       dataLength + offset.value
     );
   });
