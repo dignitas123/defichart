@@ -382,7 +382,7 @@ function onWheel(event: WheelEvent) {
   // }
   // TODO: disinguish better between y and x move and add cursors when moving
   if (Math.abs(event.deltaY) > 1) {
-    if (event.deltaY > 0) {
+    if (event.deltaY > 0 && candleWidth.value > 1) {
       increaseCandlesShow(candles);
     } else if (event.deltaY < 0) {
       decreaseCandlesShow(candles);
