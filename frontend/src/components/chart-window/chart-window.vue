@@ -22,7 +22,7 @@
     <div v-if="false" class="spinner-bar-wrapper">
       <q-spinner-ios color="primary" size="xl" />
     </div>
-    <div class="container" @wheel="onWheel">
+    <div class="container">
       <div class="resize-area" @mousedown="$emit('resizeDrag', false, false)" />
       <div
         class="resize-area-x"
@@ -39,6 +39,8 @@
         <div
           class="chart"
           ref="chartRef"
+          @contextmenu.prevent
+          @wheel="onWheel"
           @mousemove="updateMouseContainer"
           @mouseleave="onChartLeave"
         >
@@ -54,6 +56,7 @@
             :width="chartWidth"
             :priceLines="priceLines"
             :dateLines="dateLines"
+            :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
@@ -80,7 +83,6 @@
             :candleWidth="candleWidth"
             :candleDistance="candleDistance"
             :candlesShow="candlesShow"
-            :datesCount="dataDatesCount"
             :badgeShow="crosshair.show"
             @verticalLines="setVerticalLines"
           />
@@ -119,6 +121,7 @@ const props = defineProps<{
   fullHeight: boolean;
   candlesShow: number;
   selected: boolean;
+  offset: number;
 }>();
 
 const emit = defineEmits<{
@@ -130,6 +133,7 @@ const emit = defineEmits<{
   (event: 'update:fullHeight', fullHeight: boolean): void;
   (event: 'update:candlesShow', candles: number): void;
   (event: 'update:selected', selected: boolean): void;
+  (event: 'update:offset', offset: number): void;
 }>();
 
 const HEADER_BAR_HEIGHT = 22;
@@ -144,6 +148,7 @@ const fullWidth = ref(props.fullWidth);
 const fullHeight = ref(props.fullHeight);
 const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
+const offset = ref(props.offset);
 
 const candleWidth = ref(0);
 const candleDistance = ref(0);
@@ -264,6 +269,15 @@ watch(
     candlesShow.value = props.candlesShow;
   }
 );
+watch(offset, () => {
+  emit('update:offset', offset.value);
+});
+watch(
+  () => props.offset,
+  () => {
+    offset.value = props.offset;
+  }
+);
 watch(selected, () => {
   emit('update:selected', selected.value);
 });
@@ -283,9 +297,8 @@ const {
   decreaseCandlesShow,
   priceAxisWidth,
   dataDates,
-  dataDatesCount,
   startingDistanceDifference,
-} = useChartData(data, candlesShow);
+} = useChartData(data, candlesShow, offset);
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -299,24 +312,24 @@ const chartWidth = ref<undefined | number>(undefined);
 const xDragging = ref(false);
 const xDraggingStart = ref(0);
 
-// @mouseUp emit
+// @mouseUp emit (.chart-wrapper)
 function stopXDrag() {
   xDragging.value = false;
 }
 
-// @mousedown emit
+// @mousedown emit (.timestamps)
 function startXDrag(event: MouseEvent) {
   xDragging.value = true;
   xDraggingStart.value = event.clientX;
 }
 
-// @mouseleave emit
+// @mouseleave emit (.chart-wrapper)
 function onChartContainterLeave() {
   xDragging.value = false;
   chartWrapperShadow.value = false;
 }
 
-// @mousemove emit
+// @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
   if (!xDragging.value) return;
   let candlesToIncrease = Math.ceil(candlesShow.value / 30);
@@ -334,8 +347,6 @@ function updateChartHeightAndWidth() {
   chartWidth.value = chartRef.value?.clientWidth;
 }
 
-const wheelDraggingStart = ref(0);
-
 // @wheel emit
 function onWheel(event: WheelEvent) {
   let candles = 2;
@@ -348,12 +359,22 @@ function onWheel(event: WheelEvent) {
   } else if (candlesShow.value > 150) {
     candles = 20;
   }
-  if (event.deltaY > wheelDraggingStart.value) {
-    increaseCandlesShow(candles);
-    wheelDraggingStart.value = 0;
-  } else if (event.deltaY < wheelDraggingStart.value) {
-    decreaseCandlesShow(candles);
-    wheelDraggingStart.value = 0;
+  // TODO: implement going left and right
+  // if (Math.abs(event.deltaX) > 1 && Math.abs(event.deltaY) < 3) {
+  //   const deltaX = Math.round(event.deltaX / 2);
+  //   const newOffset = offset.value - deltaX;
+  //   if(newOffset < 0 && newOffset > -data.value.length + candlesShow.value) {
+  //     offset.value -= deltaX;
+  //   }
+  //   return;
+  // }
+  // TODO: disinguish better between y and x move and add cursors when moving
+  if (Math.abs(event.deltaY) > 1) {
+    if (event.deltaY > 0) {
+      increaseCandlesShow(candles);
+    } else if (event.deltaY < 0) {
+      decreaseCandlesShow(candles);
+    }
   }
 }
 
@@ -370,7 +391,7 @@ onMounted(async () => {
   afterMountUpdated.value = true;
 });
 
-watch([chartHeight, chartWidth, candlesShow], async () => {
+watch([chartHeight, chartWidth, candlesShow, offset], async () => {
   await nextTick();
   priceLines.value = [];
 });

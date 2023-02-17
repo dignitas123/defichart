@@ -92,6 +92,7 @@ const props = withDefaults(
     startingDistanceDifference: number;
     candleWidth: number;
     candleDistance: number;
+    offset: number;
   }>(),
   {
     priceLines: () => [],
@@ -470,14 +471,18 @@ function timeDisplayProperties(candleSumWidthPx: number) {
 
 let lastWidth = 0;
 let lastMaxCandlesShow = 0;
+let lastOffset = 0;
 watchEffect(() => {
   if (!props.width || !props.height) {
     return;
   }
   drawChart(
-    props.width === lastWidth && lastMaxCandlesShow === props.candleCount
+    props.width === lastWidth &&
+      props.candleCount === lastMaxCandlesShow &&
+      props.offset === lastOffset
   );
   lastWidth = props.width;
   lastMaxCandlesShow = props.candleCount;
+  lastOffset = props.offset;
 });
 </script>

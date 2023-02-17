@@ -9,11 +9,15 @@
   font-family: 'Inter';
 }
 
-// body
+// body & html
 body {
   font-family: 'Inter';
   overflow-x: hidden;
   overflow-y: hidden;
+  overscroll-behavior-x: none;
+}
+html {
+  overscroll-behavior-x: none;
 }
 
 ::-webkit-scrollbar {

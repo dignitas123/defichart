@@ -17,6 +17,7 @@
       v-model:fullHeight="chart.fullHeight"
       v-model:candlesShow="chart.candlesShow"
       v-model:selected="chart.selected"
+      v-model:offset="chart.offset"
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
     />
@@ -59,6 +60,7 @@ const nonStandardChart = generateChartObject({
   fullHeight: false,
   candlesShow: 80,
   selected: false,
+  offset: 0,
 });
 
 const testCharts = {
@@ -85,6 +87,12 @@ function handleKeyDown(event: KeyboardEvent) {
     if (charts[selectedChartId.value].candlesShow > 1) {
       charts[selectedChartId.value].candlesShow--;
     }
+  } else if (event.code === 'ArrowRight') {
+    if (charts[selectedChartId.value].offset < 0) {
+      charts[selectedChartId.value].offset += 1;
+    }
+  } else if (event.code === 'ArrowLeft') {
+    charts[selectedChartId.value].offset -= 1;
   }
 }
 

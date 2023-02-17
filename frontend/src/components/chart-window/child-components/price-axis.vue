@@ -3,16 +3,21 @@
     class="prevent-select q-ml-xs"
     :style="`width: ${width}px; height: ${props.height}px;`"
   >
-    <div class="items-center price" v-for="(price, i) in priceArray" :key="i">
+    <div
+      class="items-center price"
+      v-for="(price, i) in priceArray"
+      :key="i"
+      :style="`height: ${rowDistance}px`"
+    >
       <span>{{ String(price) }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, watchEffect } from 'vue';
 import { DATA_TICKSIZE } from '../../../pages/broker-charts/consts';
 import { roundToTicksize } from '../helpers/digits';
-import { computed, watchEffect } from 'vue';
 
 const props = defineProps<{
   h2l?: number;
@@ -64,14 +69,6 @@ const rowDistance = computed(() => {
   return props.height / priceLinesCount.value;
 });
 
-const rowDistanceInPixel = computed(() => {
-  if (rowDistance.value) {
-    return `${rowDistance.value}px`;
-  } else {
-    return undefined;
-  }
-});
-
 function drawPrices() {
   if (rowDistance.value) {
     let pricePoint = rowDistance.value / 2; // start point on top
@@ -95,6 +92,6 @@ watchEffect(() => {
 <style lang="scss" scoped>
 .price {
   display: flex;
-  height: v-bind(rowDistanceInPixel);
+  justify-content: space-around;
 }
 </style>

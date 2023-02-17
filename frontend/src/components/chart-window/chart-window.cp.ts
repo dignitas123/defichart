@@ -3,7 +3,11 @@ import { computed, Ref } from 'vue';
 import { DATA_TICKSIZE } from '../../pages/broker-charts/consts';
 import { getBeforeComma, getDigits } from './helpers/digits';
 
-export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
+export function useChartData(
+  data: Ref<OHLC[]>,
+  candlesShow: Ref<number>,
+  offset: Ref<number>
+) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
       candlesShow.value -= n;
@@ -17,7 +21,11 @@ export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
   }
 
   const candlesInChartData = computed(() => {
-    return data.value.slice(-candlesShow.value);
+    const dataLength = data.value.length;
+    return data.value.slice(
+      dataLength - candlesShow.value + offset.value,
+      dataLength + offset.value
+    );
   });
 
   const startingDistanceDifference = computed(() => {
@@ -29,10 +37,6 @@ export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
       return undefined;
     }
     return candlesInChartData.value.map((ohlc) => ohlc.d);
-  });
-
-  const dataDatesCount = computed(() => {
-    return dataDates.value?.length;
   });
 
   const allCandlesHigh = computed(() => {
@@ -93,14 +97,13 @@ export function useChartData(data: Ref<OHLC[]>, candlesShow: Ref<number>) {
   });
 
   return {
-    decreaseCandlesShow,
-    increaseCandlesShow,
     candlesInChartData,
     candlesInChartHigh,
     candlesInChartLow,
     candlesInChartH2L,
+    decreaseCandlesShow,
+    increaseCandlesShow,
     dataDates,
-    dataDatesCount,
     priceAxisWidth,
     startingDistanceDifference,
   };

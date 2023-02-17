@@ -25,7 +25,6 @@ import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 const props = defineProps<{
   entries: DatePositionEntry[];
   width?: number;
-  datesCount?: number;
   selectedCandleIndex: number;
   candleWidth: number;
   candleDistance: number;
@@ -40,10 +39,10 @@ const emit = defineEmits<{
 const crosshairBadgeRef = ref<HTMLElement>();
 
 const overCandles = computed(() => {
-  if (!props.datesCount) {
+  if (!props.entries.length) {
     return undefined;
   }
-  return props.candlesShow - props.datesCount;
+  return props.candlesShow - props.entries.length;
 });
 
 const datePositionEntry = computed(() => {
