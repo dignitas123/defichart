@@ -18,6 +18,7 @@
       v-model:candlesShow="chart.candlesShow"
       v-model:selected="chart.selected"
       v-model:offset="chart.offset"
+      v-model:maxCandles="chart.maxCandles"
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
     />
@@ -61,6 +62,7 @@ const nonStandardChart = generateChartObject({
   candlesShow: 80,
   selected: false,
   offset: 0,
+  maxCandles: 200,
 });
 
 const testCharts = {
@@ -89,10 +91,16 @@ function handleKeyDown(event: KeyboardEvent) {
     }
   } else if (event.code === 'ArrowRight') {
     if (charts[selectedChartId.value].offset < 0) {
-      charts[selectedChartId.value].offset += 1;
+      charts[selectedChartId.value].offset++;
     }
   } else if (event.code === 'ArrowLeft') {
-    charts[selectedChartId.value].offset -= 1;
+    if (
+      charts[selectedChartId.value].maxCandles +
+        charts[selectedChartId.value].offset >
+      1
+    ) {
+      charts[selectedChartId.value].offset--;
+    }
   }
 }
 

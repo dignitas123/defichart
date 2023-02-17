@@ -22,6 +22,7 @@ export interface Chart {
   candlesShow: number;
   selected: boolean;
   offset: number;
+  maxCandles: number;
 }
 
 export interface DatePositionEntry {

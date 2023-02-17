@@ -5,6 +5,7 @@ import { getBeforeComma, getDigits } from './helpers/digits';
 
 export function useChartData(
   data: Ref<OHLC[]>,
+  maxCandles: Ref<number>,
   candlesShow: Ref<number>,
   offset: Ref<number>
 ) {
@@ -20,20 +21,22 @@ export function useChartData(
     candlesShow.value += n;
   }
 
+  const maxData = computed(() => {
+    return data.value.slice(-maxCandles);
+  });
+
   const candlesInChartData = computed(() => {
-    const dataLength = data.value.length;
+    const dataLength = maxData.value.length;
     let startSlice = dataLength - candlesShow.value + offset.value;
-    if(startSlice < 0) {
-      startSlice = 0
+    if (startSlice < 0) {
+      startSlice = 0;
     }
-    return data.value.slice(
-      startSlice,
-      dataLength + offset.value
-    );
+    return maxData.value.slice(startSlice, dataLength + offset.value);
   });
 
   const startingDistanceDifference = computed(() => {
-    return candlesShow.value - data.value.length;
+    const showDifference = candlesShow.value - maxData.value.length;
+    return showDifference - offset.value;
   });
 
   const dataDates = computed(() => {
@@ -44,8 +47,8 @@ export function useChartData(
   });
 
   const allCandlesHigh = computed(() => {
-    if (data.value.length) {
-      return Math.max(...data.value.map((ohlc) => Number(ohlc.h)));
+    if (maxData.value.length) {
+      return Math.max(...maxData.value.map((ohlc) => Number(ohlc.h)));
     }
     return Infinity;
   });

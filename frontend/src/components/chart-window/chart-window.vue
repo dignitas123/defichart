@@ -122,6 +122,7 @@ const props = defineProps<{
   candlesShow: number;
   selected: boolean;
   offset: number;
+  maxCandles: number;
 }>();
 
 const emit = defineEmits<{
@@ -134,6 +135,7 @@ const emit = defineEmits<{
   (event: 'update:candlesShow', candles: number): void;
   (event: 'update:selected', selected: boolean): void;
   (event: 'update:offset', offset: number): void;
+  (event: 'update:maxCandles', maxCandes: number): void;
 }>();
 
 const HEADER_BAR_HEIGHT = 22;
@@ -149,6 +151,7 @@ const fullHeight = ref(props.fullHeight);
 const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
 const offset = ref(props.offset);
+const maxCandles = ref(props.maxCandles);
 
 const candleWidth = ref(0);
 const candleDistance = ref(0);
@@ -287,6 +290,15 @@ watch(
     selected.value = props.selected;
   }
 );
+watch(maxCandles, () => {
+  emit('update:maxCandles', maxCandles.value);
+});
+watch(
+  () => props.maxCandles,
+  () => {
+    maxCandles.value = props.maxCandles;
+  }
+);
 
 const {
   candlesInChartData,
@@ -298,7 +310,7 @@ const {
   priceAxisWidth,
   dataDates,
   startingDistanceDifference,
-} = useChartData(data, candlesShow, offset);
+} = useChartData(data, maxCandles, candlesShow, offset);
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -387,6 +399,9 @@ const afterMountUpdated = ref(false);
 onMounted(async () => {
   data.value = generateData();
   await nextTick();
+  if (data.value.length < maxCandles.value) {
+    maxCandles.value = data.value.length;
+  }
   updateChartHeightAndWidth();
   afterMountUpdated.value = true;
 });

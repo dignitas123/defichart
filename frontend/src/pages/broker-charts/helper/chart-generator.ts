@@ -12,6 +12,7 @@ export const defaultOptions: Chart = {
   candlesShow: 40,
   selected: true,
   offset: 0,
+  maxCandles: 200,
 };
 
 export function generateChartObject(
