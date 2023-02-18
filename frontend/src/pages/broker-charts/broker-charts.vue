@@ -201,7 +201,7 @@ function onResizeDrag(event: MouseEvent) {
 
 // @mouseup emit
 function stopResizeDrag() {
-  if (snapActive.value) {
+  if (snapActive.value && !shiftKeyActive.value) {
     charts[selectedChartId.value].fullHeight = true;
     charts[selectedChartId.value].fullWidth = true;
   }
