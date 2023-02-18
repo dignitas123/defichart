@@ -20,7 +20,10 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
-import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
+import {
+  CANDLE_WICK_THICKNESS,
+  DATE_BOX_WIDTH,
+} from 'src/pages/broker-charts/consts';
 
 const props = defineProps<{
   entries: DatePositionEntry[];
@@ -71,16 +74,16 @@ const badgeXposition = computed(() => {
   }
   let xPos = datePositionEntry.value.x + dateBadgeShiftWithPadding.value;
   if (badgeXposition.value === undefined) {
-    xPos = -999;
+    return -999;
   } else if (xPos < 0) {
-    xPos = 0;
+    return 0;
   } else if (
     crosshairBadgeRef.value &&
     xPos + crosshairBadgeRef.value?.offsetWidth > props.width
   ) {
-    xPos = props.width - crosshairBadgeRef.value?.offsetWidth;
+    return props.width - crosshairBadgeRef.value?.offsetWidth;
   }
-  return xPos;
+  return xPos - CANDLE_WICK_THICKNESS;
 });
 
 const dateEntriesShow = computed(() => {

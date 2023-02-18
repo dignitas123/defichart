@@ -1,10 +1,10 @@
 <template>
   <div
-    class="prevent-select q-ml-xs"
-    :style="`width: ${width}px; height: ${props.height}px;`"
+    class="price-axis prevent-select q-mx-xs"
+    :style="`height: ${props.height}px;`"
   >
     <div
-      class="items-center price"
+      class="price items-center"
       v-for="(price, i) in priceArray"
       :key="i"
       :style="`height: ${rowDistance}px`"
@@ -23,7 +23,6 @@ const props = defineProps<{
   h2l?: number;
   high?: number;
   height?: number;
-  width?: number;
 }>();
 
 const emit = defineEmits<{
@@ -92,6 +91,5 @@ watchEffect(() => {
 <style lang="scss" scoped>
 .price {
   display: flex;
-  justify-content: space-around;
 }
 </style>

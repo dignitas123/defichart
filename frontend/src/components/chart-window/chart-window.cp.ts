@@ -1,7 +1,5 @@
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { computed, Ref } from 'vue';
-import { DATA_TICKSIZE } from '../../pages/broker-charts/consts';
-import { getBeforeComma, getDigits } from './helpers/digits';
 
 export function useChartData(
   data: Ref<OHLC[]>,
@@ -46,13 +44,6 @@ export function useChartData(
     return candlesInChartData.value.map((ohlc) => ohlc.d);
   });
 
-  const allCandlesHigh = computed(() => {
-    if (maxData.value.length) {
-      return Math.max(...maxData.value.map((ohlc) => Number(ohlc.h)));
-    }
-    return Infinity;
-  });
-
   const candlesInChartHigh = computed(() => {
     if (candlesInChartData.value.length) {
       return Math.max(
@@ -79,30 +70,6 @@ export function useChartData(
     return candlesInChartHigh.value - candlesInChartLow.value;
   });
 
-  const priceAxisWidth = computed(() => {
-    if (!allCandlesHigh.value || !DATA_TICKSIZE) {
-      return 70;
-    }
-    const digits = getDigits(DATA_TICKSIZE);
-    let beforeComma = 0;
-    if (
-      String(allCandlesHigh.value).length >=
-      String(candlesInChartLow.value).length
-    ) {
-      beforeComma = getBeforeComma(allCandlesHigh.value);
-    } else {
-      beforeComma = getBeforeComma(candlesInChartLow.value);
-    }
-    const width_per_letter = 10.35;
-    const widthPixelsSum = (digits + beforeComma) * width_per_letter;
-    const maxPriceAxisWidth = 100;
-    if (widthPixelsSum > maxPriceAxisWidth) {
-      return maxPriceAxisWidth;
-    } else {
-      return widthPixelsSum;
-    }
-  });
-
   return {
     candlesInChartData,
     candlesInChartHigh,
@@ -111,7 +78,6 @@ export function useChartData(
     decreaseCandlesShow,
     increaseCandlesShow,
     dataDates,
-    priceAxisWidth,
     startingDistanceDifference,
   };
 }

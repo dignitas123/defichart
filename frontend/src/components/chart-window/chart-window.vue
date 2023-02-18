@@ -64,14 +64,14 @@
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
         </div>
-        <div>
+        <div class="price-axis-wrapper">
           <PriceAxis
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
             :height="chartHeight"
-            :width="priceAxisWidth"
             @horizontalLine="addHorizontalLineToPriceLines"
           />
+          <q-resize-observer :debounce="0" :onResize="onPriceAxisResize" />
         </div>
       </div>
       <div class="date-row">
@@ -140,6 +140,7 @@ const emit = defineEmits<{
 
 const HEADER_BAR_HEIGHT = 22;
 const DATEROW_HEIGHT = 22;
+const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
@@ -307,7 +308,6 @@ const {
   candlesInChartLow,
   increaseCandlesShow,
   decreaseCandlesShow,
-  priceAxisWidth,
   dataDates,
   startingDistanceDifference,
 } = useChartData(data, maxCandles, candlesShow, offset);
@@ -316,7 +316,9 @@ const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
 const chartWrapperShadow = ref(false);
 
-const chartRef = ref<HTMLCanvasElement | null>(null);
+const chartRef = ref<HTMLElement>();
+
+const priceAxisWidth = ref(0);
 
 const chartHeight = ref<undefined | number>(undefined);
 const chartWidth = ref<undefined | number>(undefined);
@@ -354,9 +356,13 @@ function onYDrag(event: MouseEvent) {
   }
 }
 
-function updateChartHeightAndWidth() {
-  chartHeight.value = chartRef.value?.clientHeight;
-  chartWidth.value = chartRef.value?.clientWidth;
+function updateChartHeightAndWidth(substractWidth = 0) {
+  if (substractWidth > 0 && chartRef.value) {
+    chartWidth.value = chartRef.value.clientWidth - substractWidth;
+  } else {
+    chartWidth.value = chartRef.value?.clientWidth;
+    chartHeight.value = chartRef.value?.clientHeight;
+  }
 }
 
 // @wheel emit
@@ -394,15 +400,19 @@ function onResize() {
   updateChartHeightAndWidth();
 }
 
-const afterMountUpdated = ref(false);
+function onPriceAxisResize(size: { width: number; height: number }) {
+  priceAxisWidth.value = size.width;
+  updateChartHeightAndWidth();
+}
 
+const afterMountUpdated = ref(false);
 onMounted(async () => {
   data.value = generateData();
   await nextTick();
   if (data.value.length < maxCandles.value) {
     maxCandles.value = data.value.length;
   }
-  updateChartHeightAndWidth();
+  updateChartHeightAndWidth(PRICE_AXIS_MARGIN);
   afterMountUpdated.value = true;
 });
 
