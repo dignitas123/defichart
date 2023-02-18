@@ -122,10 +122,8 @@ function onStartResizeDrag(xOnly: boolean, yOnly: boolean) {
 }
 
 function resetResizeDragStart() {
-  if (
-    !charts[selectedChartId.value].fullWidth &&
-    !charts[selectedChartId.value].fullHeight
-  ) {
+  const fullScreen = charts[selectedChartId.value].fullWidth && charts[selectedChartId.value].fullHeight
+  if(snapActive.value !== fullScreen) {
     resizeDragStart.x = 0;
     resizeDragStart.y = 0;
   }
