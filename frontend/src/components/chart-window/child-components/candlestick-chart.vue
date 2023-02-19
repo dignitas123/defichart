@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, nextTick } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -120,18 +120,13 @@ const MONTH = DAY * 30;
 
 const candlesticksRef = ref<SVGSVGElement>();
 
-const candlesticksSVGWidth = computed(() => {
-  if(!candlesticksRef.value) {
-    return undefined
-  }
-  return candlesticksRef.value.getBBox().width
-})
+const candlesticksSVGWidth = ref(0);
 
 const viewBoxXStart = computed(() => {
   if(!candlesticksSVGWidth.value || !props.width) {
     return 0;
   }
-  return candlesticksSVGWidth.value - props.width + 4;
+  return candlesticksSVGWidth.value - props.width  + candleDistance.value * 2;
 })
 
 const datePositionEntries = ref(props.datePositionEntries);
@@ -487,20 +482,9 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   };
 }
 
-let lastWidth = 0;
-let lastMaxCandlesShow = 0;
-let lastOffset = 0;
-watchEffect(() => {
-  if (!props.width || !props.height) {
-    return;
-  }
-  drawChart(
-    props.width === lastWidth &&
-      props.candleCount === lastMaxCandlesShow &&
-      props.offset === lastOffset
-  );
-  lastWidth = props.width;
-  lastMaxCandlesShow = props.candleCount;
-  lastOffset = props.offset;
-});
+onMounted(async () => {
+  drawChart();
+  await nextTick();
+  candlesticksSVGWidth.value = candlesticksRef.value?.getBBox().width ?? 0;
+})
 </script>

@@ -37,12 +37,20 @@ export function useChartData(
     return showDifference - offset.value;
   });
 
-  const dataDates = computed(() => {
+  const dataDatesCandlesInChart = computed(() => {
     if (!candlesInChartData.value.length) {
       return undefined;
     }
     return candlesInChartData.value.map((ohlc) => ohlc.d);
   });
+
+  const dataDates = computed(() => {
+    if (!data.value.length) {
+      return undefined;
+    }
+    return data.value.map((ohlc) => ohlc.d);
+  });
+
 
   const candlesInChartHigh = computed(() => {
     if (candlesInChartData.value.length) {
@@ -78,6 +86,7 @@ export function useChartData(
     decreaseCandlesShow,
     increaseCandlesShow,
     dataDates,
+    dataDatesCandlesInChart,
     startingDistanceDifference,
   };
 }

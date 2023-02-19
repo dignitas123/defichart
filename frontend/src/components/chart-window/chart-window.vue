@@ -303,7 +303,6 @@ watch(
 );
 
 const {
-  candlesInChartData,
   candlesInChartH2L,
   candlesInChartHigh,
   candlesInChartLow,
