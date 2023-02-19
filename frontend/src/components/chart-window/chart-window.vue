@@ -46,7 +46,7 @@
         >
           <CandlestickChart
             v-if="afterMountUpdated"
-            :data="candlesInChartData"
+            :data="data"
             :dates="dataDates"
             :candleCount="candlesShow"
             :h2l="candlesInChartH2L"

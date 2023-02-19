@@ -29,6 +29,8 @@
     :height="height"
     class="d-block absolute"
     style="z-index: 2"
+    ref="candlesticksRef"
+    :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
   >
     <g v-for="(candle, i) in candles" :key="i">
       <rect
@@ -57,7 +59,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -115,6 +117,22 @@ const HOUR = MIN * 60;
 const DAY = HOUR * 24;
 const WEEK = DAY * 7;
 const MONTH = DAY * 30;
+
+const candlesticksRef = ref<SVGSVGElement>();
+
+const candlesticksSVGWidth = computed(() => {
+  if(!candlesticksRef.value) {
+    return undefined
+  }
+  return candlesticksRef.value.getBBox().width
+})
+
+const viewBoxXStart = computed(() => {
+  if(!candlesticksSVGWidth.value || !props.width) {
+    return 0;
+  }
+  return candlesticksSVGWidth.value - props.width + 4;
+})
 
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);
