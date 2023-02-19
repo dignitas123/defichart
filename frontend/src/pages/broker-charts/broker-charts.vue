@@ -21,6 +21,7 @@
       v-model:maxCandles="chart.maxCandles"
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
+      @chartWidthHeightChange="updateResizeDragStart"
     />
     <div v-if="snapActive && !shiftKeyActive" class="snap-to-full" />
     <div v-if="snapActive && !shiftKeyActive" class="show-shift-key-hint">
@@ -30,11 +31,12 @@
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref } from 'vue';
+import { onUnmounted, reactive, ref, nextTick } from 'vue';
 import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
+import { HEADER_HEIGHT } from 'src/pages/broker-charts/consts';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
@@ -55,6 +57,8 @@ const nonStandardChart = generateChartObject({
   symbol: 'ethusd',
   broker: 'perpetual',
   network: 'optimism',
+  x: 0,
+  y: 0,
   width: 300,
   height: 300,
   fullWidth: false,
@@ -121,12 +125,7 @@ function onStartResizeDrag(xOnly: boolean, yOnly: boolean) {
   resizeDragYOnly.value = yOnly;
 }
 
-function resetResizeDragStart() {
-  const fullScreen = charts[selectedChartId.value].fullWidth && charts[selectedChartId.value].fullHeight
-  if(snapActive.value !== fullScreen) {
-    resizeDragStart.x = 0;
-    resizeDragStart.y = 0;
-  }
+function resetRisizeDragSnapAndDragXYOnly() {
   resizeDrag.value = false;
   snapActive.value = false;
   resizeDragXOnly.value = false;
@@ -134,9 +133,16 @@ function resetResizeDragStart() {
 }
 
 const resizeDragStart = reactive({
-  x: 0,
-  y: 0,
+  x: charts[selectedChartId.value].x + charts[selectedChartId.value].width,
+  y: charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT,
 });
+
+async function updateResizeDragStart() {
+  await nextTick();
+  charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT);
+  resizeDragStart.x = charts[selectedChartId.value].x + charts[selectedChartId.value].width;
+  resizeDragStart.y = charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT;
+}
 
 const resizeDragXOnly = ref(false);
 const resizeDragYOnly = ref(false);
@@ -145,12 +151,6 @@ const resizeDragYOnly = ref(false);
 function onResizeDrag(event: MouseEvent) {
   if (!resizeDrag.value) {
     return;
-  }
-  if (!resizeDragStart.x && !resizeDragYOnly.value) {
-    resizeDragStart.x = event.x;
-  }
-  if (!resizeDragStart.y && !resizeDragXOnly.value) {
-    resizeDragStart.y = event.y;
   }
   if (charts[selectedChartId.value].fullWidth && !resizeDragYOnly.value) {
     charts[selectedChartId.value].fullWidth = false;
@@ -203,7 +203,7 @@ function stopResizeDrag() {
     charts[selectedChartId.value].fullHeight = true;
     charts[selectedChartId.value].fullWidth = true;
   }
-  resetResizeDragStart();
+  resetRisizeDragSnapAndDragXYOnly();
 }
 
 // @mouseleave event

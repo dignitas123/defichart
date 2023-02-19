@@ -5,6 +5,8 @@ export const defaultOptions: Chart = {
   symbol: 'btcusd',
   broker: 'perpetual',
   network: 'optimism',
+  x: 0,
+  y: 0,
   width: 500,
   height: 500,
   fullWidth: false,

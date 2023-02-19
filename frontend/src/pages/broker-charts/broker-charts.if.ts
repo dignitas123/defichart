@@ -15,6 +15,8 @@ export interface Chart {
   symbol: AssetPair;
   broker: Broker;
   network: Network;
+  x: number;
+  y: number;
   width: number;
   height: number;
   fullWidth: boolean;

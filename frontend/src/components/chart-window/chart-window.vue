@@ -128,6 +128,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'chartClick', id: string): void;
   (event: 'resizeDrag', xOnly: boolean, yOnly: boolean): void;
+  (event: 'chartWidthHeightChange'): void;
   (event: 'update:width', width: number): void;
   (event: 'update:height', height: number): void;
   (event: 'update:fullWidth', fullWidth: boolean): void;
@@ -138,8 +139,8 @@ const emit = defineEmits<{
   (event: 'update:maxCandles', maxCandes: number): void;
 }>();
 
-const HEADER_BAR_HEIGHT = 22;
 const DATEROW_HEIGHT = 22;
+const HEADER_BAR_HEIGHT = 22;
 const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
@@ -427,6 +428,7 @@ function maximize() {
   fullWidth.value = true;
   width.value = maxChartWidth.value;
   height.value = maxChartHeight.value;
+  emit('chartWidthHeightChange');
 }
 
 // @close emit
@@ -434,6 +436,7 @@ function close() {
   fullHeight.value = false;
   fullWidth.value = false;
   width.value = 700;
+  emit('chartWidthHeightChange');
 }
 
 const priceLines = ref<number[]>([]);
