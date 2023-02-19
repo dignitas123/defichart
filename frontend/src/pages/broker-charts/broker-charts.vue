@@ -139,7 +139,7 @@ const resizeDragStart = reactive({
 
 async function updateResizeDragStart() {
   await nextTick();
-  charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT);
+  charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT;
   resizeDragStart.x = charts[selectedChartId.value].x + charts[selectedChartId.value].width;
   resizeDragStart.y = charts[selectedChartId.value].y + charts[selectedChartId.value].height + HEADER_HEIGHT;
 }
