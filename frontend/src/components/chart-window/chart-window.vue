@@ -61,6 +61,7 @@
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
+            v-model:candlesticksSVGWidth="candlesticksSVGWidth"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
         </div>
@@ -84,6 +85,7 @@
             :candleDistance="candleDistance"
             :candlesShow="candlesShow"
             :badgeShow="crosshair.show"
+            :candlesticksSVGWidth="candlesticksSVGWidth"
             @verticalLines="setVerticalLines"
           />
         </div>
@@ -145,6 +147,7 @@ const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
+const candlesticksSVGWidth = ref(0); // svg with maxData
 
 const width = ref(props.width);
 const height = ref(props.height);

@@ -3,7 +3,9 @@
     class="date-axis-text text-center absolute prevent-select"
     v-for="(entry, i) in dateEntriesShow"
     :key="i"
-    :style="`left: ${entry?.x}px`"
+    :style="`left: ${
+      width ? width - (candlesticksSVGWidth - entry.x) - 4 : 0
+    }px`"
     :class="{ 'text-weight-bold': entry?.bold }"
     >{{ entry?.date }}</span
   >
@@ -33,6 +35,7 @@ const props = defineProps<{
   candleDistance: number;
   candlesShow: number;
   badgeShow: boolean;
+  candlesticksSVGWidth: number;
 }>();
 
 const emit = defineEmits<{
@@ -72,7 +75,11 @@ const badgeXposition = computed(() => {
   if (!datePositionEntry.value || !props.width) {
     return undefined;
   }
-  let xPos = datePositionEntry.value.x + dateBadgeShiftWithPadding.value;
+  let xPos =
+    props.width -
+    (props.candlesticksSVGWidth - datePositionEntry.value.x) +
+    dateBadgeShiftWithPadding.value -
+    4;
   if (badgeXposition.value === undefined) {
     return -999;
   } else if (xPos < 0) {
@@ -83,7 +90,7 @@ const badgeXposition = computed(() => {
   ) {
     return props.width - crosshairBadgeRef.value?.offsetWidth;
   }
-  return xPos - CANDLE_WICK_THICKNESS;
+  return xPos;
 });
 
 const dateEntriesShow = computed(() => {
