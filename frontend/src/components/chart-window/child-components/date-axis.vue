@@ -70,7 +70,7 @@ const badgeXposition = computed(() => {
     props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
   if (badgeXposition.value === undefined) {
     return -999;
-  } else if (xPos < 0) {
+  } else if (xPos < crosshairBadgeRef.value.offsetWidth) {
     return 0;
   } else if (xPos + crosshairBadgeRef.value.offsetWidth > props.width) {
     return props.width - crosshairBadgeRef.value.offsetWidth;
