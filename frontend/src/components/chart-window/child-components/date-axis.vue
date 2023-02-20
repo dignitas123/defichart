@@ -63,19 +63,23 @@ const candleDate = computed(() => {
 });
 
 const badgeXposition = computed(() => {
-  if (!datePositionEntry.value || !props.width || !crosshairBadgeRef.value) {
+  if (!datePositionEntry.value || !props.width) {
     return undefined;
+  }
+  let crossHairBadgeWidth = crosshairBadgeRef.value?.offsetWidth;
+  if (!crossHairBadgeWidth) {
+    crossHairBadgeWidth = 0;
   }
   let xPos =
     props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
   if (badgeXposition.value === undefined) {
     return -999;
-  } else if (xPos < crosshairBadgeRef.value.offsetWidth) {
+  } else if (xPos < crossHairBadgeWidth / 2) {
     return 0;
-  } else if (xPos + crosshairBadgeRef.value.offsetWidth / 2 > props.width) {
-    return props.width - crosshairBadgeRef.value.offsetWidth;
+  } else if (xPos + crossHairBadgeWidth / 2 > props.width) {
+    return props.width - crossHairBadgeWidth;
   }
-  return xPos - crosshairBadgeRef.value.offsetWidth / 2;
+  return xPos - crossHairBadgeWidth / 2;
 });
 
 const dateEntriesShow = computed(() => {
