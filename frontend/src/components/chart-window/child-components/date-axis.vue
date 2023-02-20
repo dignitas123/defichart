@@ -72,7 +72,7 @@ const badgeXposition = computed(() => {
     return -999;
   } else if (xPos < crosshairBadgeRef.value.offsetWidth) {
     return 0;
-  } else if (xPos + crosshairBadgeRef.value.offsetWidth > props.width) {
+  } else if (xPos + crosshairBadgeRef.value.offsetWidth / 2 > props.width) {
     return props.width - crosshairBadgeRef.value.offsetWidth;
   }
   return xPos - crosshairBadgeRef.value.offsetWidth / 2;
