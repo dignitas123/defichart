@@ -11,7 +11,7 @@ export const defaultOptions: Chart = {
   height: 500,
   fullWidth: false,
   fullHeight: false,
-  candlesShow: 40,
+  candlesShow: 20,
   selected: true,
   offset: 0,
   maxCandles: 200,

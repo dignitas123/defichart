@@ -4,10 +4,10 @@
     v-for="(entry, i) in dateEntriesShow"
     :key="i"
     :style="`left: ${
-      width ? width - (candlesticksSVGWidth - entry.x) - 4 : 0
+      width ? width - (candlesticksSVGWidth - entry.x) - DATE_BOX_WIDTH / 2 : 0
     }px`"
-    :class="{ 'text-weight-bold': entry?.bold }"
-    >{{ entry?.date }}</span
+    :class="{ 'text-weight-bold': entry.bold }"
+    >{{ entry.date }}</span
   >
   <span
     v-if="badgeShow"
@@ -22,10 +22,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
-import {
-  CANDLE_WICK_THICKNESS,
-  DATE_BOX_WIDTH,
-} from 'src/pages/broker-charts/consts';
+import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 
 const props = defineProps<{
   entries: DatePositionEntry[];
@@ -65,44 +62,37 @@ const candleDate = computed(() => {
   return datePositionEntry.value.date;
 });
 
-const PADDING_ON_CROSSHAIR_BADGE = 8;
-
-const dateBadgeShiftWithPadding = computed(() => {
-  return (DATE_BOX_WIDTH - PADDING_ON_CROSSHAIR_BADGE) / 4;
-});
-
 const badgeXposition = computed(() => {
-  if (!datePositionEntry.value || !props.width) {
+  if (!datePositionEntry.value || !props.width || !crosshairBadgeRef.value) {
     return undefined;
   }
   let xPos =
-    props.width -
-    (props.candlesticksSVGWidth - datePositionEntry.value.x) +
-    dateBadgeShiftWithPadding.value -
-    4;
+    props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
   if (badgeXposition.value === undefined) {
     return -999;
   } else if (xPos < 0) {
     return 0;
-  } else if (
-    crosshairBadgeRef.value &&
-    xPos + crosshairBadgeRef.value?.offsetWidth > props.width
-  ) {
-    return props.width - crosshairBadgeRef.value?.offsetWidth;
+  } else if (xPos + crosshairBadgeRef.value.offsetWidth > props.width) {
+    return props.width - crosshairBadgeRef.value.offsetWidth;
   }
-  return xPos;
+  return xPos - crosshairBadgeRef.value.offsetWidth / 2;
 });
 
 const dateEntriesShow = computed(() => {
   return props.entries.filter((entry) => entry.show);
 });
 
-watch(dateEntriesShow, () => {
-  emit(
-    'verticalLines',
-    dateEntriesShow.value.map((entry) => entry.x + DATE_BOX_WIDTH / 2)
-  );
-});
+watch(
+  () => props.candlesticksSVGWidth,
+  () => {
+    emit(
+      'verticalLines',
+      dateEntriesShow.value.map((entry) =>
+        props.width ? props.width - (props.candlesticksSVGWidth - entry.x) : 0
+      )
+    );
+  }
+);
 </script>
 
 <style lang="scss" scoped>
