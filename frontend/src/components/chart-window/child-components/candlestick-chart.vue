@@ -310,10 +310,7 @@ function drawChart(onlyHeightChange = false) {
     }
 
     const xPosition =
-      xPositionCandlestick +
-      candleWidth.value / 2 -
-      candleDistance.value * 2 +
-      CANDLE_WICK_THICKNESS;
+      xPositionCandlestick + candleWidth.value / 2 - candleDistance.value * 2;
 
     if (!formattedDate) {
       datePositionEntries.value.push({
