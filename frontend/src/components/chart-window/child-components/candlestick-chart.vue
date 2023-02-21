@@ -503,7 +503,7 @@ onMounted(async () => {
 });
 
 watch(
-  () => props.candleCount,
+  [() => props.candleCount, () => props.width, () => props.height],
   async () => {
     drawChartAndUpdateSVGWidth();
   }
