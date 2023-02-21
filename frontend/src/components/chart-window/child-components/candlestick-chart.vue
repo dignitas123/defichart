@@ -167,6 +167,8 @@ function calcCandleXDistance(cW: number) {
     return 4;
   } else if (cW > 16) {
     return 3;
+  } else if(cW > 6.6) {
+    return 2;
   } else if (cW > 3.4) {
     return 1;
   } else {
