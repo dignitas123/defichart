@@ -27,10 +27,10 @@
   <svg
     :width="width"
     :height="height"
+    :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
     class="d-block absolute"
     style="z-index: 2"
     ref="candlesticksRef"
-    :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
   >
     <g v-for="(candle, i) in candles" :key="i">
       <rect
@@ -126,7 +126,13 @@ const viewBoxXStart = computed(() => {
   if (!candlesticksSVGWidth.value || !props.width) {
     return 0;
   }
-  return candlesticksSVGWidth.value - props.width + candleDistance.value * 2;
+  const ret =
+    candlesticksSVGWidth.value - props.width + candleDistance.value * 2;
+  if (ret >= 0) {
+    return ret;
+  } else {
+    return 0;
+  }
 });
 
 const datePositionEntries = ref(props.datePositionEntries);
@@ -152,7 +158,6 @@ watch(candlesticksSVGWidth, () => {
 
 const candles = ref<Candle[]>([]);
 
-// x-distance between candles
 function calcCandleXDistance(cW: number) {
   if (cW > 80) {
     return 20;
@@ -162,7 +167,7 @@ function calcCandleXDistance(cW: number) {
     return 4;
   } else if (cW > 16) {
     return 3;
-  } else if (cW > 6.6) {
+  } else if (cW > 3.4) {
     return 1;
   } else {
     return 0;
@@ -196,9 +201,11 @@ function drawChart(onlyHeightChange = false) {
     candleDistance.value;
 
   const overCandles = props.candleCount - props.dates.length;
+
   const candleSumWidthPx =
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
+
   const timeDisplayProps: TimeDisplayProperties =
     timeDisplayProperties(candleSumWidthPx);
 

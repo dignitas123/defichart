@@ -306,11 +306,11 @@ watch(
 );
 
 const {
+  increaseCandlesShow,
+  decreaseCandlesShow,
   candlesInChartH2L,
   candlesInChartHigh,
   candlesInChartLow,
-  increaseCandlesShow,
-  decreaseCandlesShow,
   dataDates,
   startingDistanceDifference,
 } = useChartData(data, maxCandles, candlesShow, offset);
@@ -350,7 +350,7 @@ function onChartContainterLeave() {
 function onYDrag(event: MouseEvent) {
   if (!xDragging.value) return;
   let candlesToIncrease = Math.ceil(candlesShow.value / 30);
-  if (event.x > xDraggingStart.value) {
+  if (event.x > xDraggingStart.value && candleWidth.value > 2) {
     increaseCandlesShow(candlesToIncrease);
     xDraggingStart.value = event.x;
   } else if (event.x < xDraggingStart.value) {
@@ -391,7 +391,7 @@ function onWheel(event: WheelEvent) {
   // }
   // TODO: disinguish better between y and x move and add cursors when moving
   if (Math.abs(event.deltaY) > 1) {
-    if (event.deltaY > 0 && candleWidth.value > 1) {
+    if (event.deltaY > 0 && candleWidth.value > 2) {
       increaseCandlesShow(candles);
     } else if (event.deltaY < 0) {
       decreaseCandlesShow(candles);

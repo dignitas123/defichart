@@ -3,9 +3,10 @@
     class="date-axis-text text-center absolute prevent-select"
     v-for="(entry, i) in dateEntriesShow"
     :key="i"
-    :style="`left: ${
-      width ? width - (candlesticksSVGWidth - entry.x) - DATE_BOX_WIDTH / 2 : 0
-    }px`"
+    :style="`left: ${calculateXPositionDateEntry(
+      entry.x,
+      -DATE_BOX_WIDTH / 2
+    )}px`"
     :class="{ 'text-weight-bold': entry.bold }"
     >{{ entry.date }}</span
   >
@@ -63,7 +64,11 @@ const candleDate = computed(() => {
 });
 
 const badgeXposition = computed(() => {
-  if (!datePositionEntry.value || !props.width) {
+  if (
+    !datePositionEntry.value ||
+    !props.width ||
+    overCandles.value === undefined
+  ) {
     return undefined;
   }
   let crossHairBadgeWidth = crosshairBadgeRef.value?.offsetWidth;
@@ -71,7 +76,9 @@ const badgeXposition = computed(() => {
     crossHairBadgeWidth = 0;
   }
   let xPos =
-    props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
+    overCandles.value > 0
+      ? datePositionEntry.value.x
+      : props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
   if (badgeXposition.value === undefined) {
     return -999;
   } else if (xPos < crossHairBadgeWidth / 2) {
@@ -86,14 +93,22 @@ const dateEntriesShow = computed(() => {
   return props.entries.filter((entry) => entry.show);
 });
 
+function calculateXPositionDateEntry(x: number, addDiff = 0) {
+  if (!props.width || overCandles.value === undefined) {
+    return 0;
+  }
+  const diffToSVGWidth = props.candlesticksSVGWidth - x;
+  return overCandles.value > 0
+    ? x + addDiff
+    : props.width - diffToSVGWidth + addDiff;
+}
+
 watch(
   () => props.candlesticksSVGWidth,
   () => {
     emit(
       'verticalLines',
-      dateEntriesShow.value.map((entry) =>
-        props.width ? props.width - (props.candlesticksSVGWidth - entry.x) : 0
-      )
+      dateEntriesShow.value.map((entry) => calculateXPositionDateEntry(entry.x))
     );
   }
 );
