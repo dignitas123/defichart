@@ -10,4 +10,3 @@ phases:
   build:
     commands:
       - yarn build
-      - scp -i /home/ec2-user/defichartsinstance.pem -r dist/ ec2-user@ec2-18-159-79-156.eu-central-1.compute.amazonaws.com:/var/www/html/
