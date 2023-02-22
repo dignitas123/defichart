@@ -9,5 +9,4 @@ phases:
       - yarn
   build:
     commands:
-      - cd frontend
       - yarn build
