@@ -5,10 +5,9 @@ phases:
     runtime-versions:
       nodejs: 16
     commands:
-      - yum install -y nodejs
-      - cd defichart/frontend
+      - cd frontend
       - yarn
   build:
     commands:
+      - cd frontend
       - yarn build
-      - scp dist/ /var/www/html/dist
