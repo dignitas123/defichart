@@ -6,8 +6,9 @@ phases:
       nodejs: 16
     commands:
       - yum install -y nodejs
-      - cd frontend
+      - cd defichart/frontend
       - yarn
   build:
     commands:
       - yarn build
+      - scp dist/ /var/www/html/dist
