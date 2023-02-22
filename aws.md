@@ -37,7 +37,7 @@ nvm install 16 // (nvm install -lts not supported)
 - `sudo mkdir /var/www`
 - `sudo mkdir /var/www/html`
 - `cd /etc/nginx/sites-available`
-- `sudo ln -s /etc/nginx/sites-available/quasar-app /etc/nginx/sites-enabled/`
+- `sudo ln -s /etc/nginx/sites-available/deficharts /etc/nginx/sites-enabled/`
 - `sudo nano /etc/nginx/sites-available/deficharts`:
 
 ```
@@ -56,7 +56,9 @@ server {
 ```
 
 - `sudo systemctl start nginx`
+- `sudo systemctl restart nginx`
 - check Public IPv4 DNS with http. U should see nginx welcome screen
+- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html` to copy build
 
 ## connect github repo
 
