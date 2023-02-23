@@ -33,7 +33,13 @@
         @mousedown="$emit('resizeDrag', false, true)"
       />
       <div class="header-bar prevent-select">
-        <HeaderBar @maximize="maximize" @close="close" />
+        <HeaderBar
+          :zoomedOut="zoomedOut"
+          @maximize="maximize"
+          @close="close"
+          @zoomIn="zoomIn"
+          @zoomOut="zoomOut"
+        />
       </div>
       <div class="price-row">
         <div
@@ -439,6 +445,20 @@ function close() {
   fullWidth.value = false;
   width.value = 700;
   emit('chartWidthHeightChange');
+}
+
+const zoomedOut = ref(false);
+
+// @zoomIn emit
+function zoomIn() {
+  candlesShow.value = Math.round(props.width / 18);
+  zoomedOut.value = false;
+}
+
+// @zoomOut emit
+function zoomOut() {
+  candlesShow.value = Math.round(props.width / 5);
+  zoomedOut.value = true;
 }
 
 const priceLines = ref<number[]>([]);
