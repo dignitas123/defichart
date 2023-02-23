@@ -105,7 +105,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch, onMounted, reactive } from 'vue';
+import { ref, nextTick, watch, onMounted, reactive, onUnmounted } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -310,6 +310,22 @@ watch(
     maxCandles.value = props.maxCandles;
   }
 );
+
+window.addEventListener('keydown', onKeyDown);
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'z') {
+    if (zoomedOut.value) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+  }
+}
 
 const {
   increaseCandlesShow,
