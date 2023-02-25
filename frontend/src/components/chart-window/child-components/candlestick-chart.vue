@@ -30,6 +30,7 @@
     :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
     class="d-block absolute"
     style="z-index: 2"
+    transform="scale(1, 1)"
     ref="candlesticksRef"
   >
     <g v-for="(candle, i) in candles" :key="i">
@@ -94,7 +95,7 @@ const props = withDefaults(
     startingDistanceDifference: number;
     candleWidth: number;
     candleDistance: number;
-    offset: number;
+    viewBoxOffset: number;
     candlesticksSVGWidth: number;
   }>(),
   {
@@ -127,13 +128,17 @@ const viewBoxXStart = computed(() => {
     return 0;
   }
   const ret =
-    candlesticksSVGWidth.value - props.width + candleDistance.value * 2;
+    candlesticksSVGWidth.value - props.width + candleDistance.value * 2 + props.viewBoxOffset;
   if (ret >= 0) {
     return ret;
   } else {
     return 0;
   }
 });
+
+watch(() => props.viewBoxOffset, () => {
+  // if()
+})
 
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);

@@ -16,6 +16,20 @@
           <q-badge transparent> Z </q-badge>
         </q-tooltip>
       </q-btn>
+      <q-btn
+        dense
+        flat
+        class="items-center"
+        icon=""
+        size="sm"
+        :ripple="false"
+        @click="zoomedOut ? $emit('zoomIn') : $emit('zoomOut')"
+      >
+        <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
+          {{ zoomedOut ? 'Zoom in' : 'Zoom out' }}
+          <q-badge transparent> Z </q-badge>
+        </q-tooltip>
+      </q-btn>
       <q-space />
       <q-btn
         dense

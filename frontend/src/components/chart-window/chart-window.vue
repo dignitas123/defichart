@@ -62,7 +62,7 @@
             :width="chartWidth"
             :priceLines="priceLines"
             :dateLines="dateLines"
-            :offset="offset"
+            :viewBoxOffset="viewBoxOffset"
             :startingDistanceDifference="startingDistanceDifference"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
@@ -120,6 +120,7 @@ import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import { CANDLE_WICK_THICKNESS } from 'src/pages/broker-charts/consts';
+import gsap from 'gsap';
 
 const props = defineProps<{
   id: string;
@@ -345,8 +346,8 @@ const chartRef = ref<HTMLElement>();
 
 const priceAxisWidth = ref(0);
 
-const chartHeight = ref<undefined | number>(undefined);
-const chartWidth = ref<undefined | number>(undefined);
+const chartHeight = ref<number>();
+const chartWidth = ref<number>();
 
 const xDragging = ref(false);
 const xDraggingStart = ref(0);
@@ -390,6 +391,21 @@ function updateChartHeightAndWidth(substractWidth = 0) {
   }
 }
 
+const viewBoxOffset = ref(0);
+
+
+watch(viewBoxOffset, (newValue) => {
+      gsap.to(viewBoxOffset, {
+        duration: 1,
+        value: newValue,
+        ease: "power2.in",
+        onUpdate: () => {
+          console.log('jo');
+          viewBoxOffset.value = Number(gsap.getProperty(viewBoxOffset, 'value'));
+        },
+      });
+    });
+
 // @wheel emit
 function onWheel(event: WheelEvent) {
   let candles = 2;
@@ -402,17 +418,12 @@ function onWheel(event: WheelEvent) {
   } else if (candlesShow.value > 150) {
     candles = 20;
   }
-  // TODO: implement going left and right
-  // if (Math.abs(event.deltaX) > 1 && Math.abs(event.deltaY) < 3) {
-  //   const deltaX = Math.round(event.deltaX / 2);
-  //   const newOffset = offset.value - deltaX;
-  //   if(newOffset < 0 && newOffset > -data.value.length + candlesShow.value) {
-  //     offset.value -= deltaX;
-  //   }
-  //   return;
-  // }
-  // TODO: disinguish better between y and x move and add cursors when moving
-  if (Math.abs(event.deltaY) > 1) {
+
+  // Calculate the angle of movement
+  const angle = Math.atan2(event.deltaY, event.deltaX) * 180 / Math.PI;
+  const absAngle = angle < 0 ? 360 + angle : angle;
+
+  if ((absAngle >= 45 && absAngle <= 135) || (absAngle >= 225 && absAngle <= 315)) {
     if (event.deltaY > 0 && candleWidth.value > 2) {
       increaseCandlesShow(candles);
     } else if (event.deltaY < 0) {
