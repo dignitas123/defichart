@@ -120,7 +120,6 @@ import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import { CANDLE_WICK_THICKNESS } from 'src/pages/broker-charts/consts';
-import gsap from 'gsap';
 
 const props = defineProps<{
   id: string;
@@ -392,19 +391,6 @@ function updateChartHeightAndWidth(substractWidth = 0) {
 }
 
 const viewBoxOffset = ref(0);
-
-
-watch(viewBoxOffset, (newValue) => {
-      gsap.to(viewBoxOffset, {
-        duration: 1,
-        value: newValue,
-        ease: "power2.in",
-        onUpdate: () => {
-          console.log('jo');
-          viewBoxOffset.value = Number(gsap.getProperty(viewBoxOffset, 'value'));
-        },
-      });
-    });
 
 // @wheel emit
 function onWheel(event: WheelEvent) {
