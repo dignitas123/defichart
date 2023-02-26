@@ -33,7 +33,13 @@
         @mousedown="$emit('resizeDrag', false, true)"
       />
       <div class="header-bar prevent-select">
-        <HeaderBar @maximize="maximize" @close="close" />
+        <HeaderBar
+          :zoomedOut="zoomedOut"
+          @maximize="maximize"
+          @close="close"
+          @zoomIn="zoomIn"
+          @zoomOut="zoomOut"
+        />
       </div>
       <div class="price-row">
         <div
@@ -46,7 +52,7 @@
         >
           <CandlestickChart
             v-if="afterMountUpdated"
-            :data="candlesInChartData"
+            :data="data"
             :dates="dataDates"
             :candleCount="candlesShow"
             :h2l="candlesInChartH2L"
@@ -56,11 +62,12 @@
             :width="chartWidth"
             :priceLines="priceLines"
             :dateLines="dateLines"
-            :offset="offset"
+            :viewBoxOffset="viewBoxOffset"
             :startingDistanceDifference="startingDistanceDifference"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
+            v-model:candlesticksSVGWidth="candlesticksSVGWidth"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
         </div>
@@ -87,6 +94,7 @@
             :candleDistance="candleDistance"
             :candlesShow="candlesShow"
             :badgeShow="crosshair.show"
+            :candlesticksSVGWidth="candlesticksSVGWidth"
             @verticalLines="setVerticalLines"
           />
         </div>
@@ -107,7 +115,6 @@ import {
   onMounted,
   reactive,
   onUnmounted,
-  computed,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
@@ -125,9 +132,7 @@ import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
   DATA_TICKSIZE,
-  HEADER_HEIGHT,
 } from 'src/pages/broker-charts/consts';
-import { roundToTicksize } from './helpers/digits';
 
 const props = defineProps<{
   id: string;
@@ -161,6 +166,7 @@ const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
+const candlesticksSVGWidth = ref(0); // svg with maxData
 
 const width = ref(props.width);
 const height = ref(props.height);
@@ -337,13 +343,28 @@ watch(
   }
 );
 
+window.addEventListener('keydown', onKeyDown);
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'z') {
+    if (zoomedOut.value) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+  }
+}
+
 const {
-  candlesInChartData,
+  increaseCandlesShow,
+  decreaseCandlesShow,
   candlesInChartH2L,
   candlesInChartHigh,
   candlesInChartLow,
-  increaseCandlesShow,
-  decreaseCandlesShow,
   dataDates,
   startingDistanceDifference,
 } = useChartData(data, maxCandles, candlesShow, offset);
@@ -356,8 +377,8 @@ const chartRef = ref<HTMLElement>();
 
 const priceAxisWidth = ref(0);
 
-const chartHeight = ref<undefined | number>(undefined);
-const chartWidth = ref<undefined | number>(undefined);
+const chartHeight = ref<number>();
+const chartWidth = ref<number>();
 
 const xDragging = ref(false);
 const xDraggingStart = ref(0);
@@ -383,7 +404,7 @@ function onChartContainterLeave() {
 function onYDrag(event: MouseEvent) {
   if (!xDragging.value) return;
   let candlesToIncrease = Math.ceil(candlesShow.value / 30);
-  if (event.x > xDraggingStart.value) {
+  if (event.x > xDraggingStart.value && candleWidth.value > 2) {
     increaseCandlesShow(candlesToIncrease);
     xDraggingStart.value = event.x;
   } else if (event.x < xDraggingStart.value) {
@@ -401,6 +422,8 @@ function updateChartHeightAndWidth(substractWidth = 0) {
   }
 }
 
+const viewBoxOffset = ref(0);
+
 // @wheel emit
 function onWheel(event: WheelEvent) {
   let candles = 2;
@@ -413,18 +436,13 @@ function onWheel(event: WheelEvent) {
   } else if (candlesShow.value > 150) {
     candles = 20;
   }
-  // TODO: implement going left and right
-  // if (Math.abs(event.deltaX) > 1 && Math.abs(event.deltaY) < 3) {
-  //   const deltaX = Math.round(event.deltaX / 2);
-  //   const newOffset = offset.value - deltaX;
-  //   if(newOffset < 0 && newOffset > -data.value.length + candlesShow.value) {
-  //     offset.value -= deltaX;
-  //   }
-  //   return;
-  // }
-  // TODO: disinguish better between y and x move and add cursors when moving
-  if (Math.abs(event.deltaY) > 1) {
-    if (event.deltaY > 0 && candleWidth.value > 1) {
+
+  // Calculate the angle of movement
+  const angle = Math.atan2(event.deltaY, event.deltaX) * 180 / Math.PI;
+  const absAngle = angle < 0 ? 360 + angle : angle;
+
+  if ((absAngle >= 45 && absAngle <= 135) || (absAngle >= 225 && absAngle <= 315)) {
+    if (event.deltaY > 0 && candleWidth.value > 2) {
       increaseCandlesShow(candles);
     } else if (event.deltaY < 0) {
       decreaseCandlesShow(candles);
@@ -472,6 +490,20 @@ function close() {
   fullWidth.value = false;
   width.value = 700;
   emit('chartWidthHeightChange');
+}
+
+const zoomedOut = ref(false);
+
+// @zoomIn emit
+function zoomIn() {
+  candlesShow.value = Math.round(props.width / 18);
+  zoomedOut.value = false;
+}
+
+// @zoomOut emit
+function zoomOut() {
+  candlesShow.value = Math.round(props.width / 5);
+  zoomedOut.value = true;
 }
 
 const priceLines = ref<number[]>([]);

@@ -3,9 +3,12 @@
     class="date-axis-text text-center absolute prevent-select"
     v-for="(entry, i) in dateEntriesShow"
     :key="i"
-    :style="`left: ${entry?.x}px`"
-    :class="{ 'text-weight-bold': entry?.bold }"
-    >{{ entry?.date }}</span
+    :style="`left: ${calculateXPositionDateEntry(
+      entry.x,
+      -DATE_BOX_WIDTH / 2
+    )}px`"
+    :class="{ 'text-weight-bold': entry.bold }"
+    >{{ entry.date }}</span
   >
   <span
     v-if="badgeShow"
@@ -20,10 +23,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
-import {
-  CANDLE_WICK_THICKNESS,
-  DATE_BOX_WIDTH,
-} from 'src/pages/broker-charts/consts';
+import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 
 const props = defineProps<{
   entries: DatePositionEntry[];
@@ -33,6 +33,7 @@ const props = defineProps<{
   candleDistance: number;
   candlesShow: number;
   badgeShow: boolean;
+  candlesticksSVGWidth: number;
 }>();
 
 const emit = defineEmits<{
@@ -62,40 +63,55 @@ const candleDate = computed(() => {
   return datePositionEntry.value.date;
 });
 
-const PADDING_ON_CROSSHAIR_BADGE = 8;
-
-const dateBadgeShiftWithPadding = computed(() => {
-  return (DATE_BOX_WIDTH - PADDING_ON_CROSSHAIR_BADGE) / 4;
-});
-
 const badgeXposition = computed(() => {
-  if (!datePositionEntry.value || !props.width) {
+  if (
+    !datePositionEntry.value ||
+    !props.width ||
+    overCandles.value === undefined
+  ) {
     return undefined;
   }
-  let xPos = datePositionEntry.value.x + dateBadgeShiftWithPadding.value;
+  let crossHairBadgeWidth = crosshairBadgeRef.value?.offsetWidth;
+  if (!crossHairBadgeWidth) {
+    crossHairBadgeWidth = 0;
+  }
+  let xPos =
+    overCandles.value > 0
+      ? datePositionEntry.value.x
+      : props.width - (props.candlesticksSVGWidth - datePositionEntry.value.x);
   if (badgeXposition.value === undefined) {
     return -999;
-  } else if (xPos < 0) {
+  } else if (xPos < crossHairBadgeWidth / 2) {
     return 0;
-  } else if (
-    crosshairBadgeRef.value &&
-    xPos + crosshairBadgeRef.value?.offsetWidth > props.width
-  ) {
-    return props.width - crosshairBadgeRef.value?.offsetWidth;
+  } else if (xPos + crossHairBadgeWidth / 2 > props.width) {
+    return props.width - crossHairBadgeWidth;
   }
-  return xPos - CANDLE_WICK_THICKNESS;
+  return xPos - crossHairBadgeWidth / 2;
 });
 
 const dateEntriesShow = computed(() => {
   return props.entries.filter((entry) => entry.show);
 });
 
-watch(dateEntriesShow, () => {
-  emit(
-    'verticalLines',
-    dateEntriesShow.value.map((entry) => entry.x + DATE_BOX_WIDTH / 2)
-  );
-});
+function calculateXPositionDateEntry(x: number, addDiff = 0) {
+  if (!props.width || overCandles.value === undefined) {
+    return 0;
+  }
+  const diffToSVGWidth = props.candlesticksSVGWidth - x;
+  return overCandles.value > 0
+    ? x + addDiff
+    : props.width - diffToSVGWidth + addDiff;
+}
+
+watch(
+  () => props.candlesticksSVGWidth,
+  () => {
+    emit(
+      'verticalLines',
+      dateEntriesShow.value.map((entry) => calculateXPositionDateEntry(entry.x))
+    );
+  }
+);
 </script>
 
 <style lang="scss" scoped>

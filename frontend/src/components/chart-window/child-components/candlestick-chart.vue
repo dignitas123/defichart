@@ -27,8 +27,11 @@
   <svg
     :width="width"
     :height="height"
+    :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
     class="d-block absolute"
     style="z-index: 2"
+    transform="scale(1, 1)"
+    ref="candlesticksRef"
   >
     <g v-for="(candle, i) in candles" :key="i">
       <rect
@@ -57,7 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, nextTick } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -92,7 +95,8 @@ const props = withDefaults(
     startingDistanceDifference: number;
     candleWidth: number;
     candleDistance: number;
-    offset: number;
+    viewBoxOffset: number;
+    candlesticksSVGWidth: number;
   }>(),
   {
     priceLines: () => [],
@@ -104,6 +108,7 @@ const emit = defineEmits<{
   (event: 'update:datePositionEntries', entries: DatePositionEntry[]): void;
   (event: 'update:candleWidth', width: number): void;
   (event: 'update:candleDistance', distance: number): void;
+  (event: 'update:candlesticksSVGWidth', width: number): void;
 }>();
 
 const CANDLE_BULL_COLOR = 'green';
@@ -116,9 +121,29 @@ const DAY = HOUR * 24;
 const WEEK = DAY * 7;
 const MONTH = DAY * 30;
 
+const candlesticksRef = ref<SVGSVGElement>();
+
+const viewBoxXStart = computed(() => {
+  if (!candlesticksSVGWidth.value || !props.width) {
+    return 0;
+  }
+  const ret =
+    candlesticksSVGWidth.value - props.width + candleDistance.value * 2 + props.viewBoxOffset;
+  if (ret >= 0) {
+    return ret;
+  } else {
+    return 0;
+  }
+});
+
+watch(() => props.viewBoxOffset, () => {
+  // if()
+})
+
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);
 const candleDistance = ref(props.candleDistance);
+const candlesticksSVGWidth = ref(props.candlesticksSVGWidth);
 
 watch(datePositionEntries, () => {
   emit('update:datePositionEntries', datePositionEntries.value);
@@ -132,10 +157,13 @@ watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
 });
 
+watch(candlesticksSVGWidth, () => {
+  emit('update:candlesticksSVGWidth', candlesticksSVGWidth.value);
+});
+
 const candles = ref<Candle[]>([]);
 
-// x-distance between candles
-function calcCandleDistance(cW: number) {
+function calcCandleXDistance(cW: number) {
   if (cW > 80) {
     return 20;
   } else if (cW > 40) {
@@ -144,9 +172,9 @@ function calcCandleDistance(cW: number) {
     return 4;
   } else if (cW > 16) {
     return 3;
-  } else if (cW > 6.6) {
+  } else if(cW > 6.6) {
     return 2;
-  } else if (cW > 4) {
+  } else if (cW > 3.4) {
     return 1;
   } else {
     return 0;
@@ -166,7 +194,7 @@ function drawChart(onlyHeightChange = false) {
     datePositionEntries.value = [];
   }
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
-  candleDistance.value = calcCandleDistance(candleWidthWithoutCandleDistance);
+  candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
     candleWidthWithoutCandleDistance -
     candleDistance.value -
@@ -180,9 +208,11 @@ function drawChart(onlyHeightChange = false) {
     candleDistance.value;
 
   const overCandles = props.candleCount - props.dates.length;
+
   const candleSumWidthPx =
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
+
   const timeDisplayProps: TimeDisplayProperties =
     timeDisplayProperties(candleSumWidthPx);
 
@@ -294,7 +324,7 @@ function drawChart(onlyHeightChange = false) {
     }
 
     const xPosition =
-      xPositionCandlestick - DATE_BOX_WIDTH / 2 + candleWidth.value / 2;
+      xPositionCandlestick + candleWidth.value / 2 - candleDistance.value * 2;
 
     if (!formattedDate) {
       datePositionEntries.value.push({
@@ -472,20 +502,20 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   };
 }
 
-let lastWidth = 0;
-let lastMaxCandlesShow = 0;
-let lastOffset = 0;
-watchEffect(() => {
-  if (!props.width || !props.height) {
-    return;
-  }
-  drawChart(
-    props.width === lastWidth &&
-      props.candleCount === lastMaxCandlesShow &&
-      props.offset === lastOffset
-  );
-  lastWidth = props.width;
-  lastMaxCandlesShow = props.candleCount;
-  lastOffset = props.offset;
+async function drawChartAndUpdateSVGWidth() {
+  drawChart();
+  await nextTick();
+  candlesticksSVGWidth.value = candlesticksRef.value?.getBBox().width ?? 0;
+}
+
+onMounted(async () => {
+  drawChartAndUpdateSVGWidth();
 });
+
+watch(
+  [() => props.candleCount, () => props.width, () => props.height],
+  async () => {
+    drawChartAndUpdateSVGWidth();
+  }
+);
 </script>
