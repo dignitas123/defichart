@@ -1,4 +1,4 @@
-export const DATA_TICKSIZE = 0.01;
+export const DATA_TICKSIZE = 0.5;
 export const GRID_LINES_TRANSPARENCY = 0.06;
 export const DATE_BOX_WIDTH = 80;
 export const HEADER_HEIGHT = 32;

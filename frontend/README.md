@@ -2,6 +2,8 @@
 
 A DeFi Charting Software
 
+"The Go-To Charting Platform for risk-conscious trading in crypto derivatives"
+
 ## Install the dependencies
 
 ```bash

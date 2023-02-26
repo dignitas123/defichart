@@ -15,5 +15,5 @@ export function getBeforeComma(ticksize: number, seperator = '.') {
 export function roundToTicksize(num: number, ticksize = 0.1) {
   const digits = getDigits(ticksize);
   const roundedTickSize = Math.round(num / ticksize) * ticksize;
-  return roundToDigits(roundedTickSize, digits);
+  return Number(roundToDigits(roundedTickSize, digits));
 }
