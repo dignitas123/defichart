@@ -486,7 +486,8 @@ function maximize() {
 function close() {
   fullHeight.value = false;
   fullWidth.value = false;
-  width.value = 700;
+  width.value = 500;
+  height.value = 500;
   emit('chartWidthHeightChange');
 }
 

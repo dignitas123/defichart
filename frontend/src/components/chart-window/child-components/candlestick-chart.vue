@@ -39,7 +39,7 @@
         :y="candle.uwY"
         :width="CANDLE_WICK_THICKNESS"
         :height="candle.uwHeight"
-        :style="`fill: ${candle.fillColor}`"
+        :style="`fill: ${candle.wickFillColor}`"
       />
       <rect
         :x="candle.x"
@@ -47,13 +47,15 @@
         :width="candleWidth"
         :height="candle.height"
         :style="`fill: ${candle.fillColor}`"
+        :stroke="CANDLE_BORDER_COLOR ? CANDLE_BORDER_COLOR : ''"
+        shape-rendering="crispEdges"
       />
       <rect
         :x="candle.wX"
         :y="candle.lwY"
         :width="CANDLE_WICK_THICKNESS"
         :height="candle.lwHeight"
-        :style="`fill: ${candle.fillColor}`"
+        :style="`fill: ${candle.wickFillColor}`"
       />
     </g>
   </svg>
@@ -111,10 +113,10 @@ const emit = defineEmits<{
   (event: 'update:candlesticksSVGWidth', width: number): void;
 }>();
 
-const CANDLE_BULL_COLOR = 'green';
-const CANDLE_BEAR_COLOR = 'red';
-const CANDLE_BORDER = false;
-// const CANDLE_BORDER_COLOR = 'black';
+const CANDLE_BULL_COLOR = '#23c4ec';
+const CANDLE_BEAR_COLOR = '#13201e';
+const CANDLE_BORDER = true;
+const CANDLE_BORDER_COLOR = 'black';
 const MIN = 1000 * 60;
 const HOUR = MIN * 60;
 const DAY = HOUR * 24;
@@ -128,17 +130,16 @@ const viewBoxXStart = computed(() => {
     return 0;
   }
   const ret =
-    candlesticksSVGWidth.value - props.width + candleDistance.value * 2 + props.viewBoxOffset;
+    candlesticksSVGWidth.value -
+    props.width +
+    candleDistance.value * 2 +
+    props.viewBoxOffset;
   if (ret >= 0) {
     return ret;
   } else {
     return 0;
   }
 });
-
-watch(() => props.viewBoxOffset, () => {
-  // if()
-})
 
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);
@@ -164,18 +165,19 @@ watch(candlesticksSVGWidth, () => {
 const candles = ref<Candle[]>([]);
 
 function calcCandleXDistance(cW: number) {
+  const increase = CANDLE_BORDER ? 1 : 0;
   if (cW > 80) {
-    return 20;
+    return 20 + increase;
   } else if (cW > 40) {
-    return 5;
+    return 5 + increase;
   } else if (cW > 20) {
-    return 4;
+    return 4 + increase;
   } else if (cW > 16) {
-    return 3;
-  } else if(cW > 6.6) {
-    return 2;
+    return 3 + increase;
+  } else if (cW > 6.6) {
+    return 2 + increase;
   } else if (cW > 3.4) {
-    return 1;
+    return 1 + increase;
   } else {
     return 0;
   }
@@ -351,8 +353,8 @@ function drawChart(onlyHeightChange = false) {
     ohlc: OHLC,
     bull_color: string = CANDLE_BULL_COLOR,
     bear_color: string = CANDLE_BEAR_COLOR,
-    candle_border: boolean = CANDLE_BORDER
-    // candle_border_color: string = CANDLE_BORDER_COLOR
+    candle_border: boolean = CANDLE_BORDER,
+    candle_border_color: string = CANDLE_BORDER_COLOR
   ) {
     if (
       !props.h2l ||
@@ -385,15 +387,18 @@ function drawChart(onlyHeightChange = false) {
     candle.height = Math.abs(o - c);
 
     candle.uwY = l;
+
     if (c > o) {
-      candle.y = o;
       candle.fillColor = bull_color;
+      candle.wickFillColor = candle_border ? candle_border_color : bull_color;
+      candle.y = o;
       candle.uwHeight = o - l + 1;
       candle.lwY = c - 1;
       candle.lwHeight = h - c + 1;
     } else {
+      candle.wickFillColor = bear_color;
+      candle.wickFillColor = candle_border ? candle_border_color : bear_color;
       candle.y = c;
-      candle.fillColor = bear_color;
       candle.uwHeight = c - l + 1;
       candle.lwY = o - 1;
       candle.lwHeight = h - o + 1;
@@ -402,10 +407,6 @@ function drawChart(onlyHeightChange = false) {
       candle.height = 1;
     }
     candles.value?.push(candle);
-
-    if (candle_border) {
-      // TODO: introduce candle_border
-    }
   }
 }
 

@@ -34,6 +34,7 @@ export interface Candle {
   uwHeight: number;
   lwHeight: number;
   fillColor: string;
+  wickFillColor: string;
 }
 
 export interface TimeDisplayProperties {
