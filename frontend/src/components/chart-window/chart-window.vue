@@ -108,14 +108,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  ref,
-  nextTick,
-  watch,
-  onMounted,
-  reactive,
-  onUnmounted,
-} from 'vue';
+import { ref, nextTick, watch, onMounted, reactive, onUnmounted } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -195,7 +188,6 @@ function updateMouseContainer(event: MouseEvent) {
   if (!chartRef.value) {
     return;
   }
-  crosshair.show = true;
   let newX = event.clientX - chartRef.value.getBoundingClientRect().left;
   let newY = event.clientY - chartRef.value.getBoundingClientRect().top;
   let newCandleMidpoint = findCandleMidpoint(newX);
@@ -205,6 +197,9 @@ function updateMouseContainer(event: MouseEvent) {
   }
   if (newPriceMidpoint !== undefined) {
     crosshair.y = newPriceMidpoint;
+  }
+  if (crosshair.x !== 0) {
+    crosshair.show = true;
   }
   if (crosshair.x < 0 || crosshair.y < 0) {
     crosshair.show = false;
@@ -438,10 +433,13 @@ function onWheel(event: WheelEvent) {
   }
 
   // Calculate the angle of movement
-  const angle = Math.atan2(event.deltaY, event.deltaX) * 180 / Math.PI;
+  const angle = (Math.atan2(event.deltaY, event.deltaX) * 180) / Math.PI;
   const absAngle = angle < 0 ? 360 + angle : angle;
 
-  if ((absAngle >= 45 && absAngle <= 135) || (absAngle >= 225 && absAngle <= 315)) {
+  if (
+    (absAngle >= 45 && absAngle <= 135) ||
+    (absAngle >= 225 && absAngle <= 315)
+  ) {
     if (event.deltaY > 0 && candleWidth.value > 2) {
       increaseCandlesShow(candles);
     } else if (event.deltaY < 0) {

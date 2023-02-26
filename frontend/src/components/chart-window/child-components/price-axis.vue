@@ -44,6 +44,8 @@ const MIN_ROW_DISTANCE = 40; // in px
 
 const crosshairBadgeRef = ref<HTMLElement>();
 
+const digits = getDigits(DATA_TICKSIZE);
+
 const badgeYposition = computed(() => {
   let crossHairBadgeHeight = crosshairBadgeRef.value?.offsetHeight;
   if (!props.height || !crossHairBadgeHeight || !props.crossHairY) {
@@ -65,10 +67,8 @@ const selectedPrice = computed(() => {
   return roundToTicksize(
     props.high - props.crossHairY * (props.h2l / props.height),
     DATA_TICKSIZE
-  );
+  ).toFixed(digits);
 });
-
-const digits = getDigits(DATA_TICKSIZE);
 
 let rowDistance = 0;
 let priceArray: string[] = [];
@@ -91,16 +91,17 @@ watchEffect(() => {
   rowDistance = row;
   const rowDistanceInPrice = (rowDistance / onePriceInPixel) * DATA_TICKSIZE;
 
-  let priceBeginningDistance = rowDistanceInPrice / 2; // * DATA_TICKSIZE;
+  let priceBeginningDistance = rowDistanceInPrice / 2;
   const priceStartRest = priceBeginningDistance % DATA_TICKSIZE;
 
   if (priceStartRest !== 0) {
-    let newPriceStart = priceBeginningDistance + priceStartRest; // * DATA_TICKSIZE;
+    let newPriceStart = priceBeginningDistance + priceStartRest;
+    const ticksizeMult = 1 / DATA_TICKSIZE;
     if (newPriceStart < props.high) {
       priceBeginningDistance = newPriceStart;
-      marginTop = priceStartRest * onePriceInPixel * (1 / DATA_TICKSIZE);
+      marginTop = priceStartRest * onePriceInPixel * ticksizeMult;
     } else {
-      priceBeginningDistance = DATA_TICKSIZE;
+      priceBeginningDistance = DATA_TICKSIZE * onePriceInPixel * ticksizeMult;
     }
   }
 
