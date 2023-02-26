@@ -368,6 +368,9 @@ function drawChart(onlyHeightChange = false) {
       candle.lwY = o - 1;
       candle.lwHeight = h - o + 1;
     }
+    if (c === o) {
+      candle.height = 1;
+    }
     candles.value?.push(candle);
 
     if (candle_border) {

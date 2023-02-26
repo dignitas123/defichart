@@ -68,7 +68,10 @@
           <PriceAxis
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
+            :low="candlesInChartLow"
             :height="chartHeight"
+            :crossHairY="crosshair.y"
+            :badgeShow="crosshair.show"
             @horizontalLine="addHorizontalLineToPriceLines"
           />
           <q-resize-observer :debounce="0" :onResize="onPriceAxisResize" />
@@ -97,7 +100,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch, onMounted, reactive } from 'vue';
+import {
+  ref,
+  nextTick,
+  watch,
+  onMounted,
+  reactive,
+  onUnmounted,
+  computed,
+} from 'vue';
 import CandlestickChart from './child-components/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -111,7 +122,12 @@ import {
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
-import { CANDLE_WICK_THICKNESS } from 'src/pages/broker-charts/consts';
+import {
+  CANDLE_WICK_THICKNESS,
+  DATA_TICKSIZE,
+  HEADER_HEIGHT,
+} from 'src/pages/broker-charts/consts';
+import { roundToTicksize } from './helpers/digits';
 
 const props = defineProps<{
   id: string;
@@ -167,6 +183,7 @@ const crosshair = reactive({
 const selectedCandleIndex = ref(0);
 
 let lastChX = 0;
+let lastChY = 0;
 // @mousemove emit (.chart)
 function updateMouseContainer(event: MouseEvent) {
   if (!chartRef.value) {
@@ -174,15 +191,20 @@ function updateMouseContainer(event: MouseEvent) {
   }
   crosshair.show = true;
   let newX = event.clientX - chartRef.value.getBoundingClientRect().left;
+  let newY = event.clientY - chartRef.value.getBoundingClientRect().top;
   let newCandleMidpoint = findCandleMidpoint(newX);
+  let newPriceMidpoint = findPriceMidpoint(newY);
   if (newCandleMidpoint) {
     crosshair.x = newCandleMidpoint;
   }
-  crosshair.y = event.clientY - chartRef.value.getBoundingClientRect().top;
+  if (newPriceMidpoint !== undefined) {
+    crosshair.y = newPriceMidpoint;
+  }
   if (crosshair.x < 0 || crosshair.y < 0) {
     crosshair.show = false;
   }
   lastChX = newX;
+  lastChY = newY;
 }
 
 function findCandleMidpoint(x: number) {
@@ -197,6 +219,15 @@ function findCandleMidpoint(x: number) {
   } else {
     return 0;
   }
+}
+
+function findPriceMidpoint(y: number) {
+  if (!chartHeight.value || !candlesInChartH2L.value) {
+    return undefined;
+  }
+  const scale = DATA_TICKSIZE * (chartHeight.value / candlesInChartH2L.value);
+  const newY = Math.round(y / scale) * scale;
+  return newY === 0 ? 0.1 : newY; // 0.1 to show it on top
 }
 
 function findCandleMidpointAfterZoom(x: number) {
@@ -264,8 +295,12 @@ watch(candlesShow, async () => {
   await nextTick();
   emit('update:candlesShow', candlesShow.value);
   let newCandleMidpoint = findCandleMidpointAfterZoom(lastChX);
+  let newPriceMidPoint = findPriceMidpoint(lastChY);
   if (newCandleMidpoint) {
     crosshair.x = newCandleMidpoint;
+  }
+  if (newPriceMidPoint) {
+    crosshair.y = newPriceMidPoint;
   }
 });
 watch(
