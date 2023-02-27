@@ -27,10 +27,8 @@
   <svg
     :width="width"
     :height="height"
-    :viewBox="`${viewBoxXStart} 0 ${width} ${height}`"
     class="d-block absolute"
     style="z-index: 2"
-    transform="scale(1, 1)"
     ref="candlesticksRef"
   >
     <g v-for="(candle, i) in candles" :key="i">
@@ -124,21 +122,6 @@ const WEEK = DAY * 7;
 const MONTH = DAY * 30;
 
 const candlesticksRef = ref<SVGSVGElement>();
-
-const viewBoxXStart = computed(() => {
-  if (!candlesticksSVGWidth.value || !props.width) {
-    return 0;
-  }
-  const ret =
-    candlesticksSVGWidth.value -
-    props.width +
-    candleDistance.value * 2
-  if (ret >= 0) {
-    return ret;
-  } else {
-    return 0;
-  }
-});
 
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);
@@ -513,7 +496,12 @@ onMounted(async () => {
 });
 
 watch(
-  [() => props.candleCount, () => props.width, () => props.height, () => props.offset],
+  [
+    () => props.candleCount,
+    () => props.width,
+    () => props.height,
+    () => props.offset,
+  ],
   async () => {
     drawChartAndUpdateSVGWidth();
   }

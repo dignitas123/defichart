@@ -25,8 +25,8 @@
 ## install node
 
 ```
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash`
-`. ~/.nvm/nvm.sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+. ~/.nvm/nvm.sh
 nvm install 16 // (nvm install -lts not supported)
 ```
 
@@ -58,7 +58,13 @@ server {
 - `sudo systemctl start nginx`
 - `sudo systemctl restart nginx`
 - check Public IPv4 DNS with http. U should see nginx welcome screen
-- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html` to copy build
+
+## deployment
+
+- Connect to Instance
+- cd defichart && git pull && yarn
+- cd frontend && yarn && yarn build
+- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
 
 ## connect github repo
 

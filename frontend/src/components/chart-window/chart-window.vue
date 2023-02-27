@@ -9,7 +9,7 @@
       'full-height-chart': fullHeight,
       'normal-height-chart': !fullHeight,
     }"
-    @mouseup="stopXDrag"
+    @mouseup="stopTimeAxisAndPriceAxisDrag"
     @mousemove="onYDrag"
     @mouseleave="onChartContainterLeave"
     @mouseover="chartWrapperShadow = true"
@@ -71,7 +71,7 @@
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
         </div>
-        <div class="price-axis-wrapper">
+        <div class="price-axis-wrapper" @mousedown="startPriceAxisDrag">
           <PriceAxis
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
@@ -376,36 +376,49 @@ const priceAxisWidth = ref(0);
 const chartHeight = ref<number>();
 const chartWidth = ref<number>();
 
-const xDragging = ref(false);
-const xDraggingStart = ref(0);
+const timeAxisDrag = ref(false);
+const priceAxisDrag = ref(false);
+const timeAxisDraggingStart = ref(0);
+const priceAxisDraggingStart = ref(0);
 
 // @mouseUp emit (.chart-wrapper)
-function stopXDrag() {
-  xDragging.value = false;
+function stopTimeAxisAndPriceAxisDrag() {
+  timeAxisDrag.value = false;
+  priceAxisDrag.value = false;
 }
 
 // @mousedown emit (.timestamps)
 function startXDrag(event: MouseEvent) {
-  xDragging.value = true;
-  xDraggingStart.value = event.clientX;
+  timeAxisDrag.value = true;
+  timeAxisDraggingStart.value = event.clientX;
+}
+
+// @mousedown emit (.price-axis-wrapper)
+function startPriceAxisDrag(event: MouseEvent) {
+  priceAxisDrag.value = true;
+  priceAxisDraggingStart.value = event.clientY;
 }
 
 // @mouseleave emit (.chart-wrapper)
 function onChartContainterLeave() {
-  xDragging.value = false;
+  timeAxisDrag.value = false;
   chartWrapperShadow.value = false;
 }
 
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
-  if (!xDragging.value) return;
-  let candlesToIncrease = Math.ceil(candlesShow.value / 30);
-  if (event.x > xDraggingStart.value && candleWidth.value > 2) {
-    increaseCandlesShow(candlesToIncrease);
-    xDraggingStart.value = event.x;
-  } else if (event.x < xDraggingStart.value) {
-    decreaseCandlesShow(candlesToIncrease);
-    xDraggingStart.value = event.x;
+  if (timeAxisDrag.value) {
+    let candlesToIncrease = Math.ceil(candlesShow.value / 30);
+    if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {
+      increaseCandlesShow(candlesToIncrease);
+      timeAxisDraggingStart.value = event.x;
+    } else if (event.x < timeAxisDraggingStart.value) {
+      decreaseCandlesShow(candlesToIncrease);
+      timeAxisDraggingStart.value = event.x;
+    }
+  }
+  if (priceAxisDrag.value) {
+    // TODO handle priceaxis drag scaling
   }
 }
 
@@ -592,6 +605,10 @@ function setVerticalLines(lines: number[]) {
         cursor: crosshair;
         position: relative;
       }
+
+      .price-axis-wrapper {
+        cursor: ns-resize;
+      }
     }
 
     .date-row {
@@ -602,10 +619,7 @@ function setVerticalLines(lines: number[]) {
         flex: 1;
         overflow: hidden;
         position: relative;
-
-        &:hover {
-          cursor: ew-resize;
-        }
+        cursor: ew-resize;
       }
     }
   }
