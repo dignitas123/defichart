@@ -52,7 +52,7 @@
         >
           <CandlestickChart
             v-if="afterMountUpdated"
-            :data="data"
+            :data="candlesInChartData"
             :dates="dataDates"
             :candleCount="candlesShow"
             :h2l="candlesInChartH2L"
@@ -62,7 +62,7 @@
             :width="chartWidth"
             :priceLines="priceLines"
             :dateLines="dateLines"
-            :viewBoxOffset="viewBoxOffset"
+            :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
@@ -357,6 +357,7 @@ function onKeyDown(event: KeyboardEvent) {
 const {
   increaseCandlesShow,
   decreaseCandlesShow,
+  candlesInChartData,
   candlesInChartH2L,
   candlesInChartHigh,
   candlesInChartLow,
@@ -416,8 +417,6 @@ function updateChartHeightAndWidth(substractWidth = 0) {
     chartHeight.value = chartRef.value?.clientHeight;
   }
 }
-
-const viewBoxOffset = ref(0);
 
 // @wheel emit
 function onWheel(event: WheelEvent) {

@@ -97,7 +97,7 @@ const props = withDefaults(
     startingDistanceDifference: number;
     candleWidth: number;
     candleDistance: number;
-    viewBoxOffset: number;
+    offset: number;
     candlesticksSVGWidth: number;
   }>(),
   {
@@ -132,8 +132,7 @@ const viewBoxXStart = computed(() => {
   const ret =
     candlesticksSVGWidth.value -
     props.width +
-    candleDistance.value * 2 +
-    props.viewBoxOffset;
+    candleDistance.value * 2
   if (ret >= 0) {
     return ret;
   } else {
@@ -514,7 +513,7 @@ onMounted(async () => {
 });
 
 watch(
-  [() => props.candleCount, () => props.width, () => props.height],
+  [() => props.candleCount, () => props.width, () => props.height, () => props.offset],
   async () => {
     drawChartAndUpdateSVGWidth();
   }
