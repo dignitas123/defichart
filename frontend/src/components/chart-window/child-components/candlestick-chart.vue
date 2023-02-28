@@ -6,12 +6,12 @@
     style="z-index: 1"
   >
     <line
-      v-for="(price, i) in priceLines"
+      v-for="(priceY, i) in priceLines"
       :key="i"
       :x1="0"
-      :y1="price"
+      :y1="priceY"
       :x2="width"
-      :y2="price"
+      :y2="priceY"
       :stroke="`rgb(0, 0, 0, ${GRID_LINES_TRANSPARENCY})`"
     />
     <line
@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch, nextTick } from 'vue';
+import { onMounted, ref, watch, nextTick } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -307,9 +307,7 @@ function drawChart(onlyHeightChange = false) {
       formattedDate = formatDate(date, format);
     }
 
-    const xPosition =
-      xPositionCandlestick + candleWidth.value / 2 - candleDistance.value * 2;
-
+    const xPosition = xPositionCandlestick + candleWidth.value / 2;
     if (!formattedDate) {
       datePositionEntries.value.push({
         index: index,

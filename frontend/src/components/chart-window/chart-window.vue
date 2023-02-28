@@ -87,9 +87,10 @@
       <div class="date-row">
         <div class="timestamps" @mousedown="startXDrag">
           <DateAxis
+            :width="chartWidth"
             :selectedCandleIndex="selectedCandleIndex"
             :entries="datePositionEntries"
-            :width="chartWidth"
+            :offset="offset"
             :candleWidth="candleWidth"
             :candleDistance="candleDistance"
             :candlesShow="candlesShow"

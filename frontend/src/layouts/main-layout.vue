@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-bar>
         <q-icon name="img:deficharts.svg" />
-        <div class="prevent-select text-weight-bold">DefiCharts</div>
+        <span class="prevent-select q-ml-xs">DefiCharts</span>
 
         <q-space />
 
