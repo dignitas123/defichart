@@ -45,7 +45,9 @@
         :width="candleWidth"
         :height="candle.height"
         :style="`fill: ${candle.fillColor}`"
-        :stroke="CANDLE_BORDER_COLOR ? CANDLE_BORDER_COLOR : ''"
+        :stroke="
+          CANDLE_BORDER && candle.height !== 1 ? CANDLE_BORDER_COLOR : ''
+        "
         shape-rendering="crispEdges"
       />
       <rect
@@ -111,8 +113,10 @@ const emit = defineEmits<{
   (event: 'update:candlesticksSVGWidth', width: number): void;
 }>();
 
-const CANDLE_BULL_COLOR = '#23c4ec';
-const CANDLE_BEAR_COLOR = '#13201e';
+// const CANDLE_BULL_COLOR = '#23c4ec'; // theme color
+// const CANDLE_BEAR_COLOR = '#13201e'; // theme color
+const CANDLE_BULL_COLOR = 'green'; // standard color
+const CANDLE_BEAR_COLOR = 'red'; // standard color
 const CANDLE_BORDER = true;
 const CANDLE_BORDER_COLOR = 'black';
 const MIN = 1000 * 60;
@@ -159,7 +163,7 @@ function calcCandleXDistance(cW: number) {
   } else if (cW > 6.6) {
     return 2 + increase;
   } else if (cW > 3.4) {
-    return 1 + increase;
+    return 1;
   } else {
     return 0;
   }
@@ -376,7 +380,7 @@ function drawChart(onlyHeightChange = false) {
       candle.lwY = c - 1;
       candle.lwHeight = h - c + 1;
     } else {
-      candle.wickFillColor = bear_color;
+      candle.fillColor = bear_color;
       candle.wickFillColor = candle_border ? candle_border_color : bear_color;
       candle.y = c;
       candle.uwHeight = c - l + 1;
@@ -385,6 +389,9 @@ function drawChart(onlyHeightChange = false) {
     }
     if (c === o) {
       candle.height = 1;
+      if (candle_border) {
+        candle.fillColor = candle_border_color;
+      }
     }
     candles.value.push(candle);
   }
