@@ -64,3 +64,7 @@ html.ns-resize * {
 .secondary-gradient {
   background: linear-gradient(to right, white, var(--q-secondary)) !important;
 }
+
+.transparent-primary-background {
+  background: rgba($primary, 0.4) !important;
+}

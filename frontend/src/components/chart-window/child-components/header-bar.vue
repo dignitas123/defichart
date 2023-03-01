@@ -13,7 +13,7 @@
       >
         <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
           {{ 'Zoom in' }}
-          <q-badge transparent> Z </q-badge>
+          <q-badge transparent>z</q-badge>
         </q-tooltip>
       </q-btn>
       <q-btn
@@ -27,7 +27,7 @@
       >
         <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
           {{ 'Zoom out' }}
-          <q-badge transparent> X </q-badge>
+          <q-badge transparent>x</q-badge>
         </q-tooltip>
       </q-btn>
       <q-space />

@@ -69,6 +69,18 @@
             v-model:candlesticksSVGWidth="candlesticksSVGWidth"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
+          <q-btn
+            v-if="offset < 0"
+            size="sm"
+            class="go-to-start-button"
+            :class="{ 'transparent-primary-background': !goToStartButtonHover }"
+            @mouseover="goToStartButtonHover = true"
+            @mouseleave="goToStartButtonHover = false"
+            @click="offset = 0"
+            round
+            color="primary"
+            icon="start"
+          />
         </div>
         <div class="price-axis-wrapper" @mousedown="startPriceAxisDrag">
           <PriceAxis
@@ -181,6 +193,8 @@ const crosshair = reactive({
 });
 
 const selectedCandleIndex = ref(0);
+
+const goToStartButtonHover = ref(false);
 
 let lastChX = 0;
 let lastChY = 0;
@@ -621,6 +635,13 @@ function setVerticalLines(lines: number[]) {
         height: 100%;
         cursor: crosshair;
         position: relative;
+
+        .go-to-start-button {
+          z-index: 20;
+          position: absolute;
+          bottom: 4px;
+          right: 4px;
+        }
       }
 
       .price-axis-wrapper {
