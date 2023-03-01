@@ -162,11 +162,12 @@ function calcCandleXDistance(cW: number) {
     return 3 + increase;
   } else if (cW > 6.6) {
     return 2 + increase;
-  } else if (cW > 3.4) {
-    return 1;
-  } else {
-    return 0;
+  } else if (cW > 3.8) {
+    return 1 + increase;
+  } else  if(cW > 2.5) {
+    return 0 + increase;
   }
+  return 0;
 }
 
 const languageStore = useLanguageStore();

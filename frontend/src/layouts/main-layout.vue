@@ -3,8 +3,7 @@
     <q-header elevated>
       <q-bar>
         <q-icon name="img:deficharts.svg" />
-        <span class="prevent-select q-ml-xs">DefiCharts</span>
-
+        <q-icon name="img:deficharts_text.svg" style="width: auto; height: auto"/>
         <q-space />
 
         <q-btn dense :ripple="false" color="secondary" label="Connect Wallet" />

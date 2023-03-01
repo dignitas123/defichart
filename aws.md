@@ -27,7 +27,7 @@
 ```
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 . ~/.nvm/nvm.sh
-nvm install 16 // (nvm install -lts not supported)
+nvm install 16
 ```
 
 ## setup nginx
@@ -64,7 +64,7 @@ server {
 - Connect to Instance
 - cd defichart && git pull && yarn
 - cd frontend && yarn && yarn build
-- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
+- sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html
 
 ## connect github repo
 
