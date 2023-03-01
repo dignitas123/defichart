@@ -155,7 +155,7 @@ const emit = defineEmits<{
 }>();
 
 const DATEROW_HEIGHT = 22;
-const HEADER_BAR_HEIGHT = 22;
+const HEADER_BAR_HEIGHT = 23;
 const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
@@ -417,7 +417,7 @@ function onYDrag(event: MouseEvent) {
     }
   }
   if (priceAxisDrag.value) {
-    // TODO handle priceaxis drag scaling
+    // TODO: handle priceaxis drag scaling
   }
 }
 

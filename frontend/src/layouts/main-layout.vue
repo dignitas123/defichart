@@ -3,10 +3,19 @@
     <q-header elevated>
       <q-bar>
         <q-icon name="img:deficharts.svg" />
-        <q-icon name="img:deficharts_text.svg" style="width: auto; height: auto"/>
+        <q-icon
+          name="img:deficharts_text.svg"
+          style="width: auto; height: auto"
+        />
         <q-space />
 
-        <q-btn dense :ripple="false" color="secondary" label="Connect Wallet" />
+        <q-btn
+          dense
+          class="secondary-gradient"
+          :ripple="false"
+          text-color="primary"
+          label="Connect Wallet"
+        />
       </q-bar>
     </q-header>
 

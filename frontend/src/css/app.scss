@@ -60,3 +60,7 @@ html.ns-resize * {
 .bg-shadow-secondary {
   box-shadow: 0 0 2px var(--q-secondary);
 }
+
+.secondary-gradient {
+  background: linear-gradient(to right, white, var(--q-secondary)) !important;
+}
