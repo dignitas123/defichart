@@ -11,14 +11,17 @@
     v-if="badgeShow"
     class="crosshair-badge text-center absolute prevent-select"
     :style="`left: ${badgeXposition}px`"
-    ref="crosshairBadgeRef"
   >
     {{ candleDate }}
   </span>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, nextTick } from 'vue';
+/**
+ * Renders the 'date-axis-text' and the 'crosshaird-badge' / dateBadge which is the badge
+ * shown over the date-axis when the crosshair is at a certain x position.
+ */
+import { computed, watch, nextTick } from 'vue';
 import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
 import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 
@@ -38,9 +41,7 @@ const emit = defineEmits<{
   (event: 'verticalLines', lines: number[]): void;
 }>();
 
-const PADDING_ON_CROSSHAIR_BADGE = 4;
-
-const crosshairBadgeRef = ref<HTMLElement>();
+const DATE_BADGE_WIDTH = 50;
 
 const overCandles = computed(() => {
   if (!props.entries.length) {
@@ -75,22 +76,13 @@ const badgeXposition = computed(() => {
   ) {
     return undefined;
   }
-  let crossHairBadgeWidth = crosshairBadgeRef.value?.offsetWidth;
-  if (!crossHairBadgeWidth) {
-    crossHairBadgeWidth = 0;
-  }
-  let xPos =
-    overCandles.value > 0
-      ? datePositionEntry.value.x
-      : props.width - (props.width - datePositionEntry.value.x);
-  if (badgeXposition.value === undefined) {
-    return xPos - DATE_BOX_WIDTH / 4 - PADDING_ON_CROSSHAIR_BADGE;
-  } else if (xPos < crossHairBadgeWidth / 2) {
+  let badgeMidPoint = DATE_BADGE_WIDTH / 2;
+  if (datePositionEntry.value.x < badgeMidPoint) {
     return 0;
-  } else if (xPos + crossHairBadgeWidth / 2 > props.width) {
-    return props.width - crossHairBadgeWidth;
+  } else if (datePositionEntry.value.x + badgeMidPoint > props.width) {
+    return props.width - DATE_BADGE_WIDTH;
   }
-  return xPos - crossHairBadgeWidth / 2;
+  return datePositionEntry.value.x - badgeMidPoint;
 });
 
 const dateEntriesShow = computed(() => {
@@ -117,6 +109,7 @@ watch(
 }
 
 .crosshair-badge {
+  width: 50px; // DATE_BADGE_WIDTH
   background: var(--q-dark-page);
   opacity: 0.9;
   color: white;

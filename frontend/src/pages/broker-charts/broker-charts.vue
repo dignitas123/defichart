@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref, nextTick } from 'vue';
+import { onUnmounted, reactive, ref, nextTick, onMounted } from 'vue';
 import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
@@ -228,6 +228,17 @@ function onChartsPageLeave(event: MouseEvent) {
   }
   resizeDrag.value = false;
 }
+
+onMounted(() => {
+  if (charts[selectedChartId.value].fullWidth) {
+    charts[selectedChartId.value].width = maxChartWidth.value;
+    resizeDragStart.x = maxChartWidth.value;
+  }
+  if (charts[selectedChartId.value].fullHeight) {
+    charts[selectedChartId.value].height = maxChartHeight.value;
+    resizeDragStart.y = maxChartHeight.value + HEADER_HEIGHT;
+  }
+});
 </script>
 
 <style lang="scss" scoped>

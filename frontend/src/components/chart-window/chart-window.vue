@@ -254,6 +254,7 @@ function findCandleMidpointAfterZoom(x: number) {
 // @mouseleave emit (.chart)
 function onChartLeave() {
   crosshair.show = false;
+  crosshair.x = 0;
 }
 
 watch(width, () => {
@@ -292,7 +293,6 @@ watch(
     fullHeight.value = props.fullHeight;
   }
 );
-
 watch(candlesShow, async () => {
   await nextTick();
   emit('update:candlesShow', candlesShow.value);
