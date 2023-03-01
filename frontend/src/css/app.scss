@@ -19,6 +19,10 @@ body {
 html {
   overscroll-behavior-x: none;
 }
+html.ns-resize,
+html.ns-resize * {
+  cursor: ns-resize !important;
+}
 
 ::-webkit-scrollbar {
   display: none;

@@ -37,6 +37,7 @@ import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
 import { HEADER_HEIGHT } from 'src/pages/broker-charts/consts';
+import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
@@ -51,6 +52,8 @@ onUnmounted(() => {
 });
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
+
+const { setCursor, removeCursor } = useCursorOverwrite();
 
 // TODO: make real charts created by users and saved in localStorage
 const nonStandardChart = generateChartObject({
@@ -123,11 +126,17 @@ function onStartResizeDrag(xOnly: boolean, yOnly: boolean) {
   resizeDrag.value = true;
   resizeDragXOnly.value = xOnly;
   resizeDragYOnly.value = yOnly;
+  if (yOnly) {
+    setCursor('ns-resize');
+  }
 }
 
 function resetRisizeDragSnapAndDragXYOnly() {
   resizeDrag.value = false;
   snapActive.value = false;
+  if (resizeDragYOnly.value) {
+    removeCursor('ns-resize');
+  }
   resizeDragXOnly.value = false;
   resizeDragYOnly.value = false;
 }
