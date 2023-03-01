@@ -34,7 +34,6 @@
       />
       <div class="header-bar prevent-select">
         <HeaderBar
-          :zoomedOut="zoomedOut"
           @maximize="maximize"
           @close="close"
           @zoomIn="zoomIn"
@@ -127,6 +126,7 @@ import {
   CANDLE_WICK_THICKNESS,
   DATA_TICKSIZE,
 } from 'src/pages/broker-charts/consts';
+import { findNearestIndex } from 'src/shared/utils/array-functions';
 
 const props = defineProps<{
   id: string;
@@ -347,11 +347,9 @@ onUnmounted(() => {
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'z') {
-    if (zoomedOut.value) {
-      zoomIn();
-    } else {
-      zoomOut();
-    }
+    zoomOut();
+  } else if (event.key === 'x') {
+    zoomIn();
   }
 }
 
@@ -504,18 +502,36 @@ function close() {
   emit('chartWidthHeightChange');
 }
 
-const zoomedOut = ref(false);
+// ZOOM_LEVELS[0] means zoomed in the most (ratio between width and how many candles are shown)
+const ZOOM_LEVELS = [103, 21, 9, 4];
+
+function getZoomLevel() {
+  const currentZoomedlevel = props.width / candlesShow.value;
+  return ZOOM_LEVELS[findNearestIndex(currentZoomedlevel, ZOOM_LEVELS)];
+}
 
 // @zoomIn emit
 function zoomIn() {
-  candlesShow.value = Math.round(props.width / 18);
-  zoomedOut.value = false;
+  const currentZoomedlevelIndex = ZOOM_LEVELS.findIndex(
+    (level) => level === getZoomLevel()
+  );
+  if (currentZoomedlevelIndex - 1 >= 0) {
+    candlesShow.value = Math.round(
+      props.width / ZOOM_LEVELS[currentZoomedlevelIndex - 1]
+    );
+  }
 }
 
 // @zoomOut emit
 function zoomOut() {
-  candlesShow.value = Math.round(props.width / 5);
-  zoomedOut.value = true;
+  const currentZoomedlevelIndex = ZOOM_LEVELS.findIndex(
+    (level) => level === getZoomLevel()
+  );
+  if (currentZoomedlevelIndex + 1 < ZOOM_LEVELS.length) {
+    candlesShow.value = Math.round(
+      props.width / ZOOM_LEVELS[currentZoomedlevelIndex + 1]
+    );
+  }
 }
 
 const priceLines = ref<number[]>([]);

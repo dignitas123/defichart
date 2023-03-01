@@ -6,14 +6,28 @@
         dense
         flat
         class="items-center"
-        :icon="zoomedOut ? 'zoom_in' : 'zoom_out'"
+        icon="zoom_in"
         size="sm"
         :ripple="false"
-        @click="zoomedOut ? $emit('zoomIn') : $emit('zoomOut')"
+        @click="$emit('zoomIn')"
       >
         <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
-          {{ zoomedOut ? 'Zoom in' : 'Zoom out' }}
+          {{ 'Zoom in' }}
           <q-badge transparent> Z </q-badge>
+        </q-tooltip>
+      </q-btn>
+      <q-btn
+        dense
+        flat
+        class="items-center"
+        icon="zoom_out"
+        size="sm"
+        :ripple="false"
+        @click="$emit('zoomOut')"
+      >
+        <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
+          {{ 'Zoom out' }}
+          <q-badge transparent> X </q-badge>
         </q-tooltip>
       </q-btn>
       <q-space />
@@ -30,15 +44,6 @@
 </template>
 
 <script lang="ts" setup>
-withDefaults(
-  defineProps<{
-    zoomedOut?: boolean;
-  }>(),
-  {
-    zoomedOut: false,
-  }
-);
-
 defineEmits<{
   (event: 'maximize'): void;
   (event: 'close'): void;
