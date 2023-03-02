@@ -1,5 +1,7 @@
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
+import { DATA_TICKSIZE } from 'src/pages/broker-charts/consts';
 import { computed, Ref } from 'vue';
+import { roundToTicksize } from './helpers/digits';
 
 export function useChartData(
   data: Ref<OHLC[]>,
@@ -55,9 +57,10 @@ export function useChartData(
 
   const candlesInChartHigh = computed(() => {
     if (candlesInChartData.value.length) {
-      return (
+      return roundToTicksize(
         Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h))) *
-        candlesInChartHighScale.value
+          candlesInChartHighScale.value,
+        DATA_TICKSIZE
       );
     }
     return Infinity;

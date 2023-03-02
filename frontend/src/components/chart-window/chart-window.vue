@@ -482,7 +482,7 @@ function calcuLateNewScale(currentScale: number, scalePercentage: number) {
 
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
-  const scalePercentIncrease = 0.007;
+  const scalePercentIncrease = 0.004;
   if (timeAxisDrag.value) {
     let candlesToIncrease = Math.ceil(candlesShow.value / 30);
     if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {
