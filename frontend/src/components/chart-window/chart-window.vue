@@ -750,6 +750,7 @@ function setVerticalLines(lines: number[]) {
       }
 
       .price-axis-wrapper {
+        overflow: hidden;
         cursor: ns-resize;
       }
     }
