@@ -164,7 +164,7 @@ function calcCandleXDistance(cW: number) {
     return 2 + increase;
   } else if (cW > 3.8) {
     return 1 + increase;
-  } else  if(cW > 2.5) {
+  } else if (cW > 2.5) {
     return 0 + increase;
   }
   return 0;
@@ -507,6 +507,8 @@ watch(
     () => props.width,
     () => props.height,
     () => props.offset,
+    () => props.high,
+    () => props.low,
   ],
   async () => {
     drawChartAndUpdateSVGWidth();

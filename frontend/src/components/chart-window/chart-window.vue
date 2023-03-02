@@ -79,10 +79,14 @@
             @click="offset = 0"
             round
             color="primary"
-            icon="start"
+            icon="arrow_forward"
           />
         </div>
-        <div class="price-axis-wrapper" @mousedown="startPriceAxisDrag">
+        <div
+          class="price-axis-wrapper"
+          @mousedown="startPriceAxisDrag"
+          @click="registerClickOnPriceAxis"
+        >
           <PriceAxis
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
@@ -139,6 +143,7 @@ import {
   DATA_TICKSIZE,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
+import { ceilToTicksize, floorToTicksize } from './helpers/digits';
 
 const props = defineProps<{
   id: string;
@@ -367,6 +372,9 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
+const candlesInChartHighScale = ref(1);
+const candlesInChartLowScale = ref(1);
+
 const {
   increaseCandlesShow,
   decreaseCandlesShow,
@@ -376,7 +384,14 @@ const {
   candlesInChartLow,
   dataDates,
   startingDistanceDifference,
-} = useChartData(data, maxCandles, candlesShow, offset);
+} = useChartData(
+  data,
+  maxCandles,
+  candlesShow,
+  offset,
+  candlesInChartHighScale,
+  candlesInChartLowScale
+);
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -418,20 +433,100 @@ function onChartContainterLeave() {
   chartWrapperShadow.value = false;
 }
 
+const clickCount = ref(0);
+const timer = ref<NodeJS.Timeout>();
+
+function registerClickOnPriceAxis() {
+  clickCount.value++;
+  if (clickCount.value === 1) {
+    timer.value = setTimeout(() => {
+      clickCount.value = 0;
+    }, 300);
+  } else if (clickCount.value === 2) {
+    clearTimeout(timer.value);
+    clickCount.value = 0;
+    handleDoubleClickOnPriceAxis();
+  }
+}
+
+function handleDoubleClickOnPriceAxis() {
+  candlesInChartHighScale.value = 1;
+  candlesInChartLowScale.value = 1;
+}
+
+const blockPriceAxisDownDrag = ref(false);
+const blockPriceAxisUpDrag = ref(false);
+
+function calcuLateNewScale(currentScale: number, scalePercentage: number) {
+  if (!candlesInChartH2L.value || !candlesInChartLow.value) {
+    return 1;
+  }
+  let newH2LRoundedToTicksize: number;
+  if (scalePercentage > 0) {
+    newH2LRoundedToTicksize =
+      ceilToTicksize(
+        candlesInChartLow.value +
+          candlesInChartH2L.value * (currentScale + scalePercentage),
+        DATA_TICKSIZE
+      ) - candlesInChartLow.value;
+  } else {
+    newH2LRoundedToTicksize =
+      floorToTicksize(
+        candlesInChartLow.value +
+          candlesInChartH2L.value * (currentScale + scalePercentage),
+        DATA_TICKSIZE
+      ) - candlesInChartLow.value;
+  }
+  return newH2LRoundedToTicksize / candlesInChartH2L.value;
+}
+
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
+  const scalePercentIncrease = 0.007;
   if (timeAxisDrag.value) {
     let candlesToIncrease = Math.ceil(candlesShow.value / 30);
     if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {
       increaseCandlesShow(candlesToIncrease);
-      timeAxisDraggingStart.value = event.x;
     } else if (event.x < timeAxisDraggingStart.value) {
       decreaseCandlesShow(candlesToIncrease);
-      timeAxisDraggingStart.value = event.x;
     }
+    timeAxisDraggingStart.value = event.x;
   }
   if (priceAxisDrag.value) {
-    // TODO: handle priceaxis drag scaling
+    if (event.y > priceAxisDraggingStart.value) {
+      if (candlesInChartLowScale.value < 1) {
+        candlesInChartLowScale.value = calcuLateNewScale(
+          candlesInChartLowScale.value,
+          scalePercentIncrease
+        );
+        blockPriceAxisUpDrag.value = true;
+        timer.value = setTimeout(() => {
+          blockPriceAxisUpDrag.value = false;
+        }, 1_000);
+      } else if (!blockPriceAxisUpDrag.value) {
+        candlesInChartHighScale.value = calcuLateNewScale(
+          candlesInChartHighScale.value,
+          scalePercentIncrease
+        );
+      }
+    } else if (event.y < priceAxisDraggingStart.value) {
+      if (candlesInChartHighScale.value > 1) {
+        candlesInChartHighScale.value = calcuLateNewScale(
+          candlesInChartHighScale.value,
+          -scalePercentIncrease
+        );
+        blockPriceAxisDownDrag.value = true;
+        timer.value = setTimeout(() => {
+          blockPriceAxisDownDrag.value = false;
+        }, 1_000);
+      } else if (!blockPriceAxisDownDrag.value) {
+        candlesInChartLowScale.value = calcuLateNewScale(
+          candlesInChartLowScale.value,
+          -scalePercentIncrease
+        );
+      }
+    }
+    priceAxisDraggingStart.value = event.y;
   }
 }
 
@@ -493,10 +588,20 @@ onMounted(async () => {
   afterMountUpdated.value = true;
 });
 
-watch([chartHeight, chartWidth, candlesShow, offset], async () => {
-  await nextTick();
-  priceLines.value = [];
-});
+watch(
+  [
+    chartHeight,
+    chartWidth,
+    candlesShow,
+    offset,
+    candlesInChartHigh,
+    candlesInChartLow,
+  ],
+  async () => {
+    await nextTick();
+    priceLines.value = [];
+  }
+);
 
 // @maximize emit
 function maximize() {

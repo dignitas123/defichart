@@ -1,4 +1,4 @@
-function roundToDigits(num: number, digits = 0) {
+function addDigits(num: number, digits = 0) {
   return num.toFixed(digits);
 }
 
@@ -12,8 +12,36 @@ export function getBeforeComma(ticksize: number, seperator = '.') {
   return splitStringNumByComma ? splitStringNumByComma.length : 0;
 }
 
-export function roundToTicksize(num: number, ticksize = 0.1) {
+function ticksizePrecision(
+  tick: number,
+  ticksize = 0.1,
+  roundMethod: 'round' | 'ceil' | 'floor' = 'round'
+) {
   const digits = getDigits(ticksize);
-  const roundedTickSize = Math.round(num / ticksize) * ticksize;
-  return Number(roundToDigits(roundedTickSize, digits));
+  let roundedTickSize: number;
+  const numTickSizeRatio = tick / ticksize;
+  switch (roundMethod) {
+    case 'round':
+      roundedTickSize = Math.round(numTickSizeRatio) * ticksize;
+      break;
+    case 'ceil':
+      roundedTickSize = Math.ceil(numTickSizeRatio) * ticksize;
+      break;
+    case 'floor':
+      roundedTickSize = Math.floor(numTickSizeRatio) * ticksize;
+      break;
+  }
+  return Number(addDigits(roundedTickSize, digits));
+}
+
+export function roundToTicksize(tick: number, ticksize = 0.1) {
+  return ticksizePrecision(tick, ticksize);
+}
+
+export function floorToTicksize(tick: number, ticksize = 0.1) {
+  return ticksizePrecision(tick, ticksize, 'floor');
+}
+
+export function ceilToTicksize(tick: number, ticksize = 0.1) {
+  return ticksizePrecision(tick, ticksize, 'ceil');
 }

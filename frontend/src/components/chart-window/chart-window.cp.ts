@@ -5,7 +5,9 @@ export function useChartData(
   data: Ref<OHLC[]>,
   maxCandles: Ref<number>,
   candlesShow: Ref<number>,
-  offset: Ref<number>
+  offset: Ref<number>,
+  candlesInChartHighScale: Ref<number>,
+  candlesInChartLowScale: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -51,11 +53,11 @@ export function useChartData(
     return data.value.map((ohlc) => ohlc.d);
   });
 
-
   const candlesInChartHigh = computed(() => {
     if (candlesInChartData.value.length) {
-      return Math.max(
-        ...candlesInChartData.value.map((ohlc) => Number(ohlc.h))
+      return (
+        Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h))) *
+        candlesInChartHighScale.value
       );
     }
     return Infinity;
@@ -63,8 +65,9 @@ export function useChartData(
 
   const candlesInChartLow = computed(() => {
     if (candlesInChartData.value.length) {
-      return Math.min(
-        ...candlesInChartData.value.map((ohlc) => Number(ohlc.l))
+      return (
+        Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l))) *
+        candlesInChartLowScale.value
       );
     } else {
       return 0;
