@@ -98,7 +98,6 @@ const props = withDefaults(
     candleWidth: number;
     candleDistance: number;
     offset: number;
-    candlesticksSVGWidth: number;
   }>(),
   {
     priceLines: () => [],
@@ -110,7 +109,6 @@ const emit = defineEmits<{
   (event: 'update:datePositionEntries', entries: DatePositionEntry[]): void;
   (event: 'update:candleWidth', width: number): void;
   (event: 'update:candleDistance', distance: number): void;
-  (event: 'update:candlesticksSVGWidth', width: number): void;
 }>();
 
 // const CANDLE_BULL_COLOR = '#23c4ec'; // theme color
@@ -130,7 +128,6 @@ const candlesticksRef = ref<SVGSVGElement>();
 const datePositionEntries = ref(props.datePositionEntries);
 const candleWidth = ref(props.candleWidth);
 const candleDistance = ref(props.candleDistance);
-const candlesticksSVGWidth = ref(props.candlesticksSVGWidth);
 
 watch(datePositionEntries, () => {
   emit('update:datePositionEntries', datePositionEntries.value);
@@ -142,10 +139,6 @@ watch(candleWidth, () => {
 
 watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
-});
-
-watch(candlesticksSVGWidth, () => {
-  emit('update:candlesticksSVGWidth', candlesticksSVGWidth.value);
 });
 
 const candles = ref<Candle[]>([]);
@@ -491,14 +484,8 @@ function timeDisplayProperties(candleSumWidthPx: number) {
   };
 }
 
-async function drawChartAndUpdateSVGWidth() {
-  drawChart();
-  await nextTick();
-  candlesticksSVGWidth.value = candlesticksRef.value?.getBBox().width ?? 0;
-}
-
 onMounted(async () => {
-  drawChartAndUpdateSVGWidth();
+  drawChart();
 });
 
 watch(
@@ -511,7 +498,7 @@ watch(
     () => props.low,
   ],
   async () => {
-    drawChartAndUpdateSVGWidth();
+    drawChart();
   }
 );
 </script>

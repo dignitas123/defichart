@@ -66,7 +66,6 @@
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
-            v-model:candlesticksSVGWidth="candlesticksSVGWidth"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
           <q-btn
@@ -110,7 +109,6 @@
             :candleDistance="candleDistance"
             :candlesShow="candlesShow"
             :badgeShow="crosshair.show"
-            :candlesticksSVGWidth="candlesticksSVGWidth"
             @verticalLines="setVerticalLines"
           />
         </div>
@@ -177,7 +175,6 @@ const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
-const candlesticksSVGWidth = ref(0); // svg with maxData
 
 const width = ref(props.width);
 const height = ref(props.height);
@@ -461,28 +458,16 @@ function calcuLateNewScale(currentScale: number, scalePercentage: number) {
   if (!candlesInChartH2L.value || !candlesInChartLow.value) {
     return 1;
   }
-  let newH2LRoundedToTicksize: number;
-  if (scalePercentage > 0) {
-    newH2LRoundedToTicksize =
-      ceilToTicksize(
-        candlesInChartLow.value +
-          candlesInChartH2L.value * (currentScale + scalePercentage),
-        DATA_TICKSIZE
-      ) - candlesInChartLow.value;
-  } else {
-    newH2LRoundedToTicksize =
-      floorToTicksize(
-        candlesInChartLow.value +
-          candlesInChartH2L.value * (currentScale + scalePercentage),
-        DATA_TICKSIZE
-      ) - candlesInChartLow.value;
-  }
+  const newH2LRoundedToTicksize =
+    candlesInChartLow.value +
+    candlesInChartH2L.value * (currentScale + scalePercentage) -
+    candlesInChartLow.value;
   return newH2LRoundedToTicksize / candlesInChartH2L.value;
 }
 
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
-  const scalePercentIncrease = 0.004;
+  const scalePercentIncrease = 0.005;
   if (timeAxisDrag.value) {
     let candlesToIncrease = Math.ceil(candlesShow.value / 30);
     if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {

@@ -34,7 +34,6 @@ const props = defineProps<{
   candlesShow: number;
   offset: number;
   badgeShow: boolean;
-  candlesticksSVGWidth: number;
 }>();
 
 const emit = defineEmits<{
