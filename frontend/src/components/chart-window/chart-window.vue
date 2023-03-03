@@ -123,7 +123,7 @@
 
 <script lang="ts" setup>
 import { ref, nextTick, watch, onMounted, reactive, onUnmounted } from 'vue';
-import CandlestickChart from './child-components/candlestick-chart.vue';
+import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
@@ -141,7 +141,6 @@ import {
   DATA_TICKSIZE,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
-import { ceilToTicksize, floorToTicksize } from './helpers/digits';
 
 const props = defineProps<{
   id: string;

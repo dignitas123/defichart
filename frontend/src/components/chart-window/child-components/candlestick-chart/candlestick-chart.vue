@@ -31,38 +31,17 @@
     style="z-index: 2"
     ref="candlesticksRef"
   >
-    <g v-for="(candle, i) in candles" :key="i">
-      <rect
-        :x="candle.wX"
-        :y="candle.uwY"
-        :width="CANDLE_WICK_THICKNESS"
-        :height="candle.uwHeight"
-        :style="`fill: ${candle.wickFillColor}`"
-      />
-      <rect
-        :x="candle.x"
-        :y="candle.y"
-        :width="candleWidth"
-        :height="candle.height"
-        :style="`fill: ${candle.fillColor}`"
-        :stroke="
-          CANDLE_BORDER && candle.height !== 1 ? CANDLE_BORDER_COLOR : ''
-        "
-        shape-rendering="crispEdges"
-      />
-      <rect
-        :x="candle.wX"
-        :y="candle.lwY"
-        :width="CANDLE_WICK_THICKNESS"
-        :height="candle.lwHeight"
-        :style="`fill: ${candle.wickFillColor}`"
-      />
-    </g>
+    <CandleStick
+      v-for="(candle, i) in historyCandles"
+      :key="i"
+      :candle="candle"
+      :candleWidth="candleWidth"
+    />
   </svg>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch, nextTick } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -74,12 +53,17 @@ import {
   DatePositionEntry,
   OHLC,
 } from 'src/pages/broker-charts/broker-charts.if';
+import { useLanguageStore } from 'src/stores/language';
 import {
+  CANDLE_BEAR_COLOR,
+  CANDLE_BORDER,
+  CANDLE_BORDER_COLOR,
+  CANDLE_BULL_COLOR,
   CANDLE_WICK_THICKNESS,
   DATE_BOX_WIDTH,
   GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
-import { useLanguageStore } from 'src/stores/language';
+import CandleStick from './child-components/candle-stick.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -111,12 +95,6 @@ const emit = defineEmits<{
   (event: 'update:candleDistance', distance: number): void;
 }>();
 
-// const CANDLE_BULL_COLOR = '#23c4ec'; // theme color
-// const CANDLE_BEAR_COLOR = '#13201e'; // theme color
-const CANDLE_BULL_COLOR = 'green'; // standard color
-const CANDLE_BEAR_COLOR = 'red'; // standard color
-const CANDLE_BORDER = true;
-const CANDLE_BORDER_COLOR = 'black';
 const MIN = 1000 * 60;
 const HOUR = MIN * 60;
 const DAY = HOUR * 24;
@@ -141,7 +119,7 @@ watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
 });
 
-const candles = ref<Candle[]>([]);
+const historyCandles = ref<Candle[]>([]);
 
 function calcCandleXDistance(cW: number) {
   const increase = CANDLE_BORDER ? 1 : 0;
@@ -170,7 +148,7 @@ function drawChart(onlyHeightChange = false) {
   if (!props.width || !props.height || !props.dates) {
     return;
   }
-  candles.value = [];
+  historyCandles.value = [];
 
   if (makeDateCalculation) {
     datePositionEntries.value = [];
@@ -387,7 +365,7 @@ function drawChart(onlyHeightChange = false) {
         candle.fillColor = candle_border_color;
       }
     }
-    candles.value.push(candle);
+    historyCandles.value.push(candle);
   }
 }
 
