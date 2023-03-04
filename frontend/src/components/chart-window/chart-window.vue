@@ -63,6 +63,7 @@
             :dateLines="dateLines"
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
+            v-model:currentCandleClose="currentCandleClose"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -87,6 +88,7 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
+            :currentCandleClose="currentCandleClose"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
             :low="candlesInChartLow"
@@ -172,7 +174,10 @@ const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
 const PRICE_AXIS_MARGIN = 8;
 
+const lastCandle = ref<OHLC>();
+
 const data = ref<OHLC[]>([]);
+const currentCandleClose = ref(lastCandle.value?.c ?? 0);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
 
 const width = ref(props.width);
@@ -564,15 +569,15 @@ function onPriceAxisResize(size: { width: number; height: number }) {
 const afterMountUpdated = ref(false);
 onMounted(async () => {
   data.value = generateData();
-  const lastCandle = data.value.slice(-1)[0];
+  lastCandle.value = data.value.slice(-1)[0];
   // TODO: round to timeframe beginning last datetime + 5 min, 15 min etc.
-  const lastDate = new Date(lastCandle.d);
+  const lastDate = new Date(lastCandle.value.d);
   lastDate.setMinutes(lastDate.getMinutes() + 5);
   data.value.push({
-    o: lastCandle.c,
-    h: lastCandle.c,
-    l: lastCandle.c,
-    c: lastCandle.c,
+    o: lastCandle.value.c,
+    h: lastCandle.value.c,
+    l: lastCandle.value.c,
+    c: lastCandle.value.c,
     d: new Date(lastDate),
     v: 0,
   });

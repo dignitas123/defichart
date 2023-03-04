@@ -60,10 +60,12 @@ import {
   CANDLE_BORDER_COLOR,
   CANDLE_BULL_COLOR,
   CANDLE_WICK_THICKNESS,
+  DATA_TICKSIZE,
   DATE_BOX_WIDTH,
   GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
 import CandleStick from './child-components/candle-stick.vue';
+import { roundToTicksize } from '../../helpers/digits';
 
 const props = withDefaults(
   defineProps<{
@@ -77,6 +79,7 @@ const props = withDefaults(
     width?: number;
     priceLines?: number[];
     dateLines?: number[];
+    currentCandleClose: number;
     datePositionEntries: DatePositionEntry[];
     startingDistanceDifference: number;
     candleWidth: number;
@@ -90,6 +93,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
+  (event: 'update:currentCandleClose', close: number): void;
   (event: 'update:datePositionEntries', entries: DatePositionEntry[]): void;
   (event: 'update:candleWidth', width: number): void;
   (event: 'update:candleDistance', distance: number): void;
@@ -400,7 +404,10 @@ setInterval(() => {
   const upDown = Math.random() >= 0.5 ? true : false;
   const random = Math.random();
   const h2l10p = props.h2l / 10;
-  currentCandleData.value.c += upDown ? h2l10p * random : -h2l10p * random;
+  currentCandleData.value.c += roundToTicksize(
+    upDown ? h2l10p * random : -h2l10p * random,
+    DATA_TICKSIZE
+  );
 }, 1_000);
 
 watch(
@@ -418,6 +425,7 @@ watch(
         drawChart();
       }
     }
+    emit('update:currentCandleClose', currentCandleData.value.c);
     const currentCandle = drawCandle(
       lastXPositionCandlestick.value,
       currentCandleData.value
