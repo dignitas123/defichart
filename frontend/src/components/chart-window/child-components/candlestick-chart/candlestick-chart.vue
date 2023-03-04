@@ -150,44 +150,6 @@ function calcCandleXDistance(cW: number) {
 const lastXPositionCandlestick = ref(0);
 const xPositionCandlestick = ref(0);
 
-/**
- * TODO: current candle stream should set data
- * here, not the simulation of course. Can keep
- * simulation for some feature in the future
- */
-const currentCandleData = computed(() => {
-  return props.data.slice(-1)[0];
-})
-
-setInterval(() => {
-  if (!props.h2l) {
-    return;
-  }
-  const upDown = Math.random() >= 0.5 ? true : false;
-  const random = Math.random();
-  const h2l10p = props.h2l / 10;
-  currentCandleData.value.c += upDown ? h2l10p * random : -h2l10p * random;
-}, 1_000);
-
-watch(currentCandleData, () => {
-  if (currentCandleData.value.c > currentCandleData.value.h) {
-    currentCandleData.value.h = currentCandleData.value.c;
-    if(currentCandleData.value.h > props.high) {
-      drawChart();
-    }
-  }
-  if (currentCandleData.value.c < currentCandleData.value.l) {
-    currentCandleData.value.l = currentCandleData.value.c;
-    if(currentCandleData.value.l < props.low) {
-      drawChart();
-    }
-  }
-  const currentCandle = drawCandle(lastXPositionCandlestick.value, currentCandleData.value)
-  if(currentCandle) {
-    candles.value[candles.value.length - 1] = currentCandle;
-  }
-}, {deep: true});
-
 const timeDisplayProps = ref<TimeDisplayProperties>();
 
 function drawChart() {
@@ -228,6 +190,7 @@ function drawChart() {
     lastXPositionCandlestick.value = xPositionCandlestick.value;
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
   });
+}
 
 function addDateToDatePositionEntries(date: Date, index: number) {
   if (!timeDisplayProps.value) {
@@ -420,6 +383,51 @@ function drawCandle(
   }
   return candle;
 }
+
+/**
+ * TODO: current candle stream should set data
+ * here, not the simulation of course. Can keep
+ * simulation for some feature in the future
+ */
+const currentCandleData = computed(() => {
+  return props.data.slice(-1)[0];
+});
+
+setInterval(() => {
+  if (!props.h2l) {
+    return;
+  }
+  const upDown = Math.random() >= 0.5 ? true : false;
+  const random = Math.random();
+  const h2l10p = props.h2l / 10;
+  currentCandleData.value.c += upDown ? h2l10p * random : -h2l10p * random;
+}, 1_000);
+
+watch(
+  currentCandleData,
+  () => {
+    if (currentCandleData.value.c > currentCandleData.value.h) {
+      currentCandleData.value.h = currentCandleData.value.c;
+      if (currentCandleData.value.h > props.high) {
+        drawChart();
+      }
+    }
+    if (currentCandleData.value.c < currentCandleData.value.l) {
+      currentCandleData.value.l = currentCandleData.value.c;
+      if (currentCandleData.value.l < props.low) {
+        drawChart();
+      }
+    }
+    const currentCandle = drawCandle(
+      lastXPositionCandlestick.value,
+      currentCandleData.value
+    );
+    if (currentCandle) {
+      candles.value[candles.value.length - 1] = currentCandle;
+    }
+  },
+  { deep: true }
+);
 
 function timeDisplayProperties(candleSumWidthPx: number) {
   let mode = TimeMode.Y1;
