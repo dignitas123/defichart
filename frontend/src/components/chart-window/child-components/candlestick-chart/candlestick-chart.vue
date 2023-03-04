@@ -32,7 +32,7 @@
     ref="candlesticksRef"
   >
     <CandleStick
-      v-for="(candle, i) in historyCandles"
+      v-for="(candle, i) in candles"
       :key="i"
       :candle="candle"
       :candleWidth="candleWidth"
@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { format as dateFormat } from 'date-fns';
 import {
   Candle,
@@ -119,7 +119,13 @@ watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
 });
 
-const historyCandles = ref<Candle[]>([]);
+const candles = ref<Candle[]>([]);
+
+const languageStore = useLanguageStore();
+
+function formatDate(date: Date, format: string) {
+  return dateFormat(date, format, { locale: languageStore.language });
+}
 
 function calcCandleXDistance(cW: number) {
   const increase = CANDLE_BORDER ? 1 : 0;
@@ -141,18 +147,56 @@ function calcCandleXDistance(cW: number) {
   return 0;
 }
 
-const languageStore = useLanguageStore();
+const lastXPositionCandlestick = ref(0);
+const xPositionCandlestick = ref(0);
 
-function drawChart(onlyHeightChange = false) {
-  let makeDateCalculation = !onlyHeightChange;
+/**
+ * TODO: current candle stream should set data
+ * here, not the simulation of course. Can keep
+ * simulation for some feature in the future
+ */
+const currentCandleData = computed(() => {
+  return props.data.slice(-1)[0];
+})
+
+setInterval(() => {
+  if (!props.h2l) {
+    return;
+  }
+  const upDown = Math.random() >= 0.5 ? true : false;
+  const random = Math.random();
+  const h2l10p = props.h2l / 10;
+  currentCandleData.value.c += upDown ? h2l10p * random : -h2l10p * random;
+}, 1_000);
+
+watch(currentCandleData, () => {
+  if (currentCandleData.value.c > currentCandleData.value.h) {
+    currentCandleData.value.h = currentCandleData.value.c;
+    if(currentCandleData.value.h > props.high) {
+      drawChart();
+    }
+  }
+  if (currentCandleData.value.c < currentCandleData.value.l) {
+    currentCandleData.value.l = currentCandleData.value.c;
+    if(currentCandleData.value.l < props.low) {
+      drawChart();
+    }
+  }
+  const currentCandle = drawCandle(lastXPositionCandlestick.value, currentCandleData.value)
+  if(currentCandle) {
+    candles.value[candles.value.length - 1] = currentCandle;
+  }
+}, {deep: true});
+
+const timeDisplayProps = ref<TimeDisplayProperties>();
+
+function drawChart() {
   if (!props.width || !props.height || !props.dates) {
     return;
   }
-  historyCandles.value = [];
+  candles.value = [];
+  datePositionEntries.value = [];
 
-  if (makeDateCalculation) {
-    datePositionEntries.value = [];
-  }
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
@@ -160,217 +204,221 @@ function drawChart(onlyHeightChange = false) {
     candleDistance.value -
     candleDistance.value / props.candleCount;
 
-  let xPositionCandlestick =
-    (props.startingDistanceDifference > 0
-      ? props.startingDistanceDifference
-      : 0) *
-      (candleWidth.value + candleDistance.value) +
-    candleDistance.value;
-
   const overCandles = props.candleCount - props.dates.length;
 
   const candleSumWidthPx =
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
 
-  const timeDisplayProps: TimeDisplayProperties =
-    timeDisplayProperties(candleSumWidthPx);
+  timeDisplayProps.value = timeDisplayProperties(candleSumWidthPx);
+
+  xPositionCandlestick.value =
+    (props.startingDistanceDifference > 0
+      ? props.startingDistanceDifference
+      : 0) *
+      (candleWidth.value + candleDistance.value) +
+    candleDistance.value;
 
   props.data.forEach((ohlc, index) => {
-    drawCandle(xPositionCandlestick, ohlc);
-    if (makeDateCalculation) {
-      addDate(ohlc.d, index);
+    const candle = drawCandle(xPositionCandlestick.value, ohlc);
+    if (candle) {
+      candles.value.push(candle);
     }
-    xPositionCandlestick += candleWidth.value + candleDistance.value;
+    addDateToDatePositionEntries(ohlc.d, index);
+    lastXPositionCandlestick.value = xPositionCandlestick.value;
+    xPositionCandlestick.value += candleWidth.value + candleDistance.value;
   });
 
-  function addDate(date: Date, index: number) {
-    let formattedDate = '';
-    let bold = false;
-    let format = '';
+function addDateToDatePositionEntries(date: Date, index: number) {
+  if (!timeDisplayProps.value) {
+    return;
+  }
+  let formattedDate = '';
+  let bold = false;
+  let format = '';
 
-    const minutes = date.getMinutes();
-    const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const hours = date.getHours();
 
-    if (timeDisplayProps.period === TimeModePeriod.Minute) {
-      format = 'HH:mm';
-      if (minutes === 0 && hours === 0) {
-        format = 'dd.MM';
-      }
-      if (minutes % timeDisplayProps.timeDifferential === 0) {
-        if (timeDisplayProps.mode === TimeMode.M5 && minutes % 15 === 0) {
-          bold = true;
-        } else if (
-          timeDisplayProps.mode === TimeMode.M10 &&
-          minutes % 30 === 0
-        ) {
-          bold = true;
-        } else if (timeDisplayProps.mode === TimeMode.M15 && minutes === 0) {
-          bold = true;
-        } else if (
-          timeDisplayProps.mode === TimeMode.M30 &&
-          date.getHours() % 2 === 0 &&
-          minutes === 0
-        ) {
-          bold = true;
-        }
-        formattedDate = formatDate(date, format);
-      }
-    } else if (timeDisplayProps.period === TimeModePeriod.Hour) {
-      format = 'HH:mm';
-      if (minutes % 60 === 0) {
-        if (hours === 0) {
-          format = 'dd.MM';
-          bold = true;
-        }
-        if (timeDisplayProps.mode === TimeMode.H1) {
-          if (hours % 4 === 0) {
-            bold = true;
-          }
-          formattedDate = formatDate(date, format);
-        } else if (timeDisplayProps.mode === TimeMode.H3) {
-          if (hours % 9 === 0) {
-            bold = true;
-          }
-          if (hours % 3 === 0) {
-            formattedDate = formatDate(date, format);
-          }
-        } else if (timeDisplayProps.mode === TimeMode.H6) {
-          if (hours % 12 === 0) {
-            bold = true;
-          }
-          if (hours % 6 === 0) {
-            formattedDate = formatDate(date, format);
-          }
-        }
-      }
-    } else if (timeDisplayProps.period === TimeModePeriod.Day) {
-      const days = date.getDate();
+  if (timeDisplayProps.value.period === TimeModePeriod.Minute) {
+    format = 'HH:mm';
+    if (minutes === 0 && hours === 0) {
       format = 'dd.MM';
-      if (days % timeDisplayProps.timeDifferential === 0) {
-        if (timeDisplayProps.mode === TimeMode.W2) {
-          if (days % 15 === 0 && days !== 30) {
-            formattedDate = formatDate(date, format);
-          }
-        } else {
-          formattedDate = formatDate(date, format);
-        }
-        if (days === 1) {
-          format = 'MM';
-          formattedDate = formatDate(date, format);
-        }
-        if (date.getMonth() === 1) {
-          format = 'YYYY';
-          formattedDate = formatDate(date, format);
-          bold = true;
-        }
-      }
-    } else if (timeDisplayProps.period === TimeModePeriod.Month) {
-      const month = date.getMonth();
-      format = 'MM';
-      if (month % timeDisplayProps.timeDifferential === 0) {
-        if (month === 1) {
-          bold = true;
-          format = 'YYYY';
-        }
-        formattedDate = formatDate(date, format);
-      }
-    } else if (timeDisplayProps.period === TimeModePeriod.Year) {
-      format = 'YYYY';
-      if (date.getFullYear() % 10 === 0) {
+    }
+    if (minutes % timeDisplayProps.value.timeDifferential === 0) {
+      if (timeDisplayProps.value.mode === TimeMode.M5 && minutes % 15 === 0) {
+        bold = true;
+      } else if (
+        timeDisplayProps.value.mode === TimeMode.M10 &&
+        minutes % 30 === 0
+      ) {
+        bold = true;
+      } else if (
+        timeDisplayProps.value.mode === TimeMode.M15 &&
+        minutes === 0
+      ) {
+        bold = true;
+      } else if (
+        timeDisplayProps.value.mode === TimeMode.M30 &&
+        date.getHours() % 2 === 0 &&
+        minutes === 0
+      ) {
         bold = true;
       }
       formattedDate = formatDate(date, format);
     }
-
-    const xPosition = xPositionCandlestick + candleWidth.value / 2;
-    if (!formattedDate) {
-      datePositionEntries.value.push({
-        index: index,
-        x: xPosition,
-        date: formatDate(date, format),
-        bold: bold,
-        show: false,
-      });
-      return;
+  } else if (timeDisplayProps.value.period === TimeModePeriod.Hour) {
+    format = 'HH:mm';
+    if (minutes % 60 === 0) {
+      if (hours === 0) {
+        format = 'dd.MM';
+        bold = true;
+      }
+      if (timeDisplayProps.value.mode === TimeMode.H1) {
+        if (hours % 4 === 0) {
+          bold = true;
+        }
+        formattedDate = formatDate(date, format);
+      } else if (timeDisplayProps.value.mode === TimeMode.H3) {
+        if (hours % 9 === 0) {
+          bold = true;
+        }
+        if (hours % 3 === 0) {
+          formattedDate = formatDate(date, format);
+        }
+      } else if (timeDisplayProps.value.mode === TimeMode.H6) {
+        if (hours % 12 === 0) {
+          bold = true;
+        }
+        if (hours % 6 === 0) {
+          formattedDate = formatDate(date, format);
+        }
+      }
     }
+  } else if (timeDisplayProps.value.period === TimeModePeriod.Day) {
+    const days = date.getDate();
+    format = 'dd.MM';
+    if (days % timeDisplayProps.value.timeDifferential === 0) {
+      if (timeDisplayProps.value.mode === TimeMode.W2) {
+        if (days % 15 === 0 && days !== 30) {
+          formattedDate = formatDate(date, format);
+        }
+      } else {
+        formattedDate = formatDate(date, format);
+      }
+      if (days === 1) {
+        format = 'MM';
+        formattedDate = formatDate(date, format);
+      }
+      if (date.getMonth() === 1) {
+        format = 'YYYY';
+        formattedDate = formatDate(date, format);
+        bold = true;
+      }
+    }
+  } else if (timeDisplayProps.value.period === TimeModePeriod.Month) {
+    const month = date.getMonth();
+    format = 'MM';
+    if (month % timeDisplayProps.value.timeDifferential === 0) {
+      if (month === 1) {
+        bold = true;
+        format = 'YYYY';
+      }
+      formattedDate = formatDate(date, format);
+    }
+  } else if (timeDisplayProps.value.period === TimeModePeriod.Year) {
+    format = 'YYYY';
+    if (date.getFullYear() % 10 === 0) {
+      bold = true;
+    }
+    formattedDate = formatDate(date, format);
+  }
 
+  const xPosition = xPositionCandlestick.value + candleWidth.value / 2;
+  if (!formattedDate) {
     datePositionEntries.value.push({
       index: index,
       x: xPosition,
-      date: formattedDate,
+      date: formatDate(date, format),
       bold: bold,
-      show: true,
+      show: false,
     });
+    return;
   }
 
-  function drawCandle(
-    x: number,
-    ohlc: OHLC,
-    bull_color: string = CANDLE_BULL_COLOR,
-    bear_color: string = CANDLE_BEAR_COLOR,
-    candle_border: boolean = CANDLE_BORDER,
-    candle_border_color: string = CANDLE_BORDER_COLOR
-  ) {
-    if (
-      !props.h2l ||
-      !props.high ||
-      !props.low ||
-      !props.height ||
-      !props.width
-    ) {
-      return;
-    }
-    const candle: Candle = {} as Candle;
-
-    candle.x = x;
-    const xStartingPoint = x + candleWidth.value / 2;
-    const candleWickDistance = CANDLE_WICK_THICKNESS / 2;
-    const xWickPoint = xStartingPoint - candleWickDistance;
-
-    candle.wX = xWickPoint;
-
-    const convert_to_scale = (val: number) => {
-      if (props.height && props.high && props.h2l)
-        return props.height * ((props.high - val) / props.h2l);
-    };
-
-    const o = convert_to_scale(ohlc.c) ?? 0;
-    const h = convert_to_scale(ohlc.l) ?? 0;
-    const l = convert_to_scale(ohlc.h) ?? 0;
-    const c = convert_to_scale(ohlc.o) ?? 0;
-
-    candle.height = Math.abs(o - c);
-
-    candle.uwY = l;
-
-    if (c > o) {
-      candle.fillColor = bull_color;
-      candle.wickFillColor = candle_border ? candle_border_color : bull_color;
-      candle.y = o;
-      candle.uwHeight = o - l + 1;
-      candle.lwY = c - 1;
-      candle.lwHeight = h - c + 1;
-    } else {
-      candle.fillColor = bear_color;
-      candle.wickFillColor = candle_border ? candle_border_color : bear_color;
-      candle.y = c;
-      candle.uwHeight = c - l + 1;
-      candle.lwY = o - 1;
-      candle.lwHeight = h - o + 1;
-    }
-    if (c === o) {
-      candle.height = 1;
-      if (candle_border) {
-        candle.fillColor = candle_border_color;
-      }
-    }
-    historyCandles.value.push(candle);
-  }
+  datePositionEntries.value.push({
+    index: index,
+    x: xPosition,
+    date: formattedDate,
+    bold: bold,
+    show: true,
+  });
 }
 
-function formatDate(date: Date, format: string) {
-  return dateFormat(date, format, { locale: languageStore.language });
+function drawCandle(
+  x: number,
+  ohlc: OHLC,
+  bull_color: string = CANDLE_BULL_COLOR,
+  bear_color: string = CANDLE_BEAR_COLOR,
+  candle_border: boolean = CANDLE_BORDER,
+  candle_border_color: string = CANDLE_BORDER_COLOR
+) {
+  if (
+    !props.h2l ||
+    !props.high ||
+    !props.low ||
+    !props.height ||
+    !props.width
+  ) {
+    return;
+  }
+  const candle: Candle = {} as Candle;
+
+  candle.x = x;
+  const xStartingPoint = x + candleWidth.value / 2;
+  const candleWickDistance = CANDLE_WICK_THICKNESS / 2;
+  const xWickPoint = xStartingPoint - candleWickDistance;
+
+  candle.wX = xWickPoint;
+
+  const convert_to_scale = (val: number) => {
+    if (!props.height || !props.high || !props.h2l) {
+      return 0;
+    }
+    return props.height * ((props.high - val) / props.h2l);
+  };
+
+  const o = convert_to_scale(ohlc.c);
+  const h = convert_to_scale(ohlc.l);
+  const l = convert_to_scale(ohlc.h);
+  const c = convert_to_scale(ohlc.o);
+
+  candle.height = Math.abs(o - c);
+
+  candle.uwY = l;
+
+  if (c > o) {
+    candle.fillColor = bull_color;
+    candle.wickFillColor = candle_border ? candle_border_color : bull_color;
+    candle.y = o;
+    candle.uwHeight = o - l;
+    candle.lwY = c;
+    candle.lwHeight = h - c;
+  } else {
+    candle.fillColor = bear_color;
+    candle.wickFillColor = candle_border ? candle_border_color : bear_color;
+    candle.y = c;
+    candle.uwHeight = c - l;
+    candle.lwY = o;
+    candle.lwHeight = h - o;
+  }
+  if (c === o) {
+    candle.height = 1;
+    if (candle_border) {
+      candle.fillColor = candle_border_color;
+    }
+  }
+  return candle;
 }
 
 function timeDisplayProperties(candleSumWidthPx: number) {

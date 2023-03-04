@@ -564,6 +564,15 @@ function onPriceAxisResize(size: { width: number; height: number }) {
 const afterMountUpdated = ref(false);
 onMounted(async () => {
   data.value = generateData();
+  const lastCandleClose = data.value.slice(-1)[0].c;
+  data.value.push({
+    o: lastCandleClose,
+    h: lastCandleClose,
+    l: lastCandleClose,
+    c: lastCandleClose,
+    d: new Date(), // TODO: round to timeframe beginning last datetime + 5 min, 15 min etc.
+    v: 0,
+  });
   await nextTick();
   if (data.value.length < maxCandles.value) {
     maxCandles.value = data.value.length;

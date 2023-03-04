@@ -24,7 +24,7 @@ export function useChartData(
   }
 
   const maxData = computed(() => {
-    return data.value.slice(-maxCandles);
+    return data.value.slice(-maxCandles.value);
   });
 
   const candlesInChartData = computed(() => {
@@ -63,7 +63,7 @@ export function useChartData(
         DATA_TICKSIZE
       );
     }
-    return Infinity;
+    return 999999999;
   });
 
   const candlesInChartLow = computed(() => {
@@ -72,9 +72,8 @@ export function useChartData(
         Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l))) *
         candlesInChartLowScale.value
       );
-    } else {
-      return 0;
     }
+    return 0;
   });
 
   const candlesInChartH2L = computed(() => {
