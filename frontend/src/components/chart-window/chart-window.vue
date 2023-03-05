@@ -63,7 +63,7 @@
             :dateLines="dateLines"
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
-            v-model:currentCandleClose="currentCandleClose"
+            :currentCandleOHLC="currentCandleOHLC"
             v-model:datePositionEntries="datePositionEntries"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -88,7 +88,7 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
-            :currentCandleClose="currentCandleClose"
+            :currentCandleClose="currentCandleOHLC?.c"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
             :low="candlesInChartLow"
@@ -143,6 +143,7 @@ import {
   DATA_TICKSIZE,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
+import { roundToTicksize } from './helpers/digits';
 
 const props = defineProps<{
   id: string;
@@ -174,10 +175,7 @@ const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
 const PRICE_AXIS_MARGIN = 8;
 
-const lastCandle = ref<OHLC>();
-
 const data = ref<OHLC[]>([]);
-const currentCandleClose = ref(lastCandle.value?.c ?? 0);
 const datePositionEntries = ref<DatePositionEntry[]>([]);
 
 const width = ref(props.width);
@@ -566,21 +564,77 @@ function onPriceAxisResize(size: { width: number; height: number }) {
   updateChartHeightAndWidth();
 }
 
+/**
+ * TODO: current candle stream should set data
+ * here, not the simulation of course. Can keep
+ * simulation for some feature in the future
+ */
+const currentCandleOHLC = ref<OHLC>();
+
+// TODO: simulates the current candle stream changes, but has to be replaced by real stream
+setInterval(() => {
+  if (!candlesInChartH2L.value || !currentCandleOHLC.value) {
+    return;
+  }
+  const upDown = Math.random() >= 0.5 ? true : false;
+  const random = Math.random();
+  const h2l10p = candlesInChartH2L.value / 10;
+  currentCandleOHLC.value.c += roundToTicksize(
+    upDown ? h2l10p * random : -h2l10p * random,
+    DATA_TICKSIZE
+  );
+}, 1_000);
+
+watch(
+  currentCandleOHLC,
+  () => {
+    if (!currentCandleOHLC.value) {
+      return;
+    }
+    if (currentCandleOHLC.value.c > currentCandleOHLC.value.h) {
+      currentCandleOHLC.value.h = currentCandleOHLC.value.c;
+      if (currentCandleOHLC.value.h > candlesInChartHigh.value) {
+        if (offset.value === 0) {
+          candlesInChartHigh.value = currentCandleOHLC.value.c;
+        }
+        currentCandleOHLC.value.h = currentCandleOHLC.value.c;
+      }
+    }
+    if (currentCandleOHLC.value.c < currentCandleOHLC.value.l) {
+      currentCandleOHLC.value.l = currentCandleOHLC.value.c;
+      if (currentCandleOHLC.value.l < candlesInChartLow.value) {
+        if (offset.value === 0) {
+          candlesInChartLow.value = currentCandleOHLC.value.c;
+        }
+        currentCandleOHLC.value.l = currentCandleOHLC.value.c;
+      }
+    }
+  },
+  { deep: true }
+);
+
 const afterMountUpdated = ref(false);
 onMounted(async () => {
   data.value = generateData();
-  lastCandle.value = data.value.slice(-1)[0];
+  const lastCandleOHLC = data.value.slice(-1)[0];
+
   // TODO: round to timeframe beginning last datetime + 5 min, 15 min etc.
-  const lastDate = new Date(lastCandle.value.d);
+  const lastDate = new Date(lastCandleOHLC.d);
   lastDate.setMinutes(lastDate.getMinutes() + 5);
-  data.value.push({
-    o: lastCandle.value.c,
-    h: lastCandle.value.c,
-    l: lastCandle.value.c,
-    c: lastCandle.value.c,
+
+  // TODO: this first mockdata has to be replaced with the current candle stream,
+  // both have to be loaded first / then the chart can be displayed
+  const lastCandleRawMock = {
+    o: lastCandleOHLC.c,
+    h: lastCandleOHLC.c,
+    l: lastCandleOHLC.c,
+    c: lastCandleOHLC.c,
     d: new Date(lastDate),
     v: 0,
-  });
+  };
+  currentCandleOHLC.value = lastCandleRawMock;
+  data.value.push(currentCandleOHLC.value);
+
   await nextTick();
   if (data.value.length < maxCandles.value) {
     maxCandles.value = data.value.length;

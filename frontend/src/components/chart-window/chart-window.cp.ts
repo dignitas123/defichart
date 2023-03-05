@@ -1,6 +1,6 @@
+import { computed, ref, Ref, watch } from 'vue';
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { DATA_TICKSIZE } from 'src/pages/broker-charts/consts';
-import { computed, Ref } from 'vue';
 import { roundToTicksize } from './helpers/digits';
 
 export function useChartData(
@@ -55,7 +55,10 @@ export function useChartData(
     return data.value.map((ohlc) => ohlc.d);
   });
 
-  const candlesInChartHigh = computed(() => {
+  const candlesInChartHigh = ref(999999999);
+  const candlesInChartLow = ref(0);
+
+  function setCandlesInChartHigh() {
     if (candlesInChartData.value.length) {
       return roundToTicksize(
         Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h))) *
@@ -64,9 +67,9 @@ export function useChartData(
       );
     }
     return 999999999;
-  });
+  }
 
-  const candlesInChartLow = computed(() => {
+  function setCandlesInChartLow() {
     if (candlesInChartData.value.length) {
       return (
         Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l))) *
@@ -74,7 +77,16 @@ export function useChartData(
       );
     }
     return 0;
-  });
+  }
+
+  // TODO: refactor candlesInChartHighScale and candlesInChartLowScale out
+  watch(
+    [candlesInChartData, candlesInChartHighScale, candlesInChartLowScale],
+    () => {
+      candlesInChartHigh.value = setCandlesInChartHigh();
+      candlesInChartLow.value = setCandlesInChartLow();
+    }
+  );
 
   const candlesInChartH2L = computed(() => {
     if (!candlesInChartHigh.value || !candlesInChartLow.value) {

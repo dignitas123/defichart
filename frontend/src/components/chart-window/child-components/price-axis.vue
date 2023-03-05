@@ -40,7 +40,7 @@ import { DATA_TICKSIZE } from '../../../pages/broker-charts/consts';
 import { roundToTicksize, getDigits } from '../helpers/digits';
 
 const props = defineProps<{
-  currentCandleClose: number;
+  currentCandleClose?: number;
   h2l?: number;
   high?: number;
   low?: number;
@@ -92,7 +92,13 @@ const selectedPrice = computed(() => {
 });
 
 watchEffect(() => {
-  if (props.height && props.h2l && props.low && priceBadgeHeight.value) {
+  if (
+    props.height &&
+    props.h2l &&
+    props.low &&
+    priceBadgeHeight.value &&
+    props.currentCandleClose
+  ) {
     const pricePoint =
       (1 - (props.currentCandleClose - props.low) / props.h2l) * props.height;
     const newYPosition = pricePoint + priceBadgeHeight.value / 2;

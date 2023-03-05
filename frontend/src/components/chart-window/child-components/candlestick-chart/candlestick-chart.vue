@@ -53,11 +53,9 @@ import {
   CANDLE_BORDER_COLOR,
   CANDLE_BULL_COLOR,
   CANDLE_WICK_THICKNESS,
-  DATA_TICKSIZE,
   GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
 import CandleStick from './child-components/candle-stick.vue';
-import { roundToTicksize } from '../../helpers/digits';
 import { useDateFunctions } from './candlestick-chart.cp';
 
 const props = withDefaults(
@@ -72,7 +70,7 @@ const props = withDefaults(
     width?: number;
     priceLines?: number[];
     dateLines?: number[];
-    currentCandleClose: number;
+    currentCandleOHLC?: OHLC;
     datePositionEntries: DatePositionEntry[];
     startingDistanceDifference: number;
     candleWidth: number;
@@ -109,6 +107,23 @@ watch(candleWidth, () => {
 watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
 });
+
+watch(
+  () => props.currentCandleOHLC,
+  () => {
+    if (!props.currentCandleOHLC || props.offset < 0) {
+      return;
+    }
+    const currentCandle = drawCandle(
+      lastXPositionCandlestick.value,
+      props.currentCandleOHLC
+    );
+    if (currentCandle) {
+      candles.value[candles.value.length - 1] = currentCandle;
+    }
+  },
+  { deep: true }
+);
 
 const candles = ref<Candle[]>([]);
 
@@ -242,55 +257,6 @@ function drawCandle(
   }
   return candle;
 }
-
-/**
- * TODO: current candle stream should set data
- * here, not the simulation of course. Can keep
- * simulation for some feature in the future
- */
-const currentCandleData = computed(() => {
-  return props.data.slice(-1)[0];
-});
-
-setInterval(() => {
-  if (!props.h2l) {
-    return;
-  }
-  const upDown = Math.random() >= 0.5 ? true : false;
-  const random = Math.random();
-  const h2l10p = props.h2l / 10;
-  currentCandleData.value.c += roundToTicksize(
-    upDown ? h2l10p * random : -h2l10p * random,
-    DATA_TICKSIZE
-  );
-}, 1_000);
-
-watch(
-  currentCandleData,
-  () => {
-    if (currentCandleData.value.c > currentCandleData.value.h) {
-      currentCandleData.value.h = currentCandleData.value.c;
-      if (currentCandleData.value.h > props.high) {
-        drawChart();
-      }
-    }
-    if (currentCandleData.value.c < currentCandleData.value.l) {
-      currentCandleData.value.l = currentCandleData.value.c;
-      if (currentCandleData.value.l < props.low) {
-        drawChart();
-      }
-    }
-    emit('update:currentCandleClose', currentCandleData.value.c);
-    const currentCandle = drawCandle(
-      lastXPositionCandlestick.value,
-      currentCandleData.value
-    );
-    if (currentCandle) {
-      candles.value[candles.value.length - 1] = currentCandle;
-    }
-  },
-  { deep: true }
-);
 
 const { timeDisplayProperties, addDateToDatePositionEntries } =
   useDateFunctions(
