@@ -5,6 +5,7 @@
       <q-btn
         dense
         flat
+        square
         class="items-center"
         icon="zoom_in"
         size="sm"
@@ -19,6 +20,7 @@
       <q-btn
         dense
         flat
+        square
         class="items-center"
         icon="zoom_out"
         size="sm"
@@ -30,20 +32,30 @@
           <q-badge transparent>x</q-badge>
         </q-tooltip>
       </q-btn>
+      <TimeFrameDropdown />
       <q-space />
       <q-btn
         dense
         flat
+        square
         icon="crop_square"
         :ripple="false"
         @click="$emit('maximize')"
       />
-      <q-btn dense flat icon="close" :ripple="false" @click="$emit('close')" />
+      <q-btn
+        dense
+        flat
+        square
+        icon="close"
+        :ripple="false"
+        @click="$emit('close')"
+      />
     </q-bar>
   </div>
 </template>
 
 <script lang="ts" setup>
+import TimeFrameDropdown from './child-components/time-frame-dropdown.vue';
 defineEmits<{
   (event: 'maximize'): void;
   (event: 'close'): void;

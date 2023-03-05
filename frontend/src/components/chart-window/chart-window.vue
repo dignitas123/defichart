@@ -126,7 +126,7 @@
 <script lang="ts" setup>
 import { ref, nextTick, watch, onMounted, reactive, onUnmounted } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
-import HeaderBar from './child-components/header-bar.vue';
+import HeaderBar from './child-components/header-bar/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
 import DateAxis from './child-components/date-axis.vue';
