@@ -28,9 +28,13 @@ export interface Chart {
 }
 
 export interface DatePositionEntry {
-  index: number;
   x: number;
-  date: string;
+  date: Date;
+  dateFormat: string;
   bold: boolean;
-  show: boolean;
+}
+
+export interface DatePosition {
+  standardDateFormat: string;
+  entries: DatePositionEntry[];
 }

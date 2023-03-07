@@ -41,6 +41,10 @@ html.ns-resize * {
   user-select: none; /* Standard syntax */
 }
 
+.disable-dbl-tap-zoom {
+  touch-action: manipulation;
+}
+
 .d-block {
   display: block;
 }

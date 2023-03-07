@@ -40,5 +40,5 @@ export interface Candle {
 export interface TimeDisplayProperties {
   mode: TimeMode;
   period: TimeModePeriod;
-  timeDifferential: number;
+  minuteTimeDifferential: number;
 }

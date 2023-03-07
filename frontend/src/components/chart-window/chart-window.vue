@@ -1,6 +1,6 @@
 <template>
   <div
-    class="chart-wrapper"
+    class="chart-wrapper disable-dbl-tap-zoom"
     :class="{
       'bg-shadow-primary': selected,
       'bg-shadow-secondary': chartWrapperShadow && !selected,
@@ -64,7 +64,8 @@
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             :currentCandleOHLC="currentCandleOHLC"
-            v-model:datePositionEntries="datePositionEntries"
+            :timeFrame="timeFrame"
+            v-model:datePosition="datePosition"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
           />
@@ -105,7 +106,7 @@
           <DateAxis
             :width="chartWidth"
             :selectedCandleIndex="selectedCandleIndex"
-            :entries="datePositionEntries"
+            :datePosition="datePosition"
             :offset="offset"
             :candleWidth="candleWidth"
             :candleDistance="candleDistance"
@@ -131,19 +132,19 @@ import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
 import DateAxis from './child-components/date-axis.vue';
 import { generateData } from './helpers/fake-data-generator';
-import {
-  DatePositionEntry,
-  OHLC,
-} from 'src/pages/broker-charts/broker-charts.if';
+import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
   DATA_TICKSIZE,
+  INITIAL_TIME_FRAME,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
+import { TimeFrameMode } from './chart-window.if';
+import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
 
 const props = defineProps<{
   id: string;
@@ -176,7 +177,10 @@ const HEADER_BAR_HEIGHT = 23;
 const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
-const datePositionEntries = ref<DatePositionEntry[]>([]);
+const datePosition = ref<DatePosition>({
+  standardDateFormat: 'HH:mm',
+  entries: [],
+});
 
 const width = ref(props.width);
 const height = ref(props.height);
@@ -364,9 +368,13 @@ onUnmounted(() => {
 });
 
 function onKeyDown(event: KeyboardEvent) {
-  if (event.key === 'z') {
+  const target = event.target as HTMLInputElement;
+  if (target.tagName === 'INPUT') {
+    return;
+  }
+  if (event.key === 'x') {
     zoomOut();
-  } else if (event.key === 'x') {
+  } else if (event.key === 'c') {
     zoomIn();
   }
 }
@@ -613,14 +621,31 @@ watch(
   { deep: true }
 );
 
+const timeFrame = ref<TimeFrame>(INITIAL_TIME_FRAME);
+
 const afterMountUpdated = ref(false);
 onMounted(async () => {
-  data.value = generateData();
+  // TODO: data have to come from graqphql query result
+  timeFrame.value = 'H4';
+  const timeMode = timeFrame.value.charAt(0) as TimeFrameMode;
+  const timeModeCount = Number(timeFrame.value.substring(1));
+  data.value = generateData(timeMode, timeModeCount);
+  if (data.value.length <= 0) {
+    return;
+  }
   const lastCandleOHLC = data.value.slice(-1)[0];
 
-  // TODO: round to timeframe beginning last datetime + 5 min, 15 min etc.
+  // TODO: last Date has t o come from current candle + TimeFrame Minute/Hour etc.
   const lastDate = new Date(lastCandleOHLC.d);
-  lastDate.setMinutes(lastDate.getMinutes() + 5);
+  if (timeMode === 'M') {
+    lastDate.setMinutes(lastDate.getMinutes() + timeModeCount);
+  } else if (timeMode === 'H') {
+    lastDate.setHours(lastDate.getHours() + timeModeCount);
+  } else if (timeMode === 'D') {
+    lastDate.setDate(lastDate.getDate() + timeModeCount);
+  } else if (timeMode === 'W') {
+    lastDate.setDate(lastDate.getDate() + timeModeCount * 7);
+  }
 
   // TODO: this first mockdata has to be replaced with the current candle stream,
   // both have to be loaded first / then the chart can be displayed

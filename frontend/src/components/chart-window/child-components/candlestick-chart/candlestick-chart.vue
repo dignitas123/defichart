@@ -41,12 +41,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { Candle, TimeDisplayProperties } from './candlestick-chart.if';
-import {
-  DatePositionEntry,
-  OHLC,
-} from 'src/pages/broker-charts/broker-charts.if';
+import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import {
   CANDLE_BEAR_COLOR,
   CANDLE_BORDER,
@@ -57,6 +54,7 @@ import {
 } from 'src/pages/broker-charts/consts';
 import CandleStick from './child-components/candle-stick.vue';
 import { useDateFunctions } from './candlestick-chart.cp';
+import { TimeFrame } from '../header-bar/child-components/time-frame-dropdown.if';
 
 const props = withDefaults(
   defineProps<{
@@ -71,7 +69,8 @@ const props = withDefaults(
     priceLines?: number[];
     dateLines?: number[];
     currentCandleOHLC?: OHLC;
-    datePositionEntries: DatePositionEntry[];
+    timeFrame: TimeFrame;
+    datePosition?: DatePosition;
     startingDistanceDifference: number;
     candleWidth: number;
     candleDistance: number;
@@ -85,19 +84,19 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:currentCandleClose', close: number): void;
-  (event: 'update:datePositionEntries', entries: DatePositionEntry[]): void;
+  (event: 'update:datePosition', datePosition: DatePosition | undefined): void;
   (event: 'update:candleWidth', width: number): void;
   (event: 'update:candleDistance', distance: number): void;
 }>();
 
 const candlesticksRef = ref<SVGSVGElement>();
 
-const datePositionEntries = ref(props.datePositionEntries);
+const datePosition = ref(props.datePosition);
 const candleWidth = ref(props.candleWidth);
 const candleDistance = ref(props.candleDistance);
 
-watch(datePositionEntries, () => {
-  emit('update:datePositionEntries', datePositionEntries.value);
+watch(datePosition, () => {
+  emit('update:datePosition', datePosition.value);
 });
 
 watch(candleWidth, () => {
@@ -157,7 +156,6 @@ function drawChart() {
     return;
   }
   candles.value = [];
-  datePositionEntries.value = [];
 
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
@@ -181,12 +179,20 @@ function drawChart() {
       (candleWidth.value + candleDistance.value) +
     candleDistance.value;
 
-  props.data.forEach((ohlc, index) => {
+  if (datePosition.value) {
+    datePosition.value.entries = [];
+    datePosition.value.standardDateFormat = standardDateFormat.value;
+  }
+
+  props.data.forEach((ohlc) => {
     const candle = drawCandle(xPositionCandlestick.value, ohlc);
     if (candle) {
       candles.value.push(candle);
     }
-    addDateToDatePositionEntries(ohlc.d, index);
+    addDateToDatePositionEntries(
+      ohlc.d,
+      xPositionCandlestick.value + candleWidth.value / 2
+    );
     lastXPositionCandlestick.value = xPositionCandlestick.value;
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
   });
@@ -258,15 +264,17 @@ function drawCandle(
   return candle;
 }
 
-const { timeDisplayProperties, addDateToDatePositionEntries } =
-  useDateFunctions(
-    props.width,
-    props.dates,
-    timeDisplayProps,
-    xPositionCandlestick,
-    candleWidth,
-    datePositionEntries
-  );
+const {
+  timeDisplayProperties,
+  addDateToDatePositionEntries,
+  standardDateFormat,
+} = useDateFunctions(
+  props.width,
+  props.dates,
+  timeDisplayProps,
+  datePosition,
+  props.timeFrame
+);
 
 onMounted(async () => {
   drawChart();

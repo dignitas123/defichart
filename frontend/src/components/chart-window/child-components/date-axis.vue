@@ -5,7 +5,7 @@
     :key="i"
     :style="`left: ${substractDateBoxWidthHalf(entry.x)}px`"
     :class="{ 'text-weight-bold': entry.bold }"
-    >{{ entry.date }}</span
+    >{{ dateFormat(entry.date, entry.dateFormat) }}</span
   >
   <span
     v-if="badgeShow"
@@ -22,12 +22,14 @@
  * shown over the date-axis when the crosshair is at a certain x position.
  */
 import { computed, watch, nextTick } from 'vue';
-import { DatePositionEntry } from 'src/pages/broker-charts/broker-charts.if';
+import { DatePosition } from 'src/pages/broker-charts/broker-charts.if';
 import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
+import { useLanguageStore } from 'src/stores/language';
+import { format as dateFormat } from 'date-fns';
 
 const props = defineProps<{
   width?: number;
-  entries: DatePositionEntry[];
+  datePosition?: DatePosition;
   selectedCandleIndex: number;
   candleWidth: number;
   candleDistance: number;
@@ -40,27 +42,45 @@ const emit = defineEmits<{
   (event: 'verticalLines', lines: number[]): void;
 }>();
 
-const DATE_BADGE_WIDTH = 50;
+const dateBadgeWidth = computed(() => {
+  if (props.datePosition?.standardDateFormat === 'd EEE, HH:mm') {
+    return 110;
+  } else if (props.datePosition?.standardDateFormat === 'd EEE, YYY') {
+    return 97;
+  } else {
+    return 50;
+  }
+});
+const languageStore = useLanguageStore();
+
+function formatDate(date: Date, format: string) {
+  return dateFormat(date, format, { locale: languageStore.language });
+}
 
 const overCandles = computed(() => {
-  if (!props.entries.length) {
+  if (!props.datePosition?.entries.length) {
     return undefined;
   }
-  return props.candlesShow - props.entries.length;
+  return props.candlesShow - props.datePosition.entries.length;
 });
 
 const datePositionEntry = computed(() => {
-  if (overCandles.value) {
-    return props.entries[props.selectedCandleIndex - overCandles.value];
+  if (overCandles.value && props.datePosition) {
+    return props.datePosition.entries[
+      props.selectedCandleIndex - overCandles.value
+    ];
   }
-  return props.entries[props.selectedCandleIndex];
+  return props.datePosition?.entries[props.selectedCandleIndex];
 });
 
 const candleDate = computed(() => {
-  if (!datePositionEntry.value) {
+  if (!datePositionEntry.value || !props.datePosition) {
     return undefined;
   }
-  return datePositionEntry.value.date;
+  return formatDate(
+    datePositionEntry.value.date,
+    props.datePosition.standardDateFormat
+  );
 });
 
 function substractDateBoxWidthHalf(x: number) {
@@ -75,22 +95,25 @@ const badgeXposition = computed(() => {
   ) {
     return undefined;
   }
-  let badgeMidPoint = DATE_BADGE_WIDTH / 2;
+  let badgeMidPoint = dateBadgeWidth.value / 2;
   if (datePositionEntry.value.x < badgeMidPoint) {
     return 0;
   } else if (datePositionEntry.value.x + badgeMidPoint > props.width) {
-    return props.width - DATE_BADGE_WIDTH;
+    return props.width - dateBadgeWidth.value;
   }
   return datePositionEntry.value.x - badgeMidPoint;
 });
 
 const dateEntriesShow = computed(() => {
-  return props.entries.filter((entry) => entry.show);
+  return props.datePosition?.entries.filter((entry) => entry.dateFormat);
 });
 
 watch(
   [() => props.width, () => props.candlesShow, () => props.offset],
   async () => {
+    if (!dateEntriesShow.value) {
+      return;
+    }
     await nextTick();
     emit(
       'verticalLines',
@@ -108,12 +131,12 @@ watch(
 }
 
 .crosshair-badge {
-  width: 50px; // DATE_BADGE_WIDTH
   background: var(--q-dark-page);
   opacity: 0.9;
   color: white;
   padding-left: 4px;
   padding-right: 4px;
   border-radius: 4px;
+  width: v-bind("dateBadgeWidth + 'px'");
 }
 </style>

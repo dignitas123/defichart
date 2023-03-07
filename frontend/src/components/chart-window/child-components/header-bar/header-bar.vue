@@ -7,30 +7,32 @@
         flat
         square
         class="items-center"
-        icon="zoom_in"
+        icon="zoom_out"
         size="sm"
         :ripple="false"
-        @click="$emit('zoomIn')"
+        @click="$emit('zoomOut')"
       >
-        <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
-          {{ 'Zoom in' }}
-          <q-badge transparent>z</q-badge>
-        </q-tooltip>
+        <InfoTooltip
+          >Zoom out<InfoBadge class="q-ml-xs" color="white"
+            >x</InfoBadge
+          ></InfoTooltip
+        >
       </q-btn>
       <q-btn
         dense
         flat
         square
         class="items-center"
-        icon="zoom_out"
+        icon="zoom_in"
         size="sm"
         :ripple="false"
-        @click="$emit('zoomOut')"
+        @click="$emit('zoomIn')"
       >
-        <q-tooltip :delay="1000" transitionDuration="0" transitionShow="fade">
-          {{ 'Zoom out' }}
-          <q-badge transparent>x</q-badge>
-        </q-tooltip>
+        <InfoTooltip
+          >Zoom in<InfoBadge class="q-ml-xs" color="white"
+            >c</InfoBadge
+          ></InfoTooltip
+        >
       </q-btn>
       <TimeFrameDropdown />
       <q-space />
@@ -56,6 +58,9 @@
 
 <script lang="ts" setup>
 import TimeFrameDropdown from './child-components/time-frame-dropdown.vue';
+import InfoTooltip from 'src/shared/components/info-tooltip.vue';
+import InfoBadge from 'src/shared/components/info-badge.vue';
+
 defineEmits<{
   (event: 'maximize'): void;
   (event: 'close'): void;
