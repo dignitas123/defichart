@@ -10,21 +10,21 @@ import { TimeFrame } from '../header-bar/child-components/time-frame-dropdown.if
 
 export function useDateFunctions(
   width: number | undefined,
-  dates: Date[] | undefined,
+  dates: Ref<Date[] | undefined>,
   timeDisplayProps: Ref<TimeDisplayProperties | undefined>,
   datePosition: Ref<DatePosition | undefined>,
-  timeFrame: TimeFrame
+  timeFrame: Ref<TimeFrame>
 ) {
   const timeFrameModeChar = computed(() => {
-    return timeFrame.charAt(0);
+    return timeFrame.value.charAt(0);
   });
 
   function getFirstPreviousDateFromTimeFrame(firstDate: Date) {
-    if (!timeFrame) {
+    if (!timeFrame.value) {
       return undefined;
     }
     const newestDate = new Date(firstDate);
-    switch (timeFrame) {
+    switch (timeFrame.value) {
       case 'M1':
         return new Date(newestDate.setMinutes(newestDate.getMinutes() - 1));
       case 'M2':
@@ -105,7 +105,7 @@ export function useDateFunctions(
             }
           }
         } else if (timeDisplayProps.value.mode === TimeMode.M1) {
-          if (timeFrame === 'M2') {
+          if (timeFrame.value === 'M2') {
             if (minutes === 0) {
               bold = true;
             } else if (minutes % 5 !== 0) {
@@ -119,20 +119,20 @@ export function useDateFunctions(
             }
           }
         } else if (timeDisplayProps.value.mode === TimeMode.M5) {
-          if (timeFrame === 'M5') {
+          if (timeFrame.value === 'M5') {
             if (minutes === 0) {
               bold = true;
             } else if (minutes % 15 !== 0) {
               showEntryDateFormat = '';
             }
-          } else if (minutes % 15 === 0 && timeFrame !== 'M3') {
+          } else if (minutes % 15 === 0 && timeFrame.value !== 'M3') {
             bold = true;
           }
         } else if (
           timeDisplayProps.value.mode === TimeMode.M10 &&
           minutes % 30 === 0
         ) {
-          if (timeFrame === 'M10') {
+          if (timeFrame.value === 'M10') {
             if (minutes === 0) {
               bold = true;
             } else if (minutes % 30 !== 0) {
@@ -190,7 +190,7 @@ export function useDateFunctions(
           showEntryDateFormat = 'YYY';
         } else if (hours === 0) {
           showEntryDateFormat = 'dd.MM';
-          if (timeFrame !== 'H8' && timeFrame !== 'H12') {
+          if (timeFrame.value !== 'H8' && timeFrame.value !== 'H12') {
             bold = true;
           }
         } else if (minutes % 60 === 0) {
@@ -212,7 +212,7 @@ export function useDateFunctions(
             if (days % 4 === 0 && hours === 0) {
               bold = true;
             }
-            if (timeFrame === 'H12') {
+            if (timeFrame.value === 'H12') {
               if (days % 2 === 0 && hours === 0) {
                 showEntryDateFormat = 'HH:mm';
               }
@@ -242,6 +242,7 @@ export function useDateFunctions(
             timeDisplayProps.value.mode === TimeMode.W1 ||
             timeDisplayProps.value.mode === TimeMode.D1
           ) {
+            console.log('w1 or d1 timemode');
             if (yearTransition) {
               bold = true;
               showEntryDateFormat = 'YYY';
@@ -294,8 +295,14 @@ export function useDateFunctions(
           bold = true;
           showEntryDateFormat = 'YYY';
         } else {
-          if (monthTransition && [3, 6, 9].includes(month)) {
-            showEntryDateFormat = 'MMM';
+          if (monthTransition) {
+            if (timeFrame.value !== 'D1') {
+              if ([3, 6, 9].includes(month)) {
+                showEntryDateFormat = 'MMM';
+              }
+            } else {
+              showEntryDateFormat = 'MMM';
+            }
           }
         }
       } else if (timeDisplayProps.value.period === TimeModePeriod.Year) {
@@ -331,7 +338,7 @@ export function useDateFunctions(
     let mode = TimeMode.Y1;
     let period = TimeModePeriod.Year;
     let minuteTimeDifferential = 5;
-    if (!width || !dates) {
+    if (!width || !dates.value) {
       return {
         mode: mode,
         period: period,
@@ -340,7 +347,8 @@ export function useDateFunctions(
     }
 
     // difference in ms from beginning to end of time in the chart
-    const diff = dates[dates.length - 1].getTime() - dates[0].getTime();
+    const diff =
+      dates.value[dates.value.length - 1].getTime() - dates.value[0].getTime();
 
     // This is the time difference, that fits in one time display 'timeDifferenceDisplayBox'
     const tDifDB = diff * (DATE_BOX_WIDTH / candleSumWidthPx);
@@ -353,7 +361,7 @@ export function useDateFunctions(
       minuteTimeDifferential = 5;
     } else if (tDifDB < 10 * MIN) {
       mode = TimeMode.M10;
-      if (timeFrame === 'M2') {
+      if (timeFrame.value === 'M2') {
         minuteTimeDifferential = 10;
       } else {
         minuteTimeDifferential = 15;

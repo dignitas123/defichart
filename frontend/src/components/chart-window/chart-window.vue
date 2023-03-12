@@ -38,6 +38,7 @@
           @close="close"
           @zoomIn="zoomIn"
           @zoomOut="zoomOut"
+          @setTimeFrame="setTimeFrame"
         />
       </div>
       <div class="price-row">
@@ -64,7 +65,7 @@
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             :currentCandleOHLC="currentCandleOHLC"
-            :timeFrame="timeFrame"
+            :timeFrame="timeFrame ?? INITIAL_TIME_FRAME as StandardTimeFrames"
             v-model:datePosition="datePosition"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -125,7 +126,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch, onMounted, reactive, onUnmounted } from 'vue';
+import {
+  ref,
+  nextTick,
+  watch,
+  onMounted,
+  reactive,
+  onUnmounted,
+  watchEffect,
+  provide,
+} from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
@@ -143,7 +153,7 @@ import {
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
-import { TimeFrameMode } from './chart-window.if';
+import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
 import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
 
 const props = defineProps<{
@@ -367,6 +377,9 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 
+const timeFrameSetByKey = ref<StandardTimeFrames>();
+provide('timeFrameSetByKey', timeFrameSetByKey);
+
 function onKeyDown(event: KeyboardEvent) {
   const target = event.target as HTMLInputElement;
   if (target.tagName === 'INPUT') {
@@ -376,6 +389,26 @@ function onKeyDown(event: KeyboardEvent) {
     zoomOut();
   } else if (event.key === 'c') {
     zoomIn();
+  } else if (event.shiftKey) {
+    if (event.code === 'Digit1') {
+      setTimeFrame('M1');
+      timeFrameSetByKey.value = 'M1';
+    } else if (event.code === 'Digit2') {
+      setTimeFrame('M5');
+      timeFrameSetByKey.value = 'M5';
+    } else if (event.code === 'Digit3') {
+      setTimeFrame('M30');
+      timeFrameSetByKey.value = 'M30';
+    } else if (event.code === 'Digit4') {
+      setTimeFrame('H4');
+      timeFrameSetByKey.value = 'H4';
+    } else if (event.code === 'Digit5') {
+      setTimeFrame('D1');
+      timeFrameSetByKey.value = 'D1';
+    } else if (event.code === 'Digit6') {
+      setTimeFrame('W1');
+      timeFrameSetByKey.value = 'W1';
+    }
   }
 }
 
@@ -621,12 +654,18 @@ watch(
   { deep: true }
 );
 
-const timeFrame = ref<TimeFrame>(INITIAL_TIME_FRAME);
+function setTimeFrame(tf: TimeFrame) {
+  timeFrame.value = tf;
+}
+
+const timeFrame = ref<TimeFrame>();
 
 const afterMountUpdated = ref(false);
-onMounted(async () => {
+watchEffect(async () => {
+  if (!timeFrame.value) {
+    return;
+  }
   // TODO: data have to come from graqphql query result
-  timeFrame.value = 'M5';
   const timeMode = timeFrame.value.charAt(0) as TimeFrameMode;
   const timeModeCount = Number(timeFrame.value.substring(1));
   data.value = generateData(timeMode, timeModeCount);

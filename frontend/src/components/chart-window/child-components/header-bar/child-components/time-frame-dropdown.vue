@@ -19,39 +19,39 @@
           :active="selectedTimeFrame === 'M1'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('M1')"
+          @click="onCustomTFInputClick('M1')"
         >
           <q-item-section>M1</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M1' ? 'white' : 'primary'"
-            >1</InfoBadge
+            >⇧1</InfoBadge
           >
         </q-item>
         <q-item
           :active="selectedTimeFrame === 'M5'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('M5')"
+          @click="onCustomTFInputClick('M5')"
         >
           <q-item-section>M5</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M5' ? 'white' : 'primary'"
-            >2</InfoBadge
+            >⇧2</InfoBadge
           >
         </q-item>
         <q-item
           :active="selectedTimeFrame === 'M30'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('M30')"
+          @click="onCustomTFInputClick('M30')"
         >
           <q-item-section>M30</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M30' ? 'white' : 'primary'"
-            >3</InfoBadge
+            >⇧3</InfoBadge
           >
         </q-item>
         <q-separator />
@@ -59,13 +59,13 @@
           :active="selectedTimeFrame === 'H4'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('H4')"
+          @click="onCustomTFInputClick('H4')"
         >
           <q-item-section>H4</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'H4' ? 'white' : 'primary'"
-            >4</InfoBadge
+            >⇧4</InfoBadge
           >
         </q-item>
         <q-separator />
@@ -73,13 +73,13 @@
           :active="selectedTimeFrame === 'D1'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('D1')"
+          @click="onCustomTFInputClick('D1')"
         >
           <q-item-section>D1</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'D1' ? 'white' : 'primary'"
-            >5</InfoBadge
+            >⇧5</InfoBadge
           >
         </q-item>
         <q-separator />
@@ -87,13 +87,13 @@
           :active="selectedTimeFrame === 'W1'"
           active-class="selected-item"
           clickable
-          @click="onItemClick('W1')"
+          @click="onCustomTFInputClick('W1')"
         >
           <q-item-section>W1</q-item-section>
           <InfoBadge
             class="q-ml-xs"
             :color="selectedTimeFrame === 'W1' ? 'white' : 'primary'"
-            >6</InfoBadge
+            >⇧6</InfoBadge
           >
         </q-item>
         <q-separator />
@@ -108,8 +108,8 @@
               :placeholder="customTimeFramePlaceHolder"
               @focus="focusCustomTimeFrame"
               @blur="resetCustomTimeFrameInputText"
-              @keydown.enter="onItemClick(customTimeFrameInputText)"
-              style="width: 80px"
+              @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
+              style="width: 93px"
             />
           </q-item-section>
         </q-item>
@@ -119,19 +119,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import InfoBadge from 'src/shared/components/info-badge.vue';
+import { inject, watch, onMounted, Ref, ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { allowedTimeFrames } from './time-frame-dropdown.if';
+import InfoBadge from 'src/shared/components/info-badge.vue';
+import { allowedTimeFrames, TimeFrame } from './time-frame-dropdown.if';
 import { StandardTimeFrames } from 'src/components/chart-window/chart-window.if';
 
 const emit = defineEmits<{
-  (event: 'timeFrameChanged', timeFrame: StandardTimeFrames): void;
+  (event: 'timeFrameChanged', timeFrame: TimeFrame): void;
 }>();
 
 const $q = useQuasar();
 
-const selectedTimeFrame = ref('M5');
+// TODO: should come from the users saved settings
+const selectedTimeFrame = ref<TimeFrame>('M5');
 
 const exampleTextForTimeFrame = 'Custom';
 
@@ -140,14 +141,22 @@ const timeFrameMenuShowing = ref(false);
 const customTimeFrameInputText = ref('');
 const customTimeFramePlaceHolder = ref(exampleTextForTimeFrame);
 
-function onItemClick(timeFrame: string) {
-  if (!allowedTimeFrames.includes(timeFrame)) {
+const timeFrameSetByKey = inject(
+  'timeFrameSetByKey'
+) as Ref<StandardTimeFrames>;
+
+watch(timeFrameSetByKey, () => {
+  selectedTimeFrame.value = timeFrameSetByKey.value;
+});
+
+function onCustomTFInputClick(input: string) {
+  if (!allowedTimeFrames.includes(input)) {
     $q.notify({
-      message: `The Input '${timeFrame}' is not a valid timeframe.`,
+      message: `The Input '${input}' is not a valid timeframe.`,
     });
   } else {
-    emit('timeFrameChanged', timeFrame as StandardTimeFrames);
-    selectedTimeFrame.value = timeFrame;
+    emit('timeFrameChanged', input as TimeFrame);
+    selectedTimeFrame.value = input as TimeFrame;
   }
   showTimeFrameMenuList.value = false;
   setTimeout(() => {
@@ -167,6 +176,10 @@ function resetCustomTimeFrameInputText() {
   customTimeFramePlaceHolder.value = exampleTextForTimeFrame;
   customTimeFrameInputText.value = '';
 }
+
+onMounted(() => {
+  emit('timeFrameChanged', selectedTimeFrame.value);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -180,8 +193,8 @@ function resetCustomTimeFrameInputText() {
 }
 
 .time-frame-custom-input-item {
-  width: 62px;
-  padding-left: 4px !important;
+  width: 0;
+  padding-left: 4px;
   margin-top: 2px;
   margin-bottom: 2px;
 }

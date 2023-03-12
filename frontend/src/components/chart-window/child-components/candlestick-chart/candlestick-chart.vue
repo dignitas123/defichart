@@ -94,6 +94,22 @@ const candlesticksRef = ref<SVGSVGElement>();
 const datePosition = ref(props.datePosition);
 const candleWidth = ref(props.candleWidth);
 const candleDistance = ref(props.candleDistance);
+const timeFrame = ref(props.timeFrame);
+const dates = ref(props.dates);
+
+watch(
+  () => props.dates,
+  () => {
+    dates.value = props.dates;
+  }
+);
+
+watch(
+  () => props.timeFrame,
+  () => {
+    timeFrame.value = props.timeFrame;
+  }
+);
 
 watch(datePosition, () => {
   emit('update:datePosition', datePosition.value);
@@ -276,10 +292,10 @@ const {
   getFirstPreviousDateFromTimeFrame,
 } = useDateFunctions(
   props.width,
-  props.dates,
+  dates,
   timeDisplayProps,
   datePosition,
-  props.timeFrame
+  timeFrame
 );
 
 onMounted(() => {

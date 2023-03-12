@@ -34,7 +34,7 @@
           ></InfoTooltip
         >
       </q-btn>
-      <TimeFrameDropdown />
+      <TimeFrameDropdown @timeFrameChanged="onTimeFrameChange" />
       <q-space />
       <q-btn
         dense
@@ -60,13 +60,19 @@
 import TimeFrameDropdown from './child-components/time-frame-dropdown.vue';
 import InfoTooltip from 'src/shared/components/info-tooltip.vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
+import { TimeFrame } from './child-components/time-frame-dropdown.if';
 
-defineEmits<{
+const emit = defineEmits<{
   (event: 'maximize'): void;
   (event: 'close'): void;
   (event: 'zoomIn'): void;
   (event: 'zoomOut'): void;
+  (event: 'setTimeFrame', timeFrame: TimeFrame): void;
 }>();
+
+function onTimeFrameChange(tf: TimeFrame) {
+  emit('setTimeFrame', tf);
+}
 </script>
 
 <style lang="scss" scoped>
