@@ -71,7 +71,7 @@ const badgeYposition = computed(() => {
   } else if (newYPosition > props.height) {
     return props.height;
   }
-  return newYPosition;
+  return newYPosition + 1;
 });
 
 const currentPriceAtTop = ref(false);
