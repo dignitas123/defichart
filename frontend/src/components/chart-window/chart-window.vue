@@ -654,6 +654,7 @@ watch(
   { deep: true }
 );
 
+// @setTimeFrame emit (.header-bar)
 function setTimeFrame(tf: TimeFrame) {
   timeFrame.value = tf;
 }

@@ -199,6 +199,7 @@ onUnmounted(() => {
   padding-left: 4px;
   padding-right: 4px;
   border-radius: 4px;
+  z-index: 3;
 }
 
 .current-price-badge {
