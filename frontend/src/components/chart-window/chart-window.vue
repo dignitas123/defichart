@@ -626,7 +626,7 @@ const timeFrame = ref<TimeFrame>(INITIAL_TIME_FRAME);
 const afterMountUpdated = ref(false);
 onMounted(async () => {
   // TODO: data have to come from graqphql query result
-  timeFrame.value = 'H4';
+  timeFrame.value = 'M5';
   const timeMode = timeFrame.value.charAt(0) as TimeFrameMode;
   const timeModeCount = Number(timeFrame.value.substring(1));
   data.value = generateData(timeMode, timeModeCount);

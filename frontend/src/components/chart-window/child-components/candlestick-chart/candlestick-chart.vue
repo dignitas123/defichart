@@ -151,11 +151,14 @@ const xPositionCandlestick = ref(0);
 
 const timeDisplayProps = ref<TimeDisplayProperties>();
 
+const previousDate = ref<Date | undefined>(undefined);
+
 function drawChart() {
   if (!props.width || !props.height || !props.dates) {
     return;
   }
   candles.value = [];
+  previousDate.value = getFirstPreviousDateFromTimeFrame(props.data[0].d);
 
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
@@ -191,10 +194,12 @@ function drawChart() {
     }
     addDateToDatePositionEntries(
       ohlc.d,
+      previousDate.value,
       xPositionCandlestick.value + candleWidth.value / 2
     );
     lastXPositionCandlestick.value = xPositionCandlestick.value;
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
+    previousDate.value = ohlc.d;
   });
 }
 
@@ -268,6 +273,7 @@ const {
   timeDisplayProperties,
   addDateToDatePositionEntries,
   standardDateFormat,
+  getFirstPreviousDateFromTimeFrame,
 } = useDateFunctions(
   props.width,
   props.dates,
@@ -276,7 +282,7 @@ const {
   props.timeFrame
 );
 
-onMounted(async () => {
+onMounted(() => {
   drawChart();
 });
 
@@ -289,7 +295,7 @@ watch(
     () => props.high,
     () => props.low,
   ],
-  async () => {
+  () => {
     drawChart();
   }
 );

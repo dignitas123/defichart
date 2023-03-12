@@ -13,6 +13,7 @@
     :style="`left: ${badgeXposition}px`"
   >
     {{ candleDate }}
+    <q-resize-observer :debounce="0" @resize="onDateBadgeResize" />
   </span>
 </template>
 
@@ -21,7 +22,7 @@
  * Renders the 'date-axis-text' and the 'crosshaird-badge' / dateBadge which is the badge
  * shown over the date-axis when the crosshair is at a certain x position.
  */
-import { computed, watch, nextTick } from 'vue';
+import { computed, watch, nextTick, ref } from 'vue';
 import { DatePosition } from 'src/pages/broker-charts/broker-charts.if';
 import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
 import { useLanguageStore } from 'src/stores/language';
@@ -42,15 +43,12 @@ const emit = defineEmits<{
   (event: 'verticalLines', lines: number[]): void;
 }>();
 
-const dateBadgeWidth = computed(() => {
-  if (props.datePosition?.standardDateFormat === 'd EEE, HH:mm') {
-    return 110;
-  } else if (props.datePosition?.standardDateFormat === 'd EEE, YYY') {
-    return 97;
-  } else {
-    return 50;
-  }
-});
+const dateBadgeWidth = ref(0);
+
+function onDateBadgeResize(size: { width: number }) {
+  dateBadgeWidth.value = size.width;
+}
+
 const languageStore = useLanguageStore();
 
 function formatDate(date: Date, format: string) {
@@ -137,6 +135,6 @@ watch(
   padding-left: 4px;
   padding-right: 4px;
   border-radius: 4px;
-  width: v-bind("dateBadgeWidth + 'px'");
+  width: max-content;
 }
 </style>

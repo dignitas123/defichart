@@ -24,20 +24,24 @@ export function generateData(
       Math.round(date.getTime() / (1000 * 60 * 60 * timeModeCount)) *
         (1000 * 60 * 60 * timeModeCount)
     );
-    if (timeModeCount === 3 && timeModeCount % 3 === 0) {
-      const increaseToHour = increaseToDivisibleByX(currentDate.getHours());
+    if (timeModeCount === 2) {
+      const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 2);
       currentDate.setHours(increaseToHour);
-    } else if (timeModeCount === 6 && timeModeCount % 6 === 0) {
+    } else if (timeModeCount === 3) {
+      const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 3);
+      currentDate.setHours(increaseToHour);
+    } else if (timeModeCount === 4) {
+      const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 4);
+      currentDate.setHours(increaseToHour);
+    } else if (timeModeCount === 6) {
       const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 6);
       currentDate.setHours(increaseToHour);
-    } else if (timeModeCount === 8 && timeModeCount % 8 === 0) {
+    } else if (timeModeCount === 8) {
       const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 8);
       currentDate.setHours(increaseToHour);
-    } else if (timeModeCount === 12 && timeModeCount % 12 === 0) {
+    } else if (timeModeCount === 12) {
       const increaseToHour = increaseToDivisibleByX(currentDate.getHours(), 12);
       currentDate.setHours(increaseToHour);
-    } else if (currentDate.getHours() % 2 === 1) {
-      currentDate.setHours(currentDate.getHours() + 1);
     }
   }
   for (let i = 0; i < LOAD_FAKE_DATA_AMOUNT; i++) {
@@ -45,32 +49,47 @@ export function generateData(
       currentDate.setMinutes(currentDate.getMinutes() + timeModeCount);
     } else if (timeMode === 'H') {
       currentDate.setHours(currentDate.getHours() + timeModeCount);
-      if (timeModeCount === 3 && timeModeCount % 3 === 0) {
-        const increaseToHour = increaseToDivisibleByX(currentDate.getHours());
+      if (timeModeCount === 2) {
+        const increaseToHour = increaseToDivisibleByX(
+          currentDate.getHours(),
+          2
+        );
         currentDate.setHours(increaseToHour);
-      } else if (timeModeCount === 6 && timeModeCount % 6 === 0) {
+      } else if (timeModeCount === 3) {
+        const increaseToHour = increaseToDivisibleByX(
+          currentDate.getHours(),
+          3
+        );
+        currentDate.setHours(increaseToHour);
+      } else if (timeModeCount === 4) {
+        const increaseToHour = increaseToDivisibleByX(
+          currentDate.getHours(),
+          4
+        );
+        currentDate.setHours(increaseToHour);
+      } else if (timeModeCount === 6) {
         const increaseToHour = increaseToDivisibleByX(
           currentDate.getHours(),
           6
         );
         currentDate.setHours(increaseToHour);
-      } else if (timeModeCount === 8 && timeModeCount % 8 === 0) {
+      } else if (timeModeCount === 8) {
         const increaseToHour = increaseToDivisibleByX(
           currentDate.getHours(),
           8
         );
         currentDate.setHours(increaseToHour);
-      } else if (timeModeCount === 12 && timeModeCount % 12 === 0) {
+      } else if (timeModeCount === 12) {
         const increaseToHour = increaseToDivisibleByX(
           currentDate.getHours(),
           12
         );
         currentDate.setHours(increaseToHour);
-      } else if (currentDate.getHours() % 2 === 1) {
-        currentDate.setHours(currentDate.getHours() + 1);
       }
     } else if (timeMode === 'D') {
       currentDate.setDate(currentDate.getDate() + timeModeCount);
+    } else if (timeMode === 'W') {
+      currentDate.setDate(currentDate.getDate() + timeModeCount * 7);
     }
     const d = new Date(currentDate);
     const h = roundToTicksize(o + Math.random() * 5, DATA_TICKSIZE);
