@@ -4,6 +4,7 @@
       <!-- TODO: BTCUSD should be coming from the broker chart chart-settings -->
       <div class="q-mr-xs">BTCUSD</div>
       <TimeFrameDropdown @timeFrameChanged="onTimeFrameChange" />
+      <LookbackDropdown @lookBackPeriodChanged="onLoockbackPeriodChange" />
       <q-space />
       <q-btn
         dense
@@ -62,6 +63,8 @@ import TimeFrameDropdown from './child-components/time-frame-dropdown.vue';
 import InfoTooltip from 'src/shared/components/info-tooltip.vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { TimeFrame } from './child-components/time-frame-dropdown.if';
+import LookbackDropdown from './child-components/lookback-dropdown.vue';
+import { LookbackPeriod } from './child-components/lookback-dropdown.if';
 
 const emit = defineEmits<{
   (event: 'maximize'): void;
@@ -69,11 +72,17 @@ const emit = defineEmits<{
   (event: 'zoomIn'): void;
   (event: 'zoomOut'): void;
   (event: 'setTimeFrame', timeFrame: TimeFrame): void;
+  (event: 'setLookbackPeriod', lookbackPeriod: LookbackPeriod): void;
 }>();
 
 // @emit timeFrameChanged
 function onTimeFrameChange(tf: TimeFrame) {
   emit('setTimeFrame', tf);
+}
+
+// @emit lookBackPeriodChanged
+function onLoockbackPeriodChange(lookbackPeriod: LookbackPeriod) {
+  emit('setLookbackPeriod', lookbackPeriod);
 }
 </script>
 

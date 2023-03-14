@@ -39,6 +39,7 @@
           @zoomIn="zoomIn"
           @zoomOut="zoomOut"
           @setTimeFrame="setTimeFrame"
+          @setLookbackPeriod="setLookbackPeriod"
         />
       </div>
       <div class="price-row">
@@ -130,7 +131,6 @@ import {
   ref,
   nextTick,
   watch,
-  onMounted,
   reactive,
   onUnmounted,
   watchEffect,
@@ -144,7 +144,7 @@ import DateAxis from './child-components/date-axis.vue';
 import { generateData } from './helpers/fake-data-generator';
 import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
-import { useChartData } from './chart-window.cp';
+import { useChartData, useTimeFrame } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -155,6 +155,7 @@ import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
 import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
 import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
+import { LookbackPeriod } from './child-components/header-bar/child-components/lookback-dropdown.if';
 
 const props = defineProps<{
   id: string;
@@ -172,6 +173,11 @@ const emit = defineEmits<{
   (event: 'chartClick', id: string): void;
   (event: 'resizeDrag', xOnly: boolean, yOnly: boolean): void;
   (event: 'chartWidthHeightChange'): void;
+  (
+    event: 'lookbackChanged',
+    lookbackPeriod: LookbackPeriod,
+    timeFrameInMs: number
+  ): void;
   (event: 'update:width', width: number): void;
   (event: 'update:height', height: number): void;
   (event: 'update:fullWidth', fullWidth: boolean): void;
@@ -380,6 +386,9 @@ onUnmounted(() => {
 const timeFrameSetByKey = ref<StandardTimeFrames>();
 provide('timeFrameSetByKey', timeFrameSetByKey);
 
+const lookbackSetByKey = ref<LookbackPeriod>();
+provide('lookbackSetByKey', lookbackSetByKey);
+
 function onKeyDown(event: KeyboardEvent) {
   const target = event.target as HTMLInputElement;
   if (target.tagName === 'INPUT') {
@@ -389,6 +398,24 @@ function onKeyDown(event: KeyboardEvent) {
     zoomOut();
   } else if (event.key === 'c') {
     zoomIn();
+  } else if (event.key === '1') {
+    lookbackSetByKey.value = '1day';
+    setLookbackPeriod('1day');
+  } else if (event.key === '2') {
+    lookbackSetByKey.value = '1week';
+    setLookbackPeriod('1week');
+  } else if (event.key === '3') {
+    lookbackSetByKey.value = '1month';
+    setLookbackPeriod('1month');
+  } else if (event.key === '4') {
+    lookbackSetByKey.value = '1quarter';
+    setLookbackPeriod('1quarter');
+  } else if (event.key === '5') {
+    lookbackSetByKey.value = '1year';
+    setLookbackPeriod('1year');
+  } else if (event.key === '6') {
+    lookbackSetByKey.value = '5year';
+    setLookbackPeriod('5year');
   } else if (event.shiftKey) {
     if (event.code === 'Digit1') {
       setTimeFrame('M1');
@@ -659,11 +686,26 @@ function setTimeFrame(tf: TimeFrame) {
   timeFrame.value = tf;
 }
 
+const { getTimeFrameInMs } = useTimeFrame();
+
+// @setLookbackPeriod emit (.header-bar)
+function setLookbackPeriod(period: LookbackPeriod) {
+  lookbackPeriod.value = period;
+  if (data.value.length > 0) {
+    emit(
+      'lookbackChanged',
+      period,
+      getTimeFrameInMs(timeFrame.value ?? INITIAL_TIME_FRAME)
+    );
+  }
+}
+
 const timeFrame = ref<TimeFrame>();
+const lookbackPeriod = ref<LookbackPeriod>();
 
 const afterMountUpdated = ref(false);
 watchEffect(async () => {
-  if (!timeFrame.value) {
+  if (!timeFrame.value || !lookbackPeriod.value) {
     return;
   }
   // TODO: data have to come from graqphql query result

@@ -22,6 +22,7 @@
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
       @chartWidthHeightChange="updateResizeDragStart"
+      @lookbackChanged="onLookbackChanged"
     />
     <div v-if="snapActive && !shiftKeyActive" class="snap-to-full" />
     <div v-if="snapActive && !shiftKeyActive" class="show-shift-key-hint">
@@ -36,8 +37,14 @@ import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
-import { HEADER_HEIGHT } from 'src/pages/broker-charts/consts';
+import {
+  DAY,
+  HEADER_HEIGHT,
+  MONTH,
+  WEEK,
+} from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
+import { LookbackPeriod } from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
@@ -86,7 +93,36 @@ const resizeDrag = ref(false);
 const snapActive = ref(false);
 const shiftKeyActive = ref(false);
 
-// @keydown.shift event
+function calculateCandlesBasedOnLookbackPeriod(
+  lookbackPeriod: LookbackPeriod,
+  periodInMs: number
+) {
+  switch (lookbackPeriod) {
+    case '1day':
+      return Math.floor(DAY / periodInMs);
+    case '1week':
+      return Math.floor(WEEK / periodInMs);
+    case '1month':
+      return Math.floor(MONTH / periodInMs);
+    case '1quarter':
+      return Math.floor((MONTH * 3) / periodInMs);
+    case '1year':
+      return Math.floor((MONTH * 12) / periodInMs);
+    case '5year':
+      return Math.floor((MONTH * 12 * 5) / periodInMs);
+  }
+}
+
+// @lookbackChanged emit
+function onLookbackChanged(
+  lookbackPeriod: LookbackPeriod,
+  timeFrameInMs: number
+) {
+  charts[selectedChartId.value].candlesShow =
+    calculateCandlesBasedOnLookbackPeriod(lookbackPeriod, timeFrameInMs);
+}
+
+// @keydown.shift emit
 function handleKeyDown(event: KeyboardEvent) {
   if (event.shiftKey) {
     shiftKeyActive.value = true;

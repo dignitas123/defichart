@@ -1,5 +1,12 @@
 import { computed, Ref } from 'vue';
-import { DATE_BOX_WIDTH } from 'src/pages/broker-charts/consts';
+import {
+  DATE_BOX_WIDTH,
+  DAY,
+  HOUR,
+  MIN,
+  MONTH,
+  WEEK,
+} from 'src/pages/broker-charts/consts';
 import {
   TimeDisplayProperties,
   TimeMode,
@@ -327,12 +334,6 @@ export function useDateFunctions(
       bold: bold,
     });
   }
-
-  const MIN = 1000 * 60;
-  const HOUR = MIN * 60;
-  const DAY = HOUR * 24;
-  const WEEK = DAY * 7;
-  const MONTH = DAY * 30;
 
   function timeDisplayProperties(candleSumWidthPx: number) {
     let mode = TimeMode.Y1;

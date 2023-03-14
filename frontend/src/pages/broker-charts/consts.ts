@@ -9,3 +9,9 @@ export const CANDLE_BEAR_COLOR = 'red';
 export const CANDLE_BORDER = true;
 export const CANDLE_BORDER_COLOR = 'black';
 export const INITIAL_TIME_FRAME = 'M15';
+
+export const MIN = 1000 * 60;
+export const HOUR = MIN * 60;
+export const DAY = HOUR * 24;
+export const WEEK = DAY * 7;
+export const MONTH = DAY * 30;
