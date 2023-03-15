@@ -249,7 +249,6 @@ export function useDateFunctions(
             timeDisplayProps.value.mode === TimeMode.W1 ||
             timeDisplayProps.value.mode === TimeMode.D1
           ) {
-            console.log('w1 or d1 timemode');
             if (yearTransition) {
               bold = true;
               showEntryDateFormat = 'YYY';
