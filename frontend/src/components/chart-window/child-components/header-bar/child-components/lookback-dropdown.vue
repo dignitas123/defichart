@@ -8,7 +8,7 @@
     :ripple="false"
     color="primary"
     :label="selectedLookback"
-    class="lookback-dropdown-button q-px-xs"
+    class="lookback-dropdown-button header-button q-px-xs"
   >
     <q-menu v-model="lookbackMenuShowing" bordered>
       <q-list dense v-if="showLookbackMenuList">
@@ -102,13 +102,14 @@
 import { inject, watch, onMounted, Ref, ref } from 'vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { LookbackPeriod } from './lookback-dropdown.if';
+import { INITIAL_LOOKBACK_PERIOD } from 'src/pages/broker-charts/consts';
 
 const emit = defineEmits<{
   (event: 'lookBackPeriodChanged', lookBack: LookbackPeriod): void;
 }>();
 
 // TODO: should come from the users saved settings
-const selectedLookback = ref<LookbackPeriod>('1week');
+const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);
 
 const showLookbackMenuList = ref(true);
 const lookbackMenuShowing = ref(false);

@@ -3,14 +3,17 @@
     <q-bar dark dense>
       <!-- TODO: BTCUSD should be coming from the broker chart chart-settings -->
       <div class="q-mr-xs">BTCUSD</div>
-      <TimeFrameDropdown @timeFrameChanged="onTimeFrameChange" />
+      <TimeFrameDropdown
+        :timeFrame="timeFrame"
+        @timeFrameChanged="onTimeFrameChange"
+      />
       <LookbackDropdown @lookBackPeriodChanged="onLoockbackPeriodChange" />
       <q-space />
       <q-btn
         dense
         flat
         square
-        class="items-center"
+        class="header-button items-center"
         icon="zoom_out"
         size="sm"
         :ripple="false"
@@ -27,7 +30,7 @@
           dense
           flat
           square
-          class="items-center"
+          class="header-button items-center"
           icon="zoom_in"
           size="sm"
           :ripple="false"
@@ -42,6 +45,7 @@
         dense
         flat
         square
+        class="header-button"
         icon="crop_square"
         :ripple="false"
         @click="$emit('maximize')"
@@ -50,6 +54,7 @@
         dense
         flat
         square
+        class="header-button"
         icon="close"
         :ripple="false"
         @click="$emit('close')"
@@ -65,6 +70,10 @@ import InfoBadge from 'src/shared/components/info-badge.vue';
 import { TimeFrame } from './child-components/time-frame-dropdown.if';
 import LookbackDropdown from './child-components/lookback-dropdown.vue';
 import { LookbackPeriod } from './child-components/lookback-dropdown.if';
+
+defineProps<{
+  timeFrame: TimeFrame;
+}>();
 
 const emit = defineEmits<{
   (event: 'maximize'): void;
@@ -89,5 +98,12 @@ function onLoockbackPeriodChange(lookbackPeriod: LookbackPeriod) {
 <style lang="scss" scoped>
 .header-bar {
   border-bottom: 1px solid var(--q-primary);
+}
+</style>
+
+<style>
+.header-button {
+  padding-bottom: 1px;
+  margin-bottom: 1px;
 }
 </style>

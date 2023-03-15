@@ -34,6 +34,7 @@
       />
       <div class="header-bar prevent-select">
         <HeaderBar
+          :timeFrame="timeFrame"
           @maximize="maximize"
           @close="close"
           @zoomIn="zoomIn"
@@ -144,7 +145,7 @@ import DateAxis from './child-components/date-axis.vue';
 import { generateData } from './helpers/fake-data-generator';
 import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
-import { useChartData, useTimeFrame } from './chart-window.cp';
+import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -167,17 +168,15 @@ const props = defineProps<{
   selected: boolean;
   offset: number;
   maxCandles: number;
+  timeFrame: TimeFrame;
+  lookbackPeriod: LookbackPeriod;
 }>();
 
 const emit = defineEmits<{
   (event: 'chartClick', id: string): void;
   (event: 'resizeDrag', xOnly: boolean, yOnly: boolean): void;
   (event: 'chartWidthHeightChange'): void;
-  (
-    event: 'lookbackChanged',
-    lookbackPeriod: LookbackPeriod,
-    timeFrameInMs: number
-  ): void;
+  (event: 'lookbackChanged', lookbackPeriod: LookbackPeriod): void;
   (event: 'update:width', width: number): void;
   (event: 'update:height', height: number): void;
   (event: 'update:fullWidth', fullWidth: boolean): void;
@@ -186,6 +185,8 @@ const emit = defineEmits<{
   (event: 'update:selected', selected: boolean): void;
   (event: 'update:offset', offset: number): void;
   (event: 'update:maxCandles', maxCandes: number): void;
+  (event: 'update:timeFrame', timeFrame: TimeFrame): void;
+  (event: 'update:lookbackPeriod', lookbackPeriod: LookbackPeriod): void;
 }>();
 
 const DATEROW_HEIGHT = 22;
@@ -206,6 +207,8 @@ const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
 const offset = ref(props.offset);
 const maxCandles = ref(props.maxCandles);
+const timeFrame = ref(props.timeFrame);
+const lookbackPeriod = ref(props.lookbackPeriod);
 
 const candleWidth = ref(0);
 const candleDistance = ref(0);
@@ -374,6 +377,24 @@ watch(
   () => props.maxCandles,
   () => {
     maxCandles.value = props.maxCandles;
+  }
+);
+watch(timeFrame, () => {
+  emit('update:timeFrame', timeFrame.value);
+});
+watch(
+  () => props.timeFrame,
+  () => {
+    timeFrame.value = props.timeFrame;
+  }
+);
+watch(lookbackPeriod, () => {
+  emit('update:lookbackPeriod', lookbackPeriod.value);
+});
+watch(
+  () => props.lookbackPeriod,
+  () => {
+    lookbackPeriod.value = props.lookbackPeriod;
   }
 );
 
@@ -686,22 +707,13 @@ function setTimeFrame(tf: TimeFrame) {
   timeFrame.value = tf;
 }
 
-const { getTimeFrameInMs } = useTimeFrame();
-
 // @setLookbackPeriod emit (.header-bar)
 function setLookbackPeriod(period: LookbackPeriod) {
   lookbackPeriod.value = period;
   if (data.value.length > 0) {
-    emit(
-      'lookbackChanged',
-      period,
-      getTimeFrameInMs(timeFrame.value ?? INITIAL_TIME_FRAME)
-    );
+    emit('lookbackChanged', period);
   }
 }
-
-const timeFrame = ref<TimeFrame>();
-const lookbackPeriod = ref<LookbackPeriod>();
 
 const afterMountUpdated = ref(false);
 watchEffect(async () => {

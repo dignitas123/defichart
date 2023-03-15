@@ -7,7 +7,8 @@
     :ripple="false"
     color="primary"
     :label="selectedTimeFrame"
-    class="time-frame-dropdown-button q-px-xs"
+    class="time-frame-dropdown-button header-button q-px-xs"
+    :class="{ blink: isBlinking }"
   >
     <q-menu
       v-model="timeFrameMenuShowing"
@@ -122,8 +123,12 @@
 import { inject, watch, onMounted, Ref, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import InfoBadge from 'src/shared/components/info-badge.vue';
-import { allowedTimeFrames, TimeFrame } from './time-frame-dropdown.if';
+import { allowedTimeFramesEnum, TimeFrame } from './time-frame-dropdown.if';
 import { StandardTimeFrames } from 'src/components/chart-window/chart-window.if';
+
+const props = defineProps<{
+  timeFrame: TimeFrame;
+}>();
 
 const emit = defineEmits<{
   (event: 'timeFrameChanged', timeFrame: TimeFrame): void;
@@ -145,12 +150,33 @@ const timeFrameSetByKey = inject(
   'timeFrameSetByKey'
 ) as Ref<StandardTimeFrames>;
 
+const firstTimeBlink = ref(false);
+watch(
+  () => props.timeFrame,
+  () => {
+    selectedTimeFrame.value = props.timeFrame;
+    if (firstTimeBlink.value) {
+      timeFrameBlink();
+    }
+    firstTimeBlink.value = true;
+  }
+);
+
 watch(timeFrameSetByKey, () => {
   selectedTimeFrame.value = timeFrameSetByKey.value;
 });
 
+const isBlinking = ref(false);
+
+function timeFrameBlink() {
+  isBlinking.value = true;
+  setTimeout(() => {
+    isBlinking.value = false;
+  }, 400);
+}
+
 function onCustomTFInputClick(input: string) {
-  if (!allowedTimeFrames.includes(input)) {
+  if (!Object.keys(allowedTimeFramesEnum).includes(input)) {
     $q.notify({
       message: `The Input '${input}' is not a valid timeframe.`,
     });
@@ -197,6 +223,22 @@ onMounted(() => {
   padding-left: 4px;
   margin-top: 2px;
   margin-bottom: 2px;
+}
+
+.blink {
+  animation: blink 0.5s;
+}
+
+@keyframes blink {
+  0% {
+    background-color: white;
+  }
+  50% {
+    background-color: var(--q-secondary);
+  }
+  100% {
+    background-color: white;
+  }
 }
 </style>
 

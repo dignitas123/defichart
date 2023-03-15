@@ -1,3 +1,6 @@
+import { LookbackPeriod } from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
+import { TimeFrame } from 'src/components/chart-window/child-components/header-bar/child-components/time-frame-dropdown.if';
+
 export type Network = 'optimism';
 export type Broker = 'perpetual' | 'gains';
 export type AssetPair = 'btcusd' | 'ethusd';
@@ -25,6 +28,8 @@ export interface Chart {
   selected: boolean;
   offset: number;
   maxCandles: number;
+  timeFrame: TimeFrame;
+  lookbackPeriod: LookbackPeriod;
 }
 
 export interface DatePositionEntry {

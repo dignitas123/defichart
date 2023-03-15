@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { Chart } from '../broker-charts.if';
+import { INITIAL_LOOKBACK_PERIOD, INITIAL_TIME_FRAME } from '../consts';
 
 export const defaultOptions: Chart = {
   symbol: 'btcusd',
@@ -15,6 +16,8 @@ export const defaultOptions: Chart = {
   selected: true,
   offset: 0,
   maxCandles: 200,
+  timeFrame: INITIAL_TIME_FRAME,
+  lookbackPeriod: INITIAL_LOOKBACK_PERIOD,
 };
 
 export function generateChartObject(

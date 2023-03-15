@@ -19,6 +19,8 @@
       v-model:selected="chart.selected"
       v-model:offset="chart.offset"
       v-model:maxCandles="chart.maxCandles"
+      v-model:timeFrame="chart.timeFrame"
+      v-model:lookbackPeriod="chart.lookbackPeriod"
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
       @chartWidthHeightChange="updateResizeDragStart"
@@ -37,14 +39,17 @@ import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
-import {
-  DAY,
-  HEADER_HEIGHT,
-  MONTH,
-  WEEK,
-} from 'src/pages/broker-charts/consts';
+import { HEADER_HEIGHT } from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
-import { LookbackPeriod } from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
+import {
+  LookbackPeriod,
+  lookbackPeriodEnum,
+} from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
+import { findNearestIndex } from 'src/shared/utils/array-functions';
+import {
+  allowedTimeFramesEnum,
+  TimeFrame,
+} from 'src/components/chart-window/child-components/header-bar/child-components/time-frame-dropdown.if';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
@@ -77,6 +82,8 @@ const nonStandardChart = generateChartObject({
   selected: false,
   offset: 0,
   maxCandles: 200,
+  timeFrame: 'M30',
+  lookbackPeriod: '1quarter',
 });
 
 const testCharts = {
@@ -93,36 +100,24 @@ const resizeDrag = ref(false);
 const snapActive = ref(false);
 const shiftKeyActive = ref(false);
 
-function calculateCandlesBasedOnLookbackPeriod(
-  lookbackPeriod: LookbackPeriod,
-  periodInMs: number
-) {
-  switch (lookbackPeriod) {
-    case '1day':
-      return Math.floor(DAY / periodInMs);
-    case '1week':
-      return Math.floor(WEEK / periodInMs);
-    case '1month':
-      return Math.floor(MONTH / periodInMs);
-    case '1quarter':
-      return Math.floor((MONTH * 3) / periodInMs);
-    case '1year':
-      return Math.floor((MONTH * 12) / periodInMs);
-    case '5year':
-      return Math.floor((MONTH * 12 * 5) / periodInMs);
-  }
-}
-
 // @lookbackChanged emit
-function onLookbackChanged(
-  lookbackPeriod: LookbackPeriod,
-  timeFrameInMs: number
-) {
-  charts[selectedChartId.value].candlesShow =
-    calculateCandlesBasedOnLookbackPeriod(lookbackPeriod, timeFrameInMs);
+function onLookbackChanged(lookbackPeriod: LookbackPeriod) {
+  const wantedPxPerCandle = 8;
+  const appropriateCandles = maxChartWidth.value / wantedPxPerCandle;
+  const appropriatePeriodInMs =
+    lookbackPeriodEnum[lookbackPeriod] / appropriateCandles;
+  const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
+    appropriatePeriodInMs,
+    Object.values(allowedTimeFramesEnum)
+  );
+  const appropriateTimeFrame = Object.keys(allowedTimeFramesEnum)[
+    nearestAppropriatePeriodFromAllowedTimeFramesIndex
+  ];
+  charts[selectedChartId.value].candlesShow = Math.round(appropriateCandles);
+  charts[selectedChartId.value].timeFrame = appropriateTimeFrame as TimeFrame;
 }
 
-// @keydown.shift emit
+// @keydown emit
 function handleKeyDown(event: KeyboardEvent) {
   if (event.shiftKey) {
     shiftKeyActive.value = true;
@@ -147,7 +142,7 @@ function handleKeyDown(event: KeyboardEvent) {
   }
 }
 
-// @keyup.shift event
+// @keyup event
 function handleKeyUp() {
   shiftKeyActive.value = false;
 }
