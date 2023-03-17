@@ -1,6 +1,6 @@
 <template>
   <div
-    class="price-axis prevent-select q-mr-xs q-ml-sm"
+    class="prevent-select q-mr-xs q-ml-sm"
     :style="`height: ${props.height}px; margin-top: ${marginTop}px`"
   >
     <div

@@ -4,6 +4,7 @@
     :height="height"
     class="d-block absolute"
     style="z-index: 1"
+    :key="refreshKeyTest"
   >
     <line
       v-for="(priceY, i) in priceLines"
@@ -41,7 +42,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { ref, nextTick, watch } from 'vue';
 import { Candle, TimeDisplayProperties } from './candlestick-chart.if';
 import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import {
@@ -50,6 +51,7 @@ import {
   CANDLE_BORDER_COLOR,
   CANDLE_BULL_COLOR,
   CANDLE_WICK_THICKNESS,
+  DAY,
   GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
 import CandleStick from './child-components/candle-stick.vue';
@@ -100,9 +102,25 @@ const dates = ref(props.dates);
 watch(
   () => props.dates,
   () => {
+    if (!props.dates) {
+      return;
+    }
+    console.log(
+      'dates change',
+      props.dates?.length,
+      (props.dates[props.dates.length - 1].getTime() -
+        props.dates[0].getTime()) /
+        DAY
+    );
     dates.value = props.dates;
   }
 );
+
+const refreshKeyTest = ref(0);
+
+setInterval(() => {
+  refreshKeyTest.value++;
+}, 10_000);
 
 watch(
   () => props.timeFrame,
@@ -169,13 +187,16 @@ const timeDisplayProps = ref<TimeDisplayProperties>();
 
 const previousDate = ref<Date | undefined>(undefined);
 
-function drawChart() {
+async function drawChart() {
+  await nextTick();
   if (!props.width || !props.height || !props.dates) {
     return;
   }
+  console.log('drawChart', timeFrame.value);
   candles.value = [];
   previousDate.value = getFirstPreviousDateFromTimeFrame(props.data[0].d);
 
+  console.log('xxxx width', props.width, 'xxxx candleCount', props.candleCount);
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
@@ -189,6 +210,7 @@ function drawChart() {
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
 
+  // console.log('candlesumwidthpx', candleSumWidthPx);
   timeDisplayProps.value = timeDisplayProperties(candleSumWidthPx);
 
   xPositionCandlestick.value =
@@ -199,6 +221,7 @@ function drawChart() {
     candleDistance.value;
 
   if (datePosition.value) {
+    // console.log('clear date position values');
     datePosition.value.entries = [];
     datePosition.value.standardDateFormat = standardDateFormat.value;
   }
@@ -217,6 +240,8 @@ function drawChart() {
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
     previousDate.value = ohlc.d;
   });
+
+  console.log('after', datePosition.value);
 }
 
 function drawCandle(
@@ -298,9 +323,23 @@ const {
   timeFrame
 );
 
-onMounted(() => {
-  drawChart();
-});
+// onMounted(() => {
+//   drawChart();
+//   console.log(
+//     'watch candleCount',
+//     props.candleCount,
+//     'width',
+//     props.width,
+//     'height',
+//     props.height,
+//     'offset',
+//     props.offset,
+//     'high',
+//     props.high,
+//     'low',
+//     props.low
+//   );
+// });
 
 watch(
   [
@@ -313,6 +352,21 @@ watch(
   ],
   () => {
     drawChart();
+    console.log(
+      'watch candleCount',
+      props.candleCount,
+      'width',
+      props.width,
+      'height',
+      props.height,
+      'offset',
+      props.offset,
+      'high',
+      props.high,
+      'low',
+      props.low
+    );
+    // debugger;
   }
 );
 </script>

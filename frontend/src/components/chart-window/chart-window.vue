@@ -75,13 +75,13 @@
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
           <q-btn
             v-if="offset < 0"
+            round
             size="sm"
             class="go-to-start-button"
             :class="{ 'transparent-primary-background': !goToStartButtonHover }"
             @mouseover="goToStartButtonHover = true"
             @mouseleave="goToStartButtonHover = false"
             @click="offset = 0"
-            round
             color="primary"
             icon="arrow_forward"
           />
@@ -92,6 +92,7 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
+            v-if="afterMountUpdated"
             :currentCandleClose="currentCandleOHLC?.c"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
@@ -101,7 +102,7 @@
             :badgeShow="crosshair.show"
             @horizontalLine="addHorizontalLineToPriceLines"
           />
-          <q-resize-observer :debounce="0" :onResize="onPriceAxisResize" />
+          <q-resize-observer :debounce="0" @resize="onPriceAxisResize" />
         </div>
       </div>
       <div class="date-row">
@@ -123,7 +124,7 @@
         </div>
       </div>
     </div>
-    <q-resize-observer :debounce="0" :onResize="onResize" />
+    <q-resize-observer :debounce="0" @resize="onResize" />
   </div>
 </template>
 
@@ -134,8 +135,8 @@ import {
   watch,
   reactive,
   onUnmounted,
-  watchEffect,
   provide,
+  onMounted,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
@@ -191,7 +192,6 @@ const emit = defineEmits<{
 
 const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
-const PRICE_AXIS_MARGIN = 8;
 
 const data = ref<OHLC[]>([]);
 const datePosition = ref<DatePosition>({
@@ -606,13 +606,9 @@ function onYDrag(event: MouseEvent) {
   }
 }
 
-function updateChartHeightAndWidth(substractWidth = 0) {
-  if (substractWidth > 0 && chartRef.value) {
-    chartWidth.value = chartRef.value.clientWidth - substractWidth;
-  } else {
-    chartWidth.value = chartRef.value?.clientWidth;
-    chartHeight.value = chartRef.value?.clientHeight;
-  }
+function updateChartHeightAndWidth() {
+  chartWidth.value = chartRef.value?.clientWidth;
+  chartHeight.value = chartRef.value?.clientHeight;
 }
 
 // @wheel emit
@@ -648,9 +644,11 @@ function onResize() {
   updateChartHeightAndWidth();
 }
 
-function onPriceAxisResize(size: { width: number; height: number }) {
+function onPriceAxisResize(size: { width: number }) {
   priceAxisWidth.value = size.width;
-  updateChartHeightAndWidth();
+  if (size.width) {
+    updateChartHeightAndWidth();
+  }
 }
 
 /**
@@ -716,7 +714,12 @@ function setLookbackPeriod(period: LookbackPeriod) {
 }
 
 const afterMountUpdated = ref(false);
-watchEffect(async () => {
+onMounted(async () => {
+  await generateChart();
+  afterMountUpdated.value = true;
+});
+
+async function generateChart() {
   if (!timeFrame.value || !lookbackPeriod.value) {
     return;
   }
@@ -758,19 +761,14 @@ watchEffect(async () => {
   if (data.value.length < maxCandles.value) {
     maxCandles.value = data.value.length;
   }
-  updateChartHeightAndWidth(PRICE_AXIS_MARGIN);
-  afterMountUpdated.value = true;
+}
+
+watch(timeFrame, async () => {
+  await generateChart();
 });
 
 watch(
-  [
-    chartHeight,
-    chartWidth,
-    candlesShow,
-    offset,
-    candlesInChartHigh,
-    candlesInChartLow,
-  ],
+  [chartHeight, candlesShow, offset, candlesInChartHigh, candlesInChartLow],
   async () => {
     await nextTick();
     priceLines.value = [];

@@ -107,7 +107,12 @@ const dateEntriesShow = computed(() => {
 });
 
 watch(
-  [() => props.width, () => props.candlesShow, () => props.offset],
+  [
+    () => props.width,
+    () => props.candlesShow,
+    () => props.offset,
+    () => props.datePosition,
+  ],
   async () => {
     if (!dateEntriesShow.value) {
       return;
@@ -119,7 +124,8 @@ watch(
         (entry) => substractDateBoxWidthHalf(entry.x) + DATE_BOX_WIDTH / 2
       )
     );
-  }
+  },
+  { deep: true }
 );
 </script>
 
