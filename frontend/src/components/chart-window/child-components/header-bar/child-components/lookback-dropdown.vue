@@ -20,6 +20,7 @@
         >
           <q-item-section>1day</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '1day' ? 'white' : 'primary'"
             >1</InfoBadge
@@ -33,6 +34,7 @@
         >
           <q-item-section>1week</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '1week' ? 'white' : 'primary'"
             >2</InfoBadge
@@ -46,6 +48,7 @@
         >
           <q-item-section>1month</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '1month' ? 'white' : 'primary'"
             >3</InfoBadge
@@ -60,6 +63,7 @@
         >
           <q-item-section>1quarter</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '1quarter' ? 'white' : 'primary'"
             >4</InfoBadge
@@ -74,6 +78,7 @@
         >
           <q-item-section>1year</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '1year' ? 'white' : 'primary'"
             >5</InfoBadge
@@ -88,6 +93,7 @@
         >
           <q-item-section>5year</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedLookback === '5year' ? 'white' : 'primary'"
             >6</InfoBadge
@@ -103,10 +109,13 @@ import { inject, watch, onMounted, Ref, ref } from 'vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { LookbackPeriod } from './lookback-dropdown.if';
 import { INITIAL_LOOKBACK_PERIOD } from 'src/pages/broker-charts/consts';
+import { useQuasar } from 'quasar';
 
 const emit = defineEmits<{
   (event: 'lookBackPeriodChanged', lookBack: LookbackPeriod): void;
 }>();
+
+const $q = useQuasar()
 
 // TODO: should come from the users saved settings
 const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);

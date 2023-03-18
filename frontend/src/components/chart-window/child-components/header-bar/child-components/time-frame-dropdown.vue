@@ -24,6 +24,7 @@
         >
           <q-item-section>M1</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M1' ? 'white' : 'primary'"
             >⇧1</InfoBadge
@@ -37,6 +38,7 @@
         >
           <q-item-section>M5</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M5' ? 'white' : 'primary'"
             >⇧2</InfoBadge
@@ -50,6 +52,7 @@
         >
           <q-item-section>M30</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'M30' ? 'white' : 'primary'"
             >⇧3</InfoBadge
@@ -64,6 +67,7 @@
         >
           <q-item-section>H4</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'H4' ? 'white' : 'primary'"
             >⇧4</InfoBadge
@@ -78,6 +82,7 @@
         >
           <q-item-section>D1</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'D1' ? 'white' : 'primary'"
             >⇧5</InfoBadge
@@ -92,6 +97,7 @@
         >
           <q-item-section>W1</q-item-section>
           <InfoBadge
+            v-if="!$q.platform.is.mobile"
             class="q-ml-xs"
             :color="selectedTimeFrame === 'W1' ? 'white' : 'primary'"
             >⇧6</InfoBadge
@@ -110,7 +116,7 @@
               @focus="focusCustomTimeFrame"
               @blur="resetCustomTimeFrameInputText"
               @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
-              style="width: 93px"
+              :style="`width: ${$q.platform.is.mobile ? 54 : 93}px`"
             />
           </q-item-section>
         </q-item>
@@ -120,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, watch, onMounted, Ref, ref } from 'vue';
+import { inject, watch, onMounted, Ref, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { allowedTimeFramesEnum, TimeFrame } from './time-frame-dropdown.if';
@@ -139,12 +145,14 @@ const $q = useQuasar();
 // TODO: should come from the users saved settings
 const selectedTimeFrame = ref<TimeFrame>('M5');
 
-const exampleTextForTimeFrame = 'Custom';
+const exampleTextForTimeFrame = computed(() => {
+  return $q.platform.is.mobile ? 'M2..' : 'Custom'
+})
 
 const showTimeFrameMenuList = ref(true);
 const timeFrameMenuShowing = ref(false);
 const customTimeFrameInputText = ref('');
-const customTimeFramePlaceHolder = ref(exampleTextForTimeFrame);
+const customTimeFramePlaceHolder = ref(exampleTextForTimeFrame.value);
 
 const timeFrameSetByKey = inject(
   'timeFrameSetByKey'
@@ -199,7 +207,7 @@ function focusCustomTimeFrame() {
 }
 
 function resetCustomTimeFrameInputText() {
-  customTimeFramePlaceHolder.value = exampleTextForTimeFrame;
+  customTimeFramePlaceHolder.value = exampleTextForTimeFrame.value;
   customTimeFrameInputText.value = '';
 }
 
