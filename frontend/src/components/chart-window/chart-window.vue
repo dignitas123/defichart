@@ -49,6 +49,8 @@
           ref="chartRef"
           @contextmenu.prevent
           @wheel="onWheel"
+          @touchstart="handleChartTouchStart"
+          @touchmove="handleChartTouchMove"
           @mousemove="updateMouseContainer"
           @mouseleave="onChartLeave"
         >
@@ -619,20 +621,22 @@ function updateChartHeightAndWidth() {
   chartHeight.value = chartRef.value?.clientHeight;
 }
 
-// @wheel emit
-function onWheel(event: WheelEvent) {
-  let candles = 2;
+function candlesChangeDependantOnCandlesShow() {
   if (candlesShow.value < 15) {
-    candles = 1;
+    return 1;
   } else if (candlesShow.value > 70) {
-    candles = 5;
+    return 5;
   } else if (candlesShow.value > 100) {
-    candles = 10;
+    return 10;
   } else if (candlesShow.value > 150) {
-    candles = 20;
+    return 20;
+  } else {
+    return 2;
   }
+}
 
-  // Calculate the angle of movement
+// @wheel emit (.chart)
+function onWheel(event: WheelEvent) {
   const angle = (Math.atan2(event.deltaY, event.deltaX) * 180) / Math.PI;
   const absAngle = angle < 0 ? 360 + angle : angle;
 
@@ -641,11 +645,30 @@ function onWheel(event: WheelEvent) {
     (absAngle >= 225 && absAngle <= 315)
   ) {
     if (event.deltaY > 0 && candleWidth.value > 2) {
-      increaseCandlesShow(candles);
+      increaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (event.deltaY < 0) {
-      decreaseCandlesShow(candles);
+      decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
     }
   }
+}
+
+const touchStartY = ref(0);
+
+// @touchstart event (.chart)
+function handleChartTouchStart(event: TouchEvent) {
+  touchStartY.value = event.touches[0].clientY;
+}
+
+// @touchmove event (.chart)
+function handleChartTouchMove(event: TouchEvent) {
+  const touchEnd = event.touches[0].clientY;
+  const diff = touchStartY.value - touchEnd;
+  if (diff > 0 && candleWidth.value > 2) {
+    increaseCandlesShow(candlesChangeDependantOnCandlesShow());
+  } else if (diff < 0) {
+    decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
+  }
+  touchStartY.value = touchEnd;
 }
 
 function onResize() {
