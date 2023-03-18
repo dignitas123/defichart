@@ -13,6 +13,7 @@ export const CANDLE_BORDER = true;
 export const CANDLE_BORDER_COLOR = 'black';
 export const INITIAL_TIME_FRAME: TimeFrame = 'M5';
 export const INITIAL_LOOKBACK_PERIOD: LookbackPeriod = '1day';
+export const WANTED_PX_PER_CANDLE = 8;
 
 export const MIN = 1000 * 60;
 export const HOUR = MIN * 60;

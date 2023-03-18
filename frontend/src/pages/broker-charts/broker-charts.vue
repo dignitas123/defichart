@@ -39,7 +39,10 @@ import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
-import { HEADER_HEIGHT } from 'src/pages/broker-charts/consts';
+import {
+  HEADER_HEIGHT,
+  WANTED_PX_PER_CANDLE,
+} from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
 import {
   LookbackPeriod,
@@ -102,8 +105,7 @@ const shiftKeyActive = ref(false);
 
 // @lookbackChanged emit
 function onLookbackChanged(lookbackPeriod: LookbackPeriod) {
-  const wantedPxPerCandle = 8;
-  const appropriateCandles = maxChartWidth.value / wantedPxPerCandle;
+  const appropriateCandles = maxChartWidth.value / WANTED_PX_PER_CANDLE;
   const appropriatePeriodInMs =
     lookbackPeriodEnum[lookbackPeriod] / appropriateCandles;
   const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(

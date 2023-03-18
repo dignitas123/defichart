@@ -105,13 +105,6 @@ watch(
     if (!props.dates) {
       return;
     }
-    console.log(
-      'dates change',
-      props.dates?.length,
-      (props.dates[props.dates.length - 1].getTime() -
-        props.dates[0].getTime()) /
-        DAY
-    );
     dates.value = props.dates;
   }
 );
@@ -192,11 +185,9 @@ async function drawChart() {
   if (!props.width || !props.height || !props.dates) {
     return;
   }
-  console.log('drawChart', timeFrame.value);
   candles.value = [];
   previousDate.value = getFirstPreviousDateFromTimeFrame(props.data[0].d);
 
-  console.log('xxxx width', props.width, 'xxxx candleCount', props.candleCount);
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
@@ -210,7 +201,6 @@ async function drawChart() {
     (candleWidth.value + candleDistance.value) *
     (props.candleCount - overCandles);
 
-  // console.log('candlesumwidthpx', candleSumWidthPx);
   timeDisplayProps.value = timeDisplayProperties(candleSumWidthPx);
 
   xPositionCandlestick.value =
@@ -221,7 +211,6 @@ async function drawChart() {
     candleDistance.value;
 
   if (datePosition.value) {
-    // console.log('clear date position values');
     datePosition.value.entries = [];
     datePosition.value.standardDateFormat = standardDateFormat.value;
   }
@@ -240,8 +229,6 @@ async function drawChart() {
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
     previousDate.value = ohlc.d;
   });
-
-  console.log('after', datePosition.value);
 }
 
 function drawCandle(
@@ -323,24 +310,6 @@ const {
   timeFrame
 );
 
-// onMounted(() => {
-//   drawChart();
-//   console.log(
-//     'watch candleCount',
-//     props.candleCount,
-//     'width',
-//     props.width,
-//     'height',
-//     props.height,
-//     'offset',
-//     props.offset,
-//     'high',
-//     props.high,
-//     'low',
-//     props.low
-//   );
-// });
-
 watch(
   [
     () => props.candleCount,
@@ -352,21 +321,6 @@ watch(
   ],
   () => {
     drawChart();
-    console.log(
-      'watch candleCount',
-      props.candleCount,
-      'width',
-      props.width,
-      'height',
-      props.height,
-      'offset',
-      props.offset,
-      'high',
-      props.high,
-      'low',
-      props.low
-    );
-    // debugger;
   }
 );
 </script>

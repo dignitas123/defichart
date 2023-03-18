@@ -152,12 +152,20 @@ import {
   CANDLE_WICK_THICKNESS,
   DATA_TICKSIZE,
   INITIAL_TIME_FRAME,
+  WANTED_PX_PER_CANDLE,
+  INITIAL_LOOKBACK_PERIOD,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
 import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
-import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
-import { LookbackPeriod } from './child-components/header-bar/child-components/lookback-dropdown.if';
+import {
+  allowedTimeFramesEnum,
+  TimeFrame,
+} from './child-components/header-bar/child-components/time-frame-dropdown.if';
+import {
+  LookbackPeriod,
+  lookbackPeriodEnum,
+} from './child-components/header-bar/child-components/lookback-dropdown.if';
 
 const props = defineProps<{
   id: string;
@@ -713,8 +721,24 @@ function setLookbackPeriod(period: LookbackPeriod) {
   }
 }
 
+function setInitialTimeFrameAndCandlesShow() {
+  const appropriateCandles = maxChartWidth.value / WANTED_PX_PER_CANDLE;
+  const appropriatePeriodInMs =
+    lookbackPeriodEnum[INITIAL_LOOKBACK_PERIOD] / appropriateCandles;
+  const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
+    appropriatePeriodInMs,
+    Object.values(allowedTimeFramesEnum)
+  );
+  const appropriateTimeFrame = Object.keys(allowedTimeFramesEnum)[
+    nearestAppropriatePeriodFromAllowedTimeFramesIndex
+  ];
+  candlesShow.value = Math.round(appropriateCandles);
+  timeFrame.value = appropriateTimeFrame as TimeFrame;
+}
+
 const afterMountUpdated = ref(false);
 onMounted(async () => {
+  setInitialTimeFrameAndCandlesShow();
   await generateChart();
   afterMountUpdated.value = true;
 });
