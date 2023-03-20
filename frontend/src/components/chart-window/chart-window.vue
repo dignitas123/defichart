@@ -415,11 +415,11 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 
-const timeFrameSetByKey = ref<StandardTimeFrames>();
-provide('timeFrameSetByKey', timeFrameSetByKey);
+const timeFrameSetByKeyboard = ref<StandardTimeFrames>();
+provide('timeFrameSetByKeyboard', timeFrameSetByKeyboard);
 
-const lookbackSetByKey = ref<LookbackPeriod>();
-provide('lookbackSetByKey', lookbackSetByKey);
+const lookbackSetByKeyboard = ref<LookbackPeriod>();
+provide('lookbackSetByKeyboard', lookbackSetByKeyboard);
 
 function onKeyDown(event: KeyboardEvent) {
   const target = event.target as HTMLInputElement;
@@ -431,42 +431,42 @@ function onKeyDown(event: KeyboardEvent) {
   } else if (event.key === 'c') {
     zoomIn();
   } else if (event.key === '1') {
-    lookbackSetByKey.value = '1day';
+    lookbackSetByKeyboard.value = '1day';
     setLookbackPeriod('1day');
   } else if (event.key === '2') {
-    lookbackSetByKey.value = '1week';
+    lookbackSetByKeyboard.value = '1week';
     setLookbackPeriod('1week');
   } else if (event.key === '3') {
-    lookbackSetByKey.value = '1month';
+    lookbackSetByKeyboard.value = '1month';
     setLookbackPeriod('1month');
   } else if (event.key === '4') {
-    lookbackSetByKey.value = '1quarter';
+    lookbackSetByKeyboard.value = '1quarter';
     setLookbackPeriod('1quarter');
   } else if (event.key === '5') {
-    lookbackSetByKey.value = '1year';
+    lookbackSetByKeyboard.value = '1year';
     setLookbackPeriod('1year');
   } else if (event.key === '6') {
-    lookbackSetByKey.value = '5year';
+    lookbackSetByKeyboard.value = '5year';
     setLookbackPeriod('5year');
   } else if (event.shiftKey) {
     if (event.code === 'Digit1') {
       setTimeFrame('M1');
-      timeFrameSetByKey.value = 'M1';
+      timeFrameSetByKeyboard.value = 'M1';
     } else if (event.code === 'Digit2') {
       setTimeFrame('M5');
-      timeFrameSetByKey.value = 'M5';
+      timeFrameSetByKeyboard.value = 'M5';
     } else if (event.code === 'Digit3') {
       setTimeFrame('M30');
-      timeFrameSetByKey.value = 'M30';
+      timeFrameSetByKeyboard.value = 'M30';
     } else if (event.code === 'Digit4') {
       setTimeFrame('H4');
-      timeFrameSetByKey.value = 'H4';
+      timeFrameSetByKeyboard.value = 'H4';
     } else if (event.code === 'Digit5') {
       setTimeFrame('D1');
-      timeFrameSetByKey.value = 'D1';
+      timeFrameSetByKeyboard.value = 'D1';
     } else if (event.code === 'Digit6') {
       setTimeFrame('W1');
-      timeFrameSetByKey.value = 'W1';
+      timeFrameSetByKeyboard.value = 'W1';
     }
   }
 }

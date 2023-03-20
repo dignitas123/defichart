@@ -146,16 +146,16 @@ const $q = useQuasar();
 const selectedTimeFrame = ref<TimeFrame>('M5');
 
 const exampleTextForTimeFrame = computed(() => {
-  return $q.platform.is.mobile ? 'M2..' : 'Custom'
-})
+  return $q.platform.is.mobile ? 'M2..' : 'Custom';
+});
 
 const showTimeFrameMenuList = ref(true);
 const timeFrameMenuShowing = ref(false);
 const customTimeFrameInputText = ref('');
 const customTimeFramePlaceHolder = ref(exampleTextForTimeFrame.value);
 
-const timeFrameSetByKey = inject(
-  'timeFrameSetByKey'
+const timeFrameSetByKeyboard = inject(
+  'timeFrameSetByKeyboard'
 ) as Ref<StandardTimeFrames>;
 
 const firstTimeBlink = ref(false);
@@ -170,8 +170,8 @@ watch(
   }
 );
 
-watch(timeFrameSetByKey, () => {
-  selectedTimeFrame.value = timeFrameSetByKey.value;
+watch(timeFrameSetByKeyboard, () => {
+  selectedTimeFrame.value = timeFrameSetByKeyboard.value;
 });
 
 const isBlinking = ref(false);

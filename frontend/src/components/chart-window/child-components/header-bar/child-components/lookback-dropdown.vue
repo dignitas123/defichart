@@ -115,7 +115,7 @@ const emit = defineEmits<{
   (event: 'lookBackPeriodChanged', lookBack: LookbackPeriod): void;
 }>();
 
-const $q = useQuasar()
+const $q = useQuasar();
 
 // TODO: should come from the users saved settings
 const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);
@@ -123,10 +123,12 @@ const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);
 const showLookbackMenuList = ref(true);
 const lookbackMenuShowing = ref(false);
 
-const lookbackSetByKey = inject('lookbackSetByKey') as Ref<LookbackPeriod>;
+const lookbackSetByKeyboard = inject(
+  'lookbackSetByKeyboard'
+) as Ref<LookbackPeriod>;
 
-watch(lookbackSetByKey, () => {
-  selectedLookback.value = lookbackSetByKey.value;
+watch(lookbackSetByKeyboard, () => {
+  selectedLookback.value = lookbackSetByKeyboard.value;
 });
 
 function onLookbackClick(period: LookbackPeriod) {
