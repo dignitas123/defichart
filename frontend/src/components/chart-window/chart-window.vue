@@ -283,7 +283,8 @@ function findPriceMidpoint(y: number) {
   return newY === 0 ? 0.1 : newY; // 0.1 to show it on top
 }
 
-function findCandleMidpointAfterZoom(x: number) {
+async function findCandleMidpointAfterZoom(x: number) {
+  await nextTick();
   if (!chartWidth.value) {
     return;
   }
@@ -347,7 +348,7 @@ watch(
 watch(candlesShow, async () => {
   await nextTick();
   emit('update:candlesShow', candlesShow.value);
-  let newCandleMidpoint = findCandleMidpointAfterZoom(lastChX);
+  let newCandleMidpoint = await findCandleMidpointAfterZoom(lastChX);
   let newPriceMidPoint = findPriceMidpoint(lastChY);
   if (newCandleMidpoint) {
     crosshair.x = newCandleMidpoint;
