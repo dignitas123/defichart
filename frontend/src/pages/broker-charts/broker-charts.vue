@@ -24,7 +24,6 @@
       @chartClick="onChartClick"
       @resizeDrag="onStartResizeDrag"
       @chartWidthHeightChange="updateResizeDragStart"
-      @lookbackChanged="onLookbackChanged"
     />
     <div v-if="snapActive && !shiftKeyActive" class="snap-to-full" />
     <div v-if="snapActive && !shiftKeyActive" class="show-shift-key-hint">
@@ -102,22 +101,6 @@ const resizeDrag = ref(false);
 
 const snapActive = ref(false);
 const shiftKeyActive = ref(false);
-
-// @lookbackChanged emit
-function onLookbackChanged(lookbackPeriod: LookbackPeriod) {
-  const appropriateCandles = maxChartWidth.value / WANTED_PX_PER_CANDLE;
-  const appropriatePeriodInMs =
-    lookbackPeriodEnum[lookbackPeriod] / appropriateCandles;
-  const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
-    appropriatePeriodInMs,
-    Object.values(allowedTimeFramesEnum)
-  );
-  const appropriateTimeFrame = Object.keys(allowedTimeFramesEnum)[
-    nearestAppropriatePeriodFromAllowedTimeFramesIndex
-  ];
-  charts[selectedChartId.value].candlesShow = Math.round(appropriateCandles);
-  charts[selectedChartId.value].timeFrame = appropriateTimeFrame as TimeFrame;
-}
 
 // @keydown emit
 function handleKeyDown(event: KeyboardEvent) {

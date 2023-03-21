@@ -55,7 +55,7 @@
           @mouseleave="onChartLeave"
         >
           <CandlestickChart
-            v-if="afterMountUpdated"
+            v-if="afterChartDataAvailable"
             :data="candlesInChartData"
             :dates="dataDates"
             :candleCount="candlesShow"
@@ -94,7 +94,7 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
-            v-if="afterMountUpdated"
+            v-if="afterCandlesShowSet"
             :currentCandleClose="currentCandleOHLC?.c"
             :h2l="candlesInChartH2L"
             :high="candlesInChartHigh"
@@ -139,6 +139,7 @@ import {
   onUnmounted,
   provide,
   onMounted,
+  computed,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
@@ -156,6 +157,10 @@ import {
   INITIAL_TIME_FRAME,
   WANTED_PX_PER_CANDLE,
   INITIAL_LOOKBACK_PERIOD,
+  DAY,
+  MIN,
+  HOUR,
+  WEEK,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
@@ -187,7 +192,6 @@ const emit = defineEmits<{
   (event: 'chartClick', id: string): void;
   (event: 'resizeDrag', xOnly: boolean, yOnly: boolean): void;
   (event: 'chartWidthHeightChange'): void;
-  (event: 'lookbackChanged', lookbackPeriod: LookbackPeriod): void;
   (event: 'update:width', width: number): void;
   (event: 'update:height', height: number): void;
   (event: 'update:fullWidth', fullWidth: boolean): void;
@@ -219,6 +223,13 @@ const offset = ref(props.offset);
 const maxCandles = ref(props.maxCandles);
 const timeFrame = ref(props.timeFrame);
 const lookbackPeriod = ref(props.lookbackPeriod);
+
+const timeMode = computed(() => {
+  return timeFrame.value.charAt(0) as TimeFrameMode;
+});
+const timeModeCount = computed(() => {
+  return Number(timeFrame.value.substring(1));
+});
 
 const candleWidth = ref(0);
 const candleDistance = ref(0);
@@ -415,11 +426,11 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 
-const timeFrameSetByKeyboard = ref<StandardTimeFrames>();
-provide('timeFrameSetByKeyboard', timeFrameSetByKeyboard);
+const timeFrameSetByUser = ref<StandardTimeFrames>();
+provide('timeFrameSetByUser', timeFrameSetByUser);
 
-const lookbackSetByKeyboard = ref<LookbackPeriod>();
-provide('lookbackSetByKeyboard', lookbackSetByKeyboard);
+const lookbackSetByUser = ref<LookbackPeriod>();
+provide('lookbackSetByUser', lookbackSetByUser);
 
 function onKeyDown(event: KeyboardEvent) {
   const target = event.target as HTMLInputElement;
@@ -431,42 +442,42 @@ function onKeyDown(event: KeyboardEvent) {
   } else if (event.key === 'c') {
     zoomIn();
   } else if (event.key === '1') {
-    lookbackSetByKeyboard.value = '1day';
+    lookbackSetByUser.value = '1day';
     setLookbackPeriod('1day');
   } else if (event.key === '2') {
-    lookbackSetByKeyboard.value = '1week';
+    lookbackSetByUser.value = '1week';
     setLookbackPeriod('1week');
   } else if (event.key === '3') {
-    lookbackSetByKeyboard.value = '1month';
+    lookbackSetByUser.value = '1month';
     setLookbackPeriod('1month');
   } else if (event.key === '4') {
-    lookbackSetByKeyboard.value = '1quarter';
+    lookbackSetByUser.value = '1quarter';
     setLookbackPeriod('1quarter');
   } else if (event.key === '5') {
-    lookbackSetByKeyboard.value = '1year';
+    lookbackSetByUser.value = '1year';
     setLookbackPeriod('1year');
   } else if (event.key === '6') {
-    lookbackSetByKeyboard.value = '5year';
+    lookbackSetByUser.value = '5year';
     setLookbackPeriod('5year');
   } else if (event.shiftKey) {
     if (event.code === 'Digit1') {
       setTimeFrame('M1');
-      timeFrameSetByKeyboard.value = 'M1';
+      timeFrameSetByUser.value = 'M1';
     } else if (event.code === 'Digit2') {
       setTimeFrame('M5');
-      timeFrameSetByKeyboard.value = 'M5';
+      timeFrameSetByUser.value = 'M5';
     } else if (event.code === 'Digit3') {
       setTimeFrame('M30');
-      timeFrameSetByKeyboard.value = 'M30';
+      timeFrameSetByUser.value = 'M30';
     } else if (event.code === 'Digit4') {
       setTimeFrame('H4');
-      timeFrameSetByKeyboard.value = 'H4';
+      timeFrameSetByUser.value = 'H4';
     } else if (event.code === 'Digit5') {
       setTimeFrame('D1');
-      timeFrameSetByKeyboard.value = 'D1';
+      timeFrameSetByUser.value = 'D1';
     } else if (event.code === 'Digit6') {
       setTimeFrame('W1');
-      timeFrameSetByKeyboard.value = 'W1';
+      timeFrameSetByUser.value = 'W1';
     }
   }
 }
@@ -733,22 +744,47 @@ watch(
 );
 
 // @setTimeFrame emit (.header-bar)
-function setTimeFrame(tf: TimeFrame) {
+async function setTimeFrame(tf: TimeFrame) {
+  if (timeFrame.value === tf) {
+    return;
+  }
   timeFrame.value = tf;
+  await generateChartData();
 }
 
 // @setLookbackPeriod emit (.header-bar)
 function setLookbackPeriod(period: LookbackPeriod) {
   lookbackPeriod.value = period;
-  if (data.value.length > 0) {
-    emit('lookbackChanged', period);
+}
+
+function calculateAdditionalCandles(candlesDiffInMs: number) {
+  const lookBackTimeInMs = lookbackPeriodEnum[lookbackPeriod.value];
+  const additionalTimeNeeded = lookBackTimeInMs - candlesDiffInMs;
+  if (timeMode.value === 'M') {
+    return additionalTimeNeeded / MIN / timeModeCount.value;
+  } else if (timeMode.value === 'H') {
+    return additionalTimeNeeded / HOUR / timeModeCount.value;
+  } else if (timeMode.value === 'D') {
+    return additionalTimeNeeded / DAY / timeModeCount.value;
+  } else if (timeMode.value === 'W') {
+    return additionalTimeNeeded / WEEK / timeModeCount.value;
   }
 }
 
-function setInitialTimeFrameAndCandlesShow() {
-  const appropriateCandles = maxChartWidth.value / WANTED_PX_PER_CANDLE;
+const afterChartDataAvailable = ref(false);
+async function setChartVariables(lookBackPeriod: LookbackPeriod) {
+  if (!chartWidth.value) {
+    return;
+  }
+  const chartsWidthWithoutPriceAxisWidth = chartWidth.value;
+  const assumedPriceAxisAverageWidth = 50;
+  const actualTemporaryChartWidth =
+    chartsWidthWithoutPriceAxisWidth - assumedPriceAxisAverageWidth;
+  const appropriateCandles = Math.round(
+    actualTemporaryChartWidth / WANTED_PX_PER_CANDLE
+  );
   const appropriatePeriodInMs =
-    lookbackPeriodEnum[INITIAL_LOOKBACK_PERIOD] / appropriateCandles;
+    lookbackPeriodEnum[lookBackPeriod] / appropriateCandles;
   const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
     appropriatePeriodInMs,
     Object.values(allowedTimeFramesEnum)
@@ -756,25 +792,36 @@ function setInitialTimeFrameAndCandlesShow() {
   const appropriateTimeFrame = Object.keys(allowedTimeFramesEnum)[
     nearestAppropriatePeriodFromAllowedTimeFramesIndex
   ];
-  candlesShow.value = Math.round(appropriateCandles);
   timeFrame.value = appropriateTimeFrame as TimeFrame;
+  await generateChartData();
+  const additionalCandles = calculateAdditionalCandles(
+    data.value[data.value.length - 1].d.getTime() -
+      data.value[data.value.length - appropriateCandles].d.getTime()
+  );
+  if (!additionalCandles) {
+    return;
+  }
+  candlesShow.value = Math.round(appropriateCandles + additionalCandles);
+  afterChartDataAvailable.value = true;
 }
 
-const afterMountUpdated = ref(false);
+const afterCandlesShowSet = ref(false);
 onMounted(async () => {
-  setInitialTimeFrameAndCandlesShow();
-  await generateChart();
-  afterMountUpdated.value = true;
+  await setChartVariables(INITIAL_LOOKBACK_PERIOD);
+  afterCandlesShowSet.value = true;
 });
 
-async function generateChart() {
-  if (!timeFrame.value || !lookbackPeriod.value) {
+async function generateChartData() {
+  if (
+    !timeFrame.value ||
+    !lookbackPeriod.value ||
+    !timeMode.value ||
+    !timeModeCount.value
+  ) {
     return;
   }
   // TODO: data have to come from graqphql query result
-  const timeMode = timeFrame.value.charAt(0) as TimeFrameMode;
-  const timeModeCount = Number(timeFrame.value.substring(1));
-  data.value = generateData(timeMode, timeModeCount);
+  data.value = generateData(timeMode.value, timeModeCount.value);
   if (data.value.length <= 0) {
     return;
   }
@@ -782,14 +829,14 @@ async function generateChart() {
 
   // TODO: last Date has t o come from current candle + TimeFrame Minute/Hour etc.
   const lastDate = new Date(lastCandleOHLC.d);
-  if (timeMode === 'M') {
-    lastDate.setMinutes(lastDate.getMinutes() + timeModeCount);
-  } else if (timeMode === 'H') {
-    lastDate.setHours(lastDate.getHours() + timeModeCount);
-  } else if (timeMode === 'D') {
-    lastDate.setDate(lastDate.getDate() + timeModeCount);
-  } else if (timeMode === 'W') {
-    lastDate.setDate(lastDate.getDate() + timeModeCount * 7);
+  if (timeMode.value === 'M') {
+    lastDate.setMinutes(lastDate.getMinutes() + timeModeCount.value);
+  } else if (timeMode.value === 'H') {
+    lastDate.setHours(lastDate.getHours() + timeModeCount.value);
+  } else if (timeMode.value === 'D') {
+    lastDate.setDate(lastDate.getDate() + timeModeCount.value);
+  } else if (timeMode.value === 'W') {
+    lastDate.setDate(lastDate.getDate() + timeModeCount.value * 7);
   }
 
   // TODO: this first mockdata has to be replaced with the current candle stream,
@@ -811,8 +858,19 @@ async function generateChart() {
   }
 }
 
-watch(timeFrame, async () => {
-  await generateChart();
+watch(timeFrameSetByUser, async () => {
+  if (
+    !timeFrameSetByUser.value ||
+    timeFrame.value === timeFrameSetByUser.value
+  ) {
+    return;
+  }
+  await generateChartData();
+  timeFrame.value = timeFrameSetByUser.value;
+});
+
+watch(lookbackPeriod, async () => {
+  await setChartVariables(lookbackPeriod.value);
 });
 
 watch(

@@ -123,12 +123,10 @@ const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);
 const showLookbackMenuList = ref(true);
 const lookbackMenuShowing = ref(false);
 
-const lookbackSetByKeyboard = inject(
-  'lookbackSetByKeyboard'
-) as Ref<LookbackPeriod>;
+const lookbackSetByUser = inject('lookbackSetByUser') as Ref<LookbackPeriod>;
 
-watch(lookbackSetByKeyboard, () => {
-  selectedLookback.value = lookbackSetByKeyboard.value;
+watch(lookbackSetByUser, () => {
+  selectedLookback.value = lookbackSetByUser.value;
 });
 
 function onLookbackClick(period: LookbackPeriod) {

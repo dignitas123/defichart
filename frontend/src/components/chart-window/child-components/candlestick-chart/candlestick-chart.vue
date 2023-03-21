@@ -51,7 +51,6 @@ import {
   CANDLE_BORDER_COLOR,
   CANDLE_BULL_COLOR,
   CANDLE_WICK_THICKNESS,
-  DAY,
   GRID_LINES_TRANSPARENCY,
 } from 'src/pages/broker-charts/consts';
 import CandleStick from './child-components/candle-stick.vue';

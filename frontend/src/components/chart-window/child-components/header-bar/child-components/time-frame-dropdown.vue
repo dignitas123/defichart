@@ -8,7 +8,7 @@
     color="primary"
     :label="selectedTimeFrame"
     class="time-frame-dropdown-button header-button q-px-xs"
-    :class="{ blink: isBlinking }"
+    :class="{ blink: isBlinking && !blinkingBlock }"
   >
     <q-menu
       v-model="timeFrameMenuShowing"
@@ -154,8 +154,8 @@ const timeFrameMenuShowing = ref(false);
 const customTimeFrameInputText = ref('');
 const customTimeFramePlaceHolder = ref(exampleTextForTimeFrame.value);
 
-const timeFrameSetByKeyboard = inject(
-  'timeFrameSetByKeyboard'
+const timeFrameSetByUser = inject(
+  'timeFrameSetByUser'
 ) as Ref<StandardTimeFrames>;
 
 const firstTimeBlink = ref(false);
@@ -170,11 +170,12 @@ watch(
   }
 );
 
-watch(timeFrameSetByKeyboard, () => {
-  selectedTimeFrame.value = timeFrameSetByKeyboard.value;
+watch(timeFrameSetByUser, () => {
+  selectedTimeFrame.value = timeFrameSetByUser.value;
 });
 
 const isBlinking = ref(false);
+const blinkingBlock = ref(false);
 
 function timeFrameBlink() {
   isBlinking.value = true;
@@ -184,6 +185,10 @@ function timeFrameBlink() {
 }
 
 function onCustomTFInputClick(input: string) {
+  blinkingBlock.value = true;
+  setTimeout(() => {
+    blinkingBlock.value = false;
+  }, 400);
   if (!Object.keys(allowedTimeFramesEnum).includes(input)) {
     $q.notify({
       message: `The Input '${input}' is not a valid timeframe.`,
@@ -242,7 +247,7 @@ onMounted(() => {
     background-color: white;
   }
   50% {
-    background-color: var(--q-secondary);
+    background-color: $accent;
   }
   100% {
     background-color: white;
