@@ -152,7 +152,11 @@ watch(lookbackNumber, () => {
 });
 watch(lookbackPeriodString, () => {
   lookbackBlink();
-  selectedLookback.value = lookbackPeriodString.value;
+  if (lookbackNumber.value === 5) {
+    selectedLookback.value = '5year';
+  } else {
+    selectedLookback.value = lookbackPeriodString.value;
+  }
 });
 
 function onLookbackClick(period: LookbackPeriod) {

@@ -880,25 +880,25 @@ function calculateAndSetlookbackNumber() {
     candlesInChartData.value[0].d.getTime();
   if (timeDiffInMs < HOUR) {
     lookbackPeriodString.value = '1minute';
-    lookbackNumber.value = Math.floor((timeDiffInMs / MIN) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / MIN) * 10) / 10;
   } else if (timeDiffInMs < DAY) {
     lookbackPeriodString.value = '1hour';
-    lookbackNumber.value = Math.floor((timeDiffInMs / HOUR) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / HOUR) * 10) / 10;
   } else if (timeDiffInMs < WEEK) {
     lookbackPeriodString.value = '1day';
-    lookbackNumber.value = Math.floor((timeDiffInMs / DAY) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / DAY) * 10) / 10;
   } else if (timeDiffInMs < MONTH) {
     lookbackPeriodString.value = '1week';
-    lookbackNumber.value = Math.floor((timeDiffInMs / WEEK) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / WEEK) * 10) / 10;
   } else if (timeDiffInMs < MONTH * 3) {
     lookbackPeriodString.value = '1month';
-    lookbackNumber.value = Math.floor((timeDiffInMs / MONTH) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / MONTH) * 10) / 10;
   } else if (timeDiffInMs < YEAR) {
     lookbackPeriodString.value = '1quarter';
-    lookbackNumber.value = Math.floor((timeDiffInMs / MONTH / 3) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / MONTH / 3) * 10) / 10;
   } else {
     lookbackPeriodString.value = '1year';
-    lookbackNumber.value = Math.floor((timeDiffInMs / YEAR) * 10) / 10;
+    lookbackNumber.value = Math.round((timeDiffInMs / YEAR) * 10) / 10;
   }
 }
 
