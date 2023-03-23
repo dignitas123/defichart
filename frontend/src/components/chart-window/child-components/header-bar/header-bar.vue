@@ -37,7 +37,9 @@
           @click="$emit('zoomIn')"
         >
           <InfoTooltip
-            >Zoom in<InfoBadge color="white">c</InfoBadge></InfoTooltip
+            >Zoom in<InfoBadge class="q-ml-xs" color="white"
+              >c</InfoBadge
+            ></InfoTooltip
           >
         </q-btn>
       </span>

@@ -6,6 +6,7 @@ import {
   MIN,
   MONTH,
   WEEK,
+  YEAR,
 } from 'src/pages/broker-charts/consts';
 import {
   TimeDisplayProperties,
@@ -318,8 +319,11 @@ export function useDateFunctions(
             bold = true;
           }
         }
-        if (timeDisplayProps.value.mode !== TimeMode.Y1) {
-          if (monthTransition && month === 6) {
+        if (
+          timeDisplayProps.value.mode !== TimeMode.Y1 &&
+          timeDisplayProps.value.mode !== TimeMode.Y3
+        ) {
+          if (month === 6 && monthTransition) {
             showEntryDateFormat = 'MMM';
           }
         }
@@ -335,7 +339,7 @@ export function useDateFunctions(
   }
 
   function timeDisplayProperties(candleSumWidthPx: number) {
-    let mode = TimeMode.Y1;
+    let mode = TimeMode.Y3;
     let period = TimeModePeriod.Year;
     let minuteTimeDifferential = 5;
     if (!width || !dates.value) {
@@ -388,10 +392,14 @@ export function useDateFunctions(
       mode = TimeMode.W2;
     } else if (tDifDB < 4.9 * WEEK) {
       mode = TimeMode.MN1;
-    } else if (tDifDB < 5 * MONTH) {
+    } else if (tDifDB < 2 * MONTH) {
       mode = TimeMode.MN6;
-    } else {
+    } else if (tDifDB < 0.18 * YEAR) {
       mode = TimeMode.Y1;
+    } else if (tDifDB < 0.5 * YEAR) {
+      mode = TimeMode.Y2;
+    } else {
+      mode = TimeMode.Y3;
     }
 
     if (

@@ -1,3 +1,4 @@
+// TimeMode means case difference for time distances on the date axis
 export enum TimeMode {
   M1,
   M5,
@@ -14,6 +15,8 @@ export enum TimeMode {
   MN1,
   MN6,
   Y1,
+  Y2,
+  Y3,
 }
 
 export enum TimeModePeriod {
