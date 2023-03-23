@@ -28,6 +28,23 @@ html.ns-resize * {
   display: none;
 }
 
+// Animations
+.blink {
+  animation: blink 0.5s;
+}
+
+@keyframes blink {
+  0% {
+    background-color: white;
+  }
+  50% {
+    background-color: $accent;
+  }
+  100% {
+    background-color: white;
+  }
+}
+
 // Quasar Overwrites
 .q-bar--standard,
 .q-bar--dense {

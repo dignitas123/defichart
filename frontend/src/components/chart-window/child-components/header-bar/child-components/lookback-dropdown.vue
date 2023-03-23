@@ -7,8 +7,9 @@
     size="sm"
     :ripple="false"
     color="primary"
-    :label="selectedLookback"
+    :label="selectedVariableLookback"
     class="lookback-dropdown-button header-button q-px-xs"
+    :class="{ blink: isBlinking && !blinkingBlock }"
   >
     <q-menu v-model="lookbackMenuShowing" bordered>
       <q-list dense v-if="showLookbackMenuList">
@@ -105,28 +106,53 @@
 </template>
 
 <script setup lang="ts">
-import { inject, watch, onMounted, Ref, ref } from 'vue';
+import { inject, watch, onMounted, Ref, ref, computed } from 'vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
-import { LookbackPeriod } from './lookback-dropdown.if';
+import {
+  LookbackPeriod,
+  LookbackPeriodString,
+  lookbackPeriodStringEnum,
+} from './lookback-dropdown.if';
 import { INITIAL_LOOKBACK_PERIOD } from 'src/pages/broker-charts/consts';
 import { useQuasar } from 'quasar';
 
 const emit = defineEmits<{
-  (event: 'lookBackPeriodChanged', lookBack: LookbackPeriod): void;
+  (event: 'lookBackPeriodChanged', lookBack: LookbackPeriodString): void;
 }>();
 
 const $q = useQuasar();
 
 // TODO: should come from the users saved settings
-const selectedLookback = ref<LookbackPeriod>(INITIAL_LOOKBACK_PERIOD);
+const selectedLookback = ref<LookbackPeriodString>(INITIAL_LOOKBACK_PERIOD);
+
+const lookbackVariableNumber = ref(1);
+
+const selectedVariableLookback = computed(() => {
+  const lookbackNameString =
+    lookbackVariableNumber.value === 1
+      ? lookbackPeriodStringEnum[selectedLookback.value].singular
+      : lookbackPeriodStringEnum[selectedLookback.value].plural;
+  return lookbackVariableNumber.value + lookbackNameString;
+});
 
 const showLookbackMenuList = ref(true);
 const lookbackMenuShowing = ref(false);
 
 const lookbackSetByUser = inject('lookbackSetByUser') as Ref<LookbackPeriod>;
+const lookbackNumber = inject('lookbackNumber') as Ref<number>;
+const lookbackPeriodString = inject(
+  'lookbackPeriodString'
+) as Ref<LookbackPeriodString>;
 
 watch(lookbackSetByUser, () => {
   selectedLookback.value = lookbackSetByUser.value;
+});
+watch(lookbackNumber, () => {
+  lookbackVariableNumber.value = lookbackNumber.value;
+});
+watch(lookbackPeriodString, () => {
+  lookbackBlink();
+  selectedLookback.value = lookbackPeriodString.value;
 });
 
 function onLookbackClick(period: LookbackPeriod) {
@@ -138,6 +164,16 @@ function onLookbackClick(period: LookbackPeriod) {
     showLookbackMenuList.value = true;
   }, 500);
   lookbackMenuShowing.value = false;
+}
+
+const isBlinking = ref(false);
+const blinkingBlock = ref(false);
+
+function lookbackBlink() {
+  isBlinking.value = true;
+  setTimeout(() => {
+    isBlinking.value = false;
+  }, 400);
 }
 
 onMounted(() => {

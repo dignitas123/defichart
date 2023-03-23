@@ -161,6 +161,8 @@ import {
   MIN,
   HOUR,
   WEEK,
+  MONTH,
+  YEAR,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
@@ -172,6 +174,7 @@ import {
 import {
   LookbackPeriod,
   lookbackPeriodEnum,
+  LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
 
 const props = defineProps<{
@@ -185,7 +188,7 @@ const props = defineProps<{
   offset: number;
   maxCandles: number;
   timeFrame: TimeFrame;
-  lookbackPeriod: LookbackPeriod;
+  lookbackPeriod: LookbackPeriodString;
 }>();
 
 const emit = defineEmits<{
@@ -201,7 +204,7 @@ const emit = defineEmits<{
   (event: 'update:offset', offset: number): void;
   (event: 'update:maxCandles', maxCandes: number): void;
   (event: 'update:timeFrame', timeFrame: TimeFrame): void;
-  (event: 'update:lookbackPeriod', lookbackPeriod: LookbackPeriod): void;
+  (event: 'update:lookbackPeriod', lookbackPeriod: LookbackPeriodString): void;
 }>();
 
 const DATEROW_HEIGHT = 22;
@@ -367,6 +370,7 @@ watch(candlesShow, async () => {
   if (newPriceMidPoint) {
     crosshair.y = newPriceMidPoint;
   }
+  calculateAndSetlookbackNumber();
 });
 watch(
   () => props.candlesShow,
@@ -431,6 +435,11 @@ provide('timeFrameSetByUser', timeFrameSetByUser);
 
 const lookbackSetByUser = ref<LookbackPeriod>();
 provide('lookbackSetByUser', lookbackSetByUser);
+
+const lookbackNumber = ref(1);
+provide('lookbackNumber', lookbackNumber);
+const lookbackPeriodString = ref<LookbackPeriodString>(INITIAL_LOOKBACK_PERIOD);
+provide('lookbackPeriodString', lookbackPeriodString);
 
 function onKeyDown(event: KeyboardEvent) {
   const target = event.target as HTMLInputElement;
@@ -750,11 +759,13 @@ async function setTimeFrame(tf: TimeFrame) {
   }
   timeFrame.value = tf;
   await generateChartData();
+  calculateAndSetlookbackNumber();
 }
 
 // @setLookbackPeriod emit (.header-bar)
-function setLookbackPeriod(period: LookbackPeriod) {
+async function setLookbackPeriod(period: LookbackPeriodString) {
   lookbackPeriod.value = period;
+  await setChartVariables(lookbackPeriod.value);
 }
 
 function calculateAdditionalCandles(candlesDiffInMs: number) {
@@ -772,7 +783,7 @@ function calculateAdditionalCandles(candlesDiffInMs: number) {
 }
 
 const afterChartDataAvailable = ref(false);
-async function setChartVariables(lookBackPeriod: LookbackPeriod) {
+async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
   if (!chartWidth.value) {
     return;
   }
@@ -803,6 +814,11 @@ async function setChartVariables(lookBackPeriod: LookbackPeriod) {
   }
   candlesShow.value = Math.round(appropriateCandles + additionalCandles);
   afterChartDataAvailable.value = true;
+  if (lookbackPeriod.value === '5year') {
+    lookbackNumber.value = 5;
+  } else {
+    lookbackNumber.value = 1;
+  }
 }
 
 const afterCandlesShowSet = ref(false);
@@ -858,6 +874,34 @@ async function generateChartData() {
   }
 }
 
+function calculateAndSetlookbackNumber() {
+  const timeDiffInMs =
+    candlesInChartData.value[candlesInChartData.value.length - 1].d.getTime() -
+    candlesInChartData.value[0].d.getTime();
+  if (timeDiffInMs < HOUR) {
+    lookbackPeriodString.value = '1minute';
+    lookbackNumber.value = Math.floor((timeDiffInMs / MIN) * 10) / 10;
+  } else if (timeDiffInMs < DAY) {
+    lookbackPeriodString.value = '1hour';
+    lookbackNumber.value = Math.floor((timeDiffInMs / HOUR) * 10) / 10;
+  } else if (timeDiffInMs < WEEK) {
+    lookbackPeriodString.value = '1day';
+    lookbackNumber.value = Math.floor((timeDiffInMs / DAY) * 10) / 10;
+  } else if (timeDiffInMs < MONTH) {
+    lookbackPeriodString.value = '1week';
+    lookbackNumber.value = Math.floor((timeDiffInMs / WEEK) * 10) / 10;
+  } else if (timeDiffInMs < MONTH * 3) {
+    lookbackPeriodString.value = '1month';
+    lookbackNumber.value = Math.floor((timeDiffInMs / MONTH) * 10) / 10;
+  } else if (timeDiffInMs < YEAR) {
+    lookbackPeriodString.value = '1quarter';
+    lookbackNumber.value = Math.floor((timeDiffInMs / MONTH / 3) * 10) / 10;
+  } else {
+    lookbackPeriodString.value = '1year';
+    lookbackNumber.value = Math.floor((timeDiffInMs / YEAR) * 10) / 10;
+  }
+}
+
 watch(timeFrameSetByUser, async () => {
   if (
     !timeFrameSetByUser.value ||
@@ -867,10 +911,7 @@ watch(timeFrameSetByUser, async () => {
   }
   await generateChartData();
   timeFrame.value = timeFrameSetByUser.value;
-});
-
-watch(lookbackPeriod, async () => {
-  await setChartVariables(lookbackPeriod.value);
+  calculateAndSetlookbackNumber();
 });
 
 watch(

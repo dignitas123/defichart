@@ -69,7 +69,7 @@ import InfoTooltip from 'src/shared/components/info-tooltip.vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { TimeFrame } from './child-components/time-frame-dropdown.if';
 import LookbackDropdown from './child-components/lookback-dropdown.vue';
-import { LookbackPeriod } from './child-components/lookback-dropdown.if';
+import { LookbackPeriodString } from './child-components/lookback-dropdown.if';
 
 defineProps<{
   timeFrame: TimeFrame;
@@ -81,7 +81,7 @@ const emit = defineEmits<{
   (event: 'zoomIn'): void;
   (event: 'zoomOut'): void;
   (event: 'setTimeFrame', timeFrame: TimeFrame): void;
-  (event: 'setLookbackPeriod', lookbackPeriod: LookbackPeriod): void;
+  (event: 'setLookbackPeriod', lookbackPeriod: LookbackPeriodString): void;
 }>();
 
 // @emit timeFrameChanged
@@ -90,7 +90,7 @@ function onTimeFrameChange(tf: TimeFrame) {
 }
 
 // @emit lookBackPeriodChanged
-function onLoockbackPeriodChange(lookbackPeriod: LookbackPeriod) {
+function onLoockbackPeriodChange(lookbackPeriod: LookbackPeriodString) {
   emit('setLookbackPeriod', lookbackPeriod);
 }
 </script>

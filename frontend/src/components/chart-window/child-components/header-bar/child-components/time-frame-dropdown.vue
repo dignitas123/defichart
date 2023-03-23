@@ -131,6 +131,7 @@ import { useQuasar } from 'quasar';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import { allowedTimeFramesEnum, TimeFrame } from './time-frame-dropdown.if';
 import { StandardTimeFrames } from 'src/components/chart-window/chart-window.if';
+import { INITIAL_TIME_FRAME } from 'src/pages/broker-charts/consts';
 
 const props = defineProps<{
   timeFrame: TimeFrame;
@@ -143,7 +144,7 @@ const emit = defineEmits<{
 const $q = useQuasar();
 
 // TODO: should come from the users saved settings
-const selectedTimeFrame = ref<TimeFrame>('M5');
+const selectedTimeFrame = ref<TimeFrame>(INITIAL_TIME_FRAME);
 
 const exampleTextForTimeFrame = computed(() => {
   return $q.platform.is.mobile ? 'M2..' : 'Custom';
@@ -171,6 +172,10 @@ watch(
 );
 
 watch(timeFrameSetByUser, () => {
+  blinkingBlock.value = true;
+  setTimeout(() => {
+    blinkingBlock.value = false;
+  }, 400);
   selectedTimeFrame.value = timeFrameSetByUser.value;
 });
 
@@ -236,22 +241,6 @@ onMounted(() => {
   padding-left: 4px;
   margin-top: 2px;
   margin-bottom: 2px;
-}
-
-.blink {
-  animation: blink 0.5s;
-}
-
-@keyframes blink {
-  0% {
-    background-color: white;
-  }
-  50% {
-    background-color: $accent;
-  }
-  100% {
-    background-color: white;
-  }
 }
 </style>
 
