@@ -129,7 +129,11 @@
 import { inject, watch, onMounted, Ref, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import InfoBadge from 'src/shared/components/info-badge.vue';
-import { allowedTimeFramesEnum, TimeFrame } from './time-frame-dropdown.if';
+import {
+  allowedTimeFrames,
+  allowedTimeFramesEnum,
+  TimeFrame,
+} from './time-frame-dropdown.if';
 import { StandardTimeFrames } from 'src/components/chart-window/chart-window.if';
 import { INITIAL_TIME_FRAME } from 'src/pages/broker-charts/consts';
 
@@ -196,7 +200,12 @@ function onCustomTFInputClick(input: string) {
   }, 400);
   if (!Object.keys(allowedTimeFramesEnum).includes(input)) {
     $q.notify({
-      message: `The Input '${input}' is not a valid timeframe.`,
+      message: `The Input <b>'${input}'</b> is not a valid timeframe. Available timeframes are <i>${allowedTimeFrames.join(
+        ', '
+      )}</i>. <br />More timeframes are a work in progress.`,
+      actions: [{ icon: 'close', color: 'white' }],
+      html: true,
+      timeout: 7000,
     });
   } else {
     emit('timeFrameChanged', input as TimeFrame);
