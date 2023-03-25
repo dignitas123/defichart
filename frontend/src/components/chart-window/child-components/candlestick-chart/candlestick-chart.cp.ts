@@ -186,6 +186,9 @@ export function useDateFunctions(
           }
         } else if (hours % 2 === 0 && minutes === 0) {
           showEntryDateFormat = 'HH:mm';
+          if(hours % 4 === 0) {
+            bold = true;
+          }
         }
       } else if (timeFrameModeChar.value === 'D') {
         showEntryDateFormat = 'dd.MM';
