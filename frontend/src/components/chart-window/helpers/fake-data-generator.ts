@@ -11,7 +11,7 @@ export function generateData(
   timeModeCount: number
 ): OHLC[] {
   const data = [];
-  let o = roundToTicksize(100, DATA_TICKSIZE);
+  let o = roundToTicksize(60, DATA_TICKSIZE);
   const date = new Date();
   let currentDate = new Date();
   if (timeMode === 'M') {

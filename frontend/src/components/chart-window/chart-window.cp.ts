@@ -15,8 +15,8 @@ export function useChartData(
   maxCandles: Ref<number>,
   candlesShow: Ref<number>,
   offset: Ref<number>,
-  candlesInChartHighScale: Ref<number>,
-  candlesInChartLowScale: Ref<number>
+  chartHighScale: Ref<number>,
+  chartLowScale: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -62,51 +62,58 @@ export function useChartData(
     return data.value.map((ohlc) => ohlc.d);
   });
 
-  const candlesInChartHigh = ref(999999999);
-  const candlesInChartLow = ref(0);
+  const high = computed(() => {
+    return Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h)));
+  });
 
-  function setCandlesInChartHigh() {
-    if (candlesInChartData.value.length) {
-      return roundToTicksize(
-        Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h))) *
-          candlesInChartHighScale.value,
-        DATA_TICKSIZE
-      );
-    }
-    return 999999999;
-  }
+  const low = computed(() => {
+    return Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l)));
+  });
 
-  function setCandlesInChartLow() {
-    if (candlesInChartData.value.length) {
-      return (
-        Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l))) *
-        candlesInChartLowScale.value
-      );
-    }
-    return 0;
-  }
+  const h2l = computed(() => {
+    return high.value - low.value;
+  });
 
-  // TODO: refactor candlesInChartHighScale and candlesInChartLowScale out
-  watch(
-    [candlesInChartData, candlesInChartHighScale, candlesInChartLowScale],
-    () => {
-      candlesInChartHigh.value = setCandlesInChartHigh();
-      candlesInChartLow.value = setCandlesInChartLow();
-    }
-  );
+  const chartHigh = ref(0);
+  const chartLow = ref(0);
 
-  const candlesInChartH2L = computed(() => {
-    if (!candlesInChartHigh.value || !candlesInChartLow.value) {
+  watch(candlesInChartData, () => {
+    chartHigh.value = roundToTicksize(
+      high.value + h2l.value * chartHighScale.value,
+      DATA_TICKSIZE
+    );
+    chartLow.value = roundToTicksize(
+      low.value - h2l.value * chartLowScale.value,
+      DATA_TICKSIZE
+    );
+  });
+
+  watch(chartHighScale, () => {
+    chartHigh.value = roundToTicksize(
+      high.value + h2l.value * chartHighScale.value,
+      DATA_TICKSIZE
+    );
+  });
+
+  watch(chartLowScale, () => {
+    chartLow.value = roundToTicksize(
+      low.value - h2l.value * chartLowScale.value,
+      DATA_TICKSIZE
+    );
+  });
+
+  const chartH2L = computed(() => {
+    if (!chartHigh.value || !chartLow.value) {
       return undefined;
     }
-    return candlesInChartHigh.value - candlesInChartLow.value;
+    return chartHigh.value - chartLow.value;
   });
 
   return {
     candlesInChartData,
-    candlesInChartHigh,
-    candlesInChartLow,
-    candlesInChartH2L,
+    chartHigh,
+    chartLow,
+    chartH2L,
     decreaseCandlesShow,
     increaseCandlesShow,
     dataDates,
