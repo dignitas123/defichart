@@ -108,7 +108,11 @@
         </div>
       </div>
       <div class="date-row">
-        <div class="timestamps" @mousedown="startXDrag">
+        <div
+          class="timestamps"
+          @mousedown="startXDrag"
+          @click="registerClickOnDateAxis"
+        >
           <DateAxis
             :width="chartWidth"
             :selectedCandleIndex="selectedCandleIndex"
@@ -226,6 +230,8 @@ const offset = ref(props.offset);
 const maxCandles = ref(props.maxCandles);
 const timeFrame = ref(props.timeFrame);
 const lookbackPeriod = ref(props.lookbackPeriod);
+
+const initialCandlesShow = ref(0);
 
 const timeMode = computed(() => {
   return timeFrame.value.charAt(0) as TimeFrameMode;
@@ -568,9 +574,27 @@ function registerClickOnPriceAxis() {
   }
 }
 
+function registerClickOnDateAxis() {
+  clickCount.value++;
+  if (clickCount.value === 1) {
+    timer.value = setTimeout(() => {
+      clickCount.value = 0;
+    }, 300);
+  } else if (clickCount.value === 2) {
+    clearTimeout(timer.value);
+    clickCount.value = 0;
+    handleDoubleClickOnDateAxis();
+  }
+}
+
 function handleDoubleClickOnPriceAxis() {
   chartHighScale.value = 0;
   chartLowScale.value = 0;
+}
+function handleDoubleClickOnDateAxis() {
+  handleDoubleClickOnPriceAxis();
+  offset.value = 0;
+  candlesShow.value = initialCandlesShow.value;
 }
 
 const blockPriceAxisDownDrag = ref(false);
@@ -810,6 +834,7 @@ async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
     return;
   }
   candlesShow.value = Math.round(appropriateCandles + additionalCandles);
+  initialCandlesShow.value = candlesShow.value;
   afterChartDataAvailable.value = true;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
