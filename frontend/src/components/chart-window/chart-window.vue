@@ -59,9 +59,9 @@
             :data="candlesInChartData"
             :dates="dataDates"
             :candleCount="candlesShow"
-            :h2l="chartH2L"
-            :high="chartHigh"
-            :low="chartLow"
+            :h2l="candlesInChartH2L"
+            :high="candlesInChartHigh"
+            :low="candlesInChartLow"
             :height="chartHeight"
             :width="chartWidth"
             :priceLines="priceLines"
@@ -96,9 +96,9 @@
           <PriceAxis
             v-if="afterCandlesShowSet"
             :currentCandleClose="currentCandleOHLC?.c"
-            :h2l="chartH2L"
-            :high="chartHigh"
-            :low="chartLow"
+            :h2l="candlesInChartH2L"
+            :high="candlesInChartHigh"
+            :low="candlesInChartLow"
             :height="chartHeight"
             :crossHairY="crosshair.y"
             :badgeShow="crosshair.show"
@@ -289,10 +289,10 @@ function findCandleMidpoint(x: number) {
 }
 
 function findPriceMidpoint(y: number) {
-  if (!chartHeight.value || !chartH2L.value) {
+  if (!chartHeight.value || !candlesInChartH2L.value) {
     return undefined;
   }
-  const scale = DATA_TICKSIZE * (chartHeight.value / chartH2L.value);
+  const scale = DATA_TICKSIZE * (chartHeight.value / candlesInChartH2L.value);
   const newY = Math.round(y / scale) * scale;
   return newY === 0 ? 0.1 : newY; // 0.1 to show it on top
 }
@@ -491,16 +491,16 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-const chartHighScaleCount = ref(1);
-const chartLowScaleCount = ref(1);
+const candlesInChartHighScale = ref(1);
+const candlesInChartLowScale = ref(1);
 
 const {
   increaseCandlesShow,
   decreaseCandlesShow,
   candlesInChartData,
-  chartH2L,
-  chartHigh,
-  chartLow,
+  candlesInChartH2L,
+  candlesInChartHigh,
+  candlesInChartLow,
   dataDates,
   startingDistanceDifference,
 } = useChartData(
@@ -508,8 +508,8 @@ const {
   maxCandles,
   candlesShow,
   offset,
-  chartHighScaleCount,
-  chartLowScaleCount
+  candlesInChartHighScale,
+  candlesInChartLowScale
 );
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
@@ -569,12 +569,23 @@ function registerClickOnPriceAxis() {
 }
 
 function handleDoubleClickOnPriceAxis() {
-  chartHighScaleCount.value = 1;
-  chartLowScaleCount.value = 1;
+  candlesInChartHighScale.value = 1;
+  candlesInChartLowScale.value = 1;
 }
 
 const blockPriceAxisDownDrag = ref(false);
 const blockPriceAxisUpDrag = ref(false);
+
+function calcuLateNewScale(currentScale: number, scalePercentage: number) {
+  if (!candlesInChartH2L.value || !candlesInChartLow.value) {
+    return 1;
+  }
+  const newH2LRoundedToTicksize =
+    candlesInChartLow.value +
+    candlesInChartH2L.value * (currentScale + scalePercentage) -
+    candlesInChartLow.value;
+  return newH2LRoundedToTicksize / candlesInChartH2L.value;
+}
 
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
@@ -589,33 +600,37 @@ function onYDrag(event: MouseEvent) {
     timeAxisDraggingStart.value = event.x;
   }
   if (priceAxisDrag.value) {
-    if (!chartH2L.value) {
-      return;
-    }
-    const rangeIncreaseValue = initialH2L.value * 0.0066;
     if (event.y > priceAxisDraggingStart.value) {
-      if (chartLowScaleCount.value < 1) {
-        chartLowScaleCount.value++;
-        chartLow.value += rangeIncreaseValue;
+      if (candlesInChartLowScale.value < 1) {
+        candlesInChartLowScale.value = calcuLateNewScale(
+          candlesInChartLowScale.value,
+          scalePercentIncrease
+        );
         blockPriceAxisUpDrag.value = true;
         timer.value = setTimeout(() => {
           blockPriceAxisUpDrag.value = false;
         }, 1_000);
       } else if (!blockPriceAxisUpDrag.value) {
-        chartHighScaleCount.value++;
-        chartHigh.value += rangeIncreaseValue;
+        candlesInChartHighScale.value = calcuLateNewScale(
+          candlesInChartHighScale.value,
+          scalePercentIncrease
+        );
       }
     } else if (event.y < priceAxisDraggingStart.value) {
-      if (chartHighScaleCount.value > 1) {
-        chartHighScaleCount.value--;
-        chartHigh.value -= rangeIncreaseValue;
+      if (candlesInChartHighScale.value > 1) {
+        candlesInChartHighScale.value = calcuLateNewScale(
+          candlesInChartHighScale.value,
+          -scalePercentIncrease
+        );
         blockPriceAxisDownDrag.value = true;
         timer.value = setTimeout(() => {
           blockPriceAxisDownDrag.value = false;
         }, 1_000);
       } else if (!blockPriceAxisDownDrag.value) {
-        chartLowScaleCount.value--;
-        chartLow.value -= rangeIncreaseValue;
+        candlesInChartLowScale.value = calcuLateNewScale(
+          candlesInChartLowScale.value,
+          -scalePercentIncrease
+        );
       }
     }
     priceAxisDraggingStart.value = event.y;
@@ -697,12 +712,12 @@ const currentCandleOHLC = ref<OHLC>();
 
 // TODO: simulates the current candle stream changes, but has to be replaced by real stream
 setInterval(() => {
-  if (!chartH2L.value || !currentCandleOHLC.value) {
+  if (!candlesInChartH2L.value || !currentCandleOHLC.value) {
     return;
   }
   const upDown = Math.random() >= 0.5 ? true : false;
   const random = Math.random();
-  const h2l10p = chartH2L.value / 10;
+  const h2l10p = candlesInChartH2L.value / 10;
   currentCandleOHLC.value.c += roundToTicksize(
     upDown ? h2l10p * random : -h2l10p * random,
     DATA_TICKSIZE
@@ -717,18 +732,18 @@ watch(
     }
     if (currentCandleOHLC.value.c > currentCandleOHLC.value.h) {
       currentCandleOHLC.value.h = currentCandleOHLC.value.c;
-      if (currentCandleOHLC.value.h > chartHigh.value) {
+      if (currentCandleOHLC.value.h > candlesInChartHigh.value) {
         if (offset.value === 0) {
-          chartHigh.value = currentCandleOHLC.value.c;
+          candlesInChartHigh.value = currentCandleOHLC.value.c;
         }
         currentCandleOHLC.value.h = currentCandleOHLC.value.c;
       }
     }
     if (currentCandleOHLC.value.c < currentCandleOHLC.value.l) {
       currentCandleOHLC.value.l = currentCandleOHLC.value.c;
-      if (currentCandleOHLC.value.l < chartLow.value) {
+      if (currentCandleOHLC.value.l < candlesInChartLow.value) {
         if (offset.value === 0) {
-          chartLow.value = currentCandleOHLC.value.c;
+          candlesInChartLow.value = currentCandleOHLC.value.c;
         }
         currentCandleOHLC.value.l = currentCandleOHLC.value.c;
       }
@@ -806,16 +821,10 @@ async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
   }
 }
 
-const initialH2L = ref(0);
-
 const afterCandlesShowSet = ref(false);
 onMounted(async () => {
   await setChartVariables(INITIAL_LOOKBACK_PERIOD);
   afterCandlesShowSet.value = true;
-  if (!chartH2L.value) {
-    return;
-  }
-  initialH2L.value = chartH2L.value;
 });
 
 async function generateChartData() {
@@ -905,10 +914,13 @@ watch(timeFrameSetByUser, async () => {
   calculateAndSetlookbackNumber();
 });
 
-watch([chartHeight, candlesShow, offset, chartHigh, chartLow], async () => {
-  await nextTick();
-  priceLines.value = [];
-});
+watch(
+  [chartHeight, candlesShow, offset, candlesInChartHigh, candlesInChartLow],
+  async () => {
+    await nextTick();
+    priceLines.value = [];
+  }
+);
 
 // @maximize emit
 function maximize() {

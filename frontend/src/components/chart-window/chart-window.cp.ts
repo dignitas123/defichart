@@ -15,8 +15,8 @@ export function useChartData(
   maxCandles: Ref<number>,
   candlesShow: Ref<number>,
   offset: Ref<number>,
-  chartHighScale: Ref<number>,
-  chartLowScaleCount: Ref<number>
+  candlesInChartHighScale: Ref<number>,
+  candlesInChartLowScale: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -62,47 +62,51 @@ export function useChartData(
     return data.value.map((ohlc) => ohlc.d);
   });
 
-  const chartHigh = ref(999999999);
-  const chartLow = ref(0);
+  const candlesInChartHigh = ref(999999999);
+  const candlesInChartLow = ref(0);
 
-  function setchartHigh() {
+  function setCandlesInChartHigh() {
     if (candlesInChartData.value.length) {
       return roundToTicksize(
         Math.max(...candlesInChartData.value.map((ohlc) => Number(ohlc.h))) *
-          chartHighScale.value,
+          candlesInChartHighScale.value,
         DATA_TICKSIZE
       );
     }
     return 999999999;
   }
 
-  function setchartLow() {
+  function setCandlesInChartLow() {
     if (candlesInChartData.value.length) {
       return (
         Math.min(...candlesInChartData.value.map((ohlc) => Number(ohlc.l))) *
-        chartLowScaleCount.value
+        candlesInChartLowScale.value
       );
     }
     return 0;
   }
 
-  watch(candlesInChartData, () => {
-    chartHigh.value = setchartHigh();
-    chartLow.value = setchartLow();
-  });
+  // TODO: refactor candlesInChartHighScale and candlesInChartLowScale out
+  watch(
+    [candlesInChartData, candlesInChartHighScale, candlesInChartLowScale],
+    () => {
+      candlesInChartHigh.value = setCandlesInChartHigh();
+      candlesInChartLow.value = setCandlesInChartLow();
+    }
+  );
 
-  const chartH2L = computed(() => {
-    if (!chartHigh.value || !chartLow.value) {
+  const candlesInChartH2L = computed(() => {
+    if (!candlesInChartHigh.value || !candlesInChartLow.value) {
       return undefined;
     }
-    return chartHigh.value - chartLow.value;
+    return candlesInChartHigh.value - candlesInChartLow.value;
   });
 
   return {
     candlesInChartData,
-    chartHigh,
-    chartLow,
-    chartH2L,
+    candlesInChartHigh,
+    candlesInChartLow,
+    candlesInChartH2L,
     decreaseCandlesShow,
     increaseCandlesShow,
     dataDates,
