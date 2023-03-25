@@ -40,18 +40,8 @@ import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
 import {
   HEADER_HEIGHT,
-  WANTED_PX_PER_CANDLE,
 } from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
-import {
-  LookbackPeriod,
-  lookbackPeriodEnum,
-} from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
-import { findNearestIndex } from 'src/shared/utils/array-functions';
-import {
-  allowedTimeFramesEnum,
-  TimeFrame,
-} from 'src/components/chart-window/child-components/header-bar/child-components/time-frame-dropdown.if';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
