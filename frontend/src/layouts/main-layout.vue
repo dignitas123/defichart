@@ -1,20 +1,49 @@
 <template>
   <q-layout view="lHh lpr lFf" container style="height: 100vh">
     <q-header elevated>
-      <q-bar>
+      <q-bar style="padding-right: 0">
         <q-icon name="img:deficharts.svg" />
         <q-icon
           name="img:deficharts_text.svg"
           style="width: auto; height: auto"
         />
         <q-space />
-
-        <div v-if="accountPublicAddress">{{ accountPublicAddress }}</div>
         <q-btn
-          v-if="afterMounted && !accountPublicAddress"
+          v-if="selectedAccountAddress && ethBalance"
+          unelevated
+          class="q-px-sm"
           transition-show="fade"
           dense
-          class="secondary-gradient"
+          color="accent"
+          :ripple="false"
+          text-color="white"
+          @click="rightDrawerOpen = true"
+        >
+          <span class="q-mr-sm">{{ ethBalance.substring(0, 5) }} ETH</span
+          ><q-btn
+            dense
+            glossy
+            no-caps
+            :ripple="false"
+            color="secondary"
+            class="secondary-gradient"
+            text-color="primary"
+            style="opacity: 0.95"
+          >
+            <div class="row inline items-center">
+              <span>{{ accountAddressFirst7Digits }}</span
+              ><JazzIcon
+                class="flex q-ml-xs"
+                :address="selectedAccountAddress"
+                :diameter="16"
+              /></div
+          ></q-btn>
+        </q-btn>
+        <q-btn
+          v-if="afterMounted && !selectedAccountAddress"
+          transition-show="fade"
+          dense
+          class="secondary-gradient q-mr-xs"
           :ripple="false"
           text-color="primary"
           label="Connect Wallet"
@@ -23,6 +52,10 @@
       </q-bar>
     </q-header>
 
+    <q-drawer v-model="rightDrawerOpen" rounded side="right" overlay bordered>
+      <!-- drawer content -->
+    </q-drawer>
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -30,25 +63,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
+import { formatEther } from '@ethersproject/units';
 import { useWeb3Provider } from 'src/shared/composables/web3provider';
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
+import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
 
 const { getProviderAndSigner } = useWeb3Provider();
 
 const web3Instance = ref();
-const web3Provider = ref<Web3Provider>();
+let web3Provider: Web3Provider | undefined;
 const web3Signer = ref<JsonRpcSigner>();
-
 const web3Accounts = ref<string[]>([]);
+const ethBalance = ref<string>();
 
-const accountPublicAddress = computed(() => {
+const selectedAccountAddress = computed(() => {
   const account = web3Accounts.value[0];
   if (!account) {
     return undefined;
   }
-  return account.slice(0, 4) + '...' + web3Accounts.value[0].slice(-4);
+  return account;
 });
+
+const accountAddressFirst7Digits = computed(() => {
+  return selectedAccountAddress.value?.substring(0, 7);
+});
+
+// TODO: use in drawer
+const accountAddessDottedVersion = computed(() => {
+  return (
+    selectedAccountAddress.value?.slice(0, 4) +
+    '...' +
+    web3Accounts.value[0].slice(-4)
+  );
+});
+
+const rightDrawerOpen = ref(false);
 
 const afterMounted = ref(false);
 onMounted(async () => {
@@ -58,16 +108,36 @@ onMounted(async () => {
   afterMounted.value = true;
 });
 
+async function getEthBalance() {
+  if (!selectedAccountAddress.value || !web3Provider) {
+    return undefined;
+  }
+  const balance = await web3Provider.getBalance(selectedAccountAddress.value);
+  if (!balance) {
+    return undefined;
+  }
+  return formatEther(balance);
+}
+
 async function setProviderAndSigner() {
   try {
     const { provider, signer, instance } = await getProviderAndSigner();
     if (!provider || !signer || !instance) {
       return;
     }
-    web3Provider.value = provider;
+    web3Provider = provider;
     web3Signer.value = signer;
     web3Instance.value = instance;
-    web3Accounts.value = await web3Provider.value.listAccounts();
+    web3Accounts.value = await web3Provider.listAccounts();
+    ethBalance.value = await getEthBalance();
+    // TODO: get other balances
+    // const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, provider);
+    // const address = '0x9876543210987654321098765432109876543210'; // replace with the Ethereum address whose token balance you want to retrieve
+
+    // async function getTokenBalance() {
+    //   const balance = await tokenContract.balanceOf(address);
+    //   console.log(ethers.utils.formatUnits(balance)); // convert balance to token units and log to console
+    // }
   } catch (e) {
     console.error(e);
   }
@@ -83,6 +153,7 @@ watch(web3Instance, () => {
 
   web3Instance.value.on('chainChanged', (chainId: number) => {
     console.log('chainChanged', chainId);
+    setProviderAndSigner();
   });
 
   web3Instance.value.on('connect', (info: { chainId: number }) => {
@@ -95,5 +166,9 @@ watch(web3Instance, () => {
       console.log('disconnect', error);
     }
   );
+});
+
+onBeforeUnmount(() => {
+  web3Provider = undefined;
 });
 </script>
