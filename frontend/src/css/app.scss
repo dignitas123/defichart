@@ -3,8 +3,6 @@
   font-family: 'Inter';
   src: url(../fonts/Inter-Medium.ttf);
 }
-
-// declare a class which applies it
 .inter-font {
   font-family: 'Inter';
 }
@@ -23,7 +21,6 @@ html.ns-resize,
 html.ns-resize * {
   cursor: ns-resize !important;
 }
-
 ::-webkit-scrollbar {
   display: none;
 }
@@ -32,7 +29,6 @@ html.ns-resize * {
 .blink {
   animation: blink 0.5s;
 }
-
 @keyframes blink {
   0% {
     background-color: white;
@@ -50,6 +46,9 @@ html.ns-resize * {
 .q-bar--dense {
   padding: 0 4px;
 }
+.q-dialog__inner--minimized {
+  padding: 3px;
+}
 
 // Pseudo Classes
 .prevent-select {
@@ -57,35 +56,27 @@ html.ns-resize * {
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
-
 .disable-dbl-tap-zoom {
   touch-action: manipulation;
 }
-
 .d-block {
   display: block;
 }
-
 .d-inline-block {
   display: inline-block;
 }
-
 .float-right {
   float: right;
 }
-
 .bg-shadow-primary {
   box-shadow: 0 0 2px var(--q-primary);
 }
-
 .bg-shadow-secondary {
   box-shadow: 0 0 2px var(--q-secondary);
 }
-
 .secondary-gradient {
   background: linear-gradient(to right, white, var(--q-secondary)) !important;
 }
-
 .transparent-primary-background {
   background: rgba($primary, 0.4) !important;
 }

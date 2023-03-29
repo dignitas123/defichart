@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh lpr lFf" container style="height: 100vh">
+  <q-layout view="hHr LpR fFr" container style="height: 100vh">
     <q-header elevated>
       <q-bar style="padding-right: 0">
         <q-icon name="img:deficharts.svg" />
@@ -13,10 +13,10 @@
           unelevated
           class="q-px-sm"
           dense
-          color="accent"
+          color="transparent"
           :ripple="false"
           text-color="white"
-          @click="rightDrawerOpen = true"
+          @click="walletDrawerOpen = true"
         >
           <span class="q-mr-sm">{{ ethBalance.substring(0, 5) }} ETH</span
           ><q-btn
@@ -43,6 +43,7 @@
           class="q-px-sm"
           width="150px"
           type="QBtn"
+          animation="pulse"
           style="border-radius: 4px"
         />
         <q-btn
@@ -58,9 +59,58 @@
       </q-bar>
     </q-header>
 
-    <q-drawer v-model="rightDrawerOpen" rounded side="right" overlay bordered>
-      <!-- drawer content -->
-    </q-drawer>
+    <q-dialog v-model="walletDrawerOpen" seamless fullHeight position="right">
+      <q-card class="wallet-drawer">
+        <q-card-section class="full-height q-pa-none">
+          <div class="row full-height">
+            <div
+              class="einklappen-col col-auto full-height flex justify-center cursor-pointer"
+              @click="walletDrawerOpen = false"
+            >
+              <q-icon
+                name="chevron_right"
+                size="sm"
+                color="dark"
+                style="top: 25%"
+              />
+            </div>
+            <div class="col q-pa-md">
+              <div class="row items-center" v-if="selectedAccountAddress">
+                <JazzIcon
+                  class="flex q-mr-xs jazz-icon-in-wallet-drawer"
+                  :address="selectedAccountAddress"
+                  :diameter="32"
+                />
+                <span
+                  class="account-dotted non-selectable text-subtitle1 cursor-pointer q-mr-xs"
+                  @mouseover="accountDottedHover = true"
+                  @mouseout="accountDottedHover = false"
+                  @click="copyToClipBoard"
+                  >{{ accountAddessDottedVersion }}</span
+                ><span v-if="accountDottedHover"
+                  ><q-icon color="dark" name="content_copy"
+                /></span>
+                <div style="position: absolute; right: 16px">
+                  <q-btn
+                    icon="settings"
+                    color="primary"
+                    unelevated
+                    text-color="white"
+                    dense
+                    padding="sm"
+                    size="xs"
+                    class="q-mr-xs"
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <!-- TODO: signed in -->
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <q-page-container>
       <router-view />
@@ -74,6 +124,9 @@ import { formatEther } from '@ethersproject/units';
 import { useWeb3Provider } from 'src/shared/composables/web3provider';
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
+import useClipboard from 'vue-clipboard3';
+
+const { toClipboard } = useClipboard();
 
 const { getProviderAndSigner } = useWeb3Provider();
 
@@ -91,9 +144,19 @@ const selectedAccountAddress = computed(() => {
   return account;
 });
 
+const accountDottedHover = ref(false);
+
 const accountAddressFirst7Digits = computed(() => {
   return selectedAccountAddress.value?.substring(0, 7);
 });
+
+async function copyToClipBoard() {
+  try {
+    await toClipboard(selectedAccountAddress.value ?? '');
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 // TODO: use in drawer
 const accountAddessDottedVersion = computed(() => {
@@ -104,7 +167,7 @@ const accountAddessDottedVersion = computed(() => {
   );
 });
 
-const rightDrawerOpen = ref(false);
+const walletDrawerOpen = ref(false);
 
 const afterMounted = ref(false);
 onMounted(async () => {
@@ -182,3 +245,41 @@ onBeforeUnmount(() => {
   web3Provider = undefined;
 });
 </script>
+
+<style lang="scss" scoped>
+.wallet-drawer {
+  width: 320px;
+  height: 150px;
+  right: 3px;
+  border-radius: 4px !important;
+
+  .jazz-icon-in-wallet-drawer {
+    border: 1px solid var(--q-primary);
+    border-radius: 20px;
+    box-shadow: 0px 0px 3px 0px var(--q-primary);
+  }
+
+  .account-dotted:hover {
+    color: var(--q-dark);
+  }
+
+  .einklappen-col {
+    width: 30px;
+    background: linear-gradient(
+      to bottom,
+      rgba($dark, 0) 0%,
+      rgba($dark, 0.1) 25%,
+      rgba($dark, 0) 100%
+    );
+    transition: background-color 0.4s ease;
+    &:hover {
+      background: linear-gradient(
+        to bottom,
+        rgba($dark, 0) 0%,
+        rgba($dark, 0.3) 25%,
+        rgba($dark, 0) 100%
+      );
+    }
+  }
+}
+</style>
