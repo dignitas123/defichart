@@ -12,7 +12,6 @@
           v-if="selectedAccountAddress && ethBalance"
           unelevated
           class="q-px-sm"
-          transition-show="fade"
           dense
           color="accent"
           :ripple="false"
@@ -39,6 +38,13 @@
               /></div
           ></q-btn>
         </q-btn>
+        <q-skeleton
+          v-else
+          class="q-px-sm"
+          width="150px"
+          type="QBtn"
+          style="border-radius: 4px"
+        />
         <q-btn
           v-if="afterMounted && !selectedAccountAddress"
           transition-show="fade"
