@@ -39,7 +39,7 @@
           ></q-btn>
         </q-btn>
         <q-skeleton
-          v-else
+          v-if="loading"
           class="q-px-sm"
           width="150px"
           type="QBtn"
@@ -125,12 +125,15 @@ async function getEthBalance() {
   return formatEther(balance);
 }
 
+const loading = ref(false);
+
 async function setProviderAndSigner() {
   try {
     const { provider, signer, instance } = await getProviderAndSigner();
     if (!provider || !signer || !instance) {
       return;
     }
+    loading.value = true;
     web3Provider = provider;
     web3Signer.value = signer;
     web3Instance.value = instance;
@@ -144,6 +147,7 @@ async function setProviderAndSigner() {
     //   const balance = await tokenContract.balanceOf(address);
     //   console.log(ethers.utils.formatUnits(balance)); // convert balance to token units and log to console
     // }
+    loading.value = false;
   } catch (e) {
     console.error(e);
   }
