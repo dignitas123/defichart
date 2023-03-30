@@ -16,6 +16,50 @@
           </div>
           <div class="col q-pa-md">
             <div class="row items-center" v-if="selectedAccountAddress">
+              <q-btn
+                unelevated
+                class="bg-transparent absolute"
+                round
+                size="12px"
+                :ripple="false"
+              >
+                <q-menu auto-close>
+                  <q-list style="min-width: 120px" dense>
+                    <q-item clickable>
+                      <q-item-section>
+                        <a
+                          :href="`https://etherscan.io/address/${selectedAccountAddress}`"
+                          target="_blank"
+                          class="router-link"
+                        >
+                          <div class="row items-center">
+                            Open in Etherscan<q-icon
+                              name="open_in_new"
+                              class="q-ml-xs"
+                            />
+                          </div>
+                        </a>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      @click="
+                        $emit('disconnect');
+                        open = false;
+                      "
+                    >
+                      <q-item-section>
+                        <div class="row items-center">
+                          Disconnect Wallet<q-icon
+                            name="power_settings_new"
+                            class="q-ml-xs"
+                          />
+                        </div>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
               <JazzIcon
                 class="flex q-mr-xs jazz-icon-in-wallet-drawer"
                 :address="selectedAccountAddress"
@@ -43,8 +87,11 @@
                 />
               </div>
             </div>
-            <div class="row">
+            <div v-if="worthInUSD" class="row">
               <!-- TODO: signed in -->
+              <div class="text-h4 text-weight-medium q-mt-md">
+                ${{ worthInUSD }}
+              </div>
             </div>
           </div>
         </div>
@@ -57,19 +104,35 @@
 import { watch, ref, computed } from 'vue';
 import useClipboard from 'vue-clipboard3';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
+import { useCoinGecko } from 'src/stores/coin-gecko';
+
+const coinGecko = useCoinGecko();
 
 const props = defineProps<{
   open: boolean;
   selectedAccountAddress?: string;
+  ethBalance?: string;
 }>();
 
 const emit = defineEmits<{
   (event: 'update:open', open: boolean): void;
+  (event: 'disconnect'): void;
 }>();
 
 const { toClipboard } = useClipboard();
 
 const open = ref(props.open);
+
+const worthInUSD = computed(() => {
+  if (!props.ethBalance) {
+    return undefined;
+  }
+  return (
+    Math.round(
+      coinGecko.getPrices.ethereum.usd * Number(props.ethBalance) * 100
+    ) / 100
+  );
+});
 
 watch(
   () => props.open,

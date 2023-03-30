@@ -9,7 +9,7 @@
         />
         <q-space />
         <q-btn
-          v-if="selectedAccountAddress && ethBalance"
+          v-if="!loading && selectedAccountAddress && ethBalance"
           unelevated
           class="q-px-sm"
           dense
@@ -38,17 +38,8 @@
               /></div
           ></q-btn>
         </q-btn>
-        <q-skeleton
-          v-if="loading"
-          class="q-px-sm"
-          width="150px"
-          type="QBtn"
-          animation="pulse"
-          style="border-radius: 4px"
-        />
         <q-btn
           v-if="afterMounted && !selectedAccountAddress"
-          transition-show="fade"
           dense
           class="secondary-gradient q-mr-xs"
           :ripple="false"
@@ -56,12 +47,22 @@
           label="Connect Wallet"
           @click="setProviderAndSigner"
         />
+        <q-skeleton
+          v-else-if="loading"
+          class="q-px-sm"
+          width="150px"
+          type="QBtn"
+          animation="pulse"
+          style="border-radius: 4px"
+        />
       </q-bar>
     </q-header>
 
     <WalletDrawer
       v-model:open="walletDrawerOpen"
       :selected-account-address="selectedAccountAddress"
+      :eth-balance="ethBalance"
+      @disconnect="disconnectWallet"
     />
 
     <q-page-container>
@@ -117,6 +118,15 @@ async function getEthBalance() {
     return undefined;
   }
   return formatEther(balance);
+}
+
+function disconnectWallet() {
+  if (!web3Signer.value) {
+    return;
+  }
+  web3Provider = undefined;
+  web3Signer.value = undefined;
+  web3Accounts.value = [];
 }
 
 const loading = ref(false);

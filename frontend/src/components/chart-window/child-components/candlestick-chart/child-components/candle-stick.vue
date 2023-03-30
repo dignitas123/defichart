@@ -6,6 +6,7 @@
       :width="CANDLE_WICK_THICKNESS"
       :height="candle.uwHeight"
       :style="`fill: ${candle.wickFillColor}`"
+      shape-rendering="crispEdges"
     />
     <rect
       :x="candle.x"
@@ -22,6 +23,7 @@
       :width="CANDLE_WICK_THICKNESS"
       :height="candle.lwHeight"
       :style="`fill: ${candle.wickFillColor}`"
+      shape-rendering="crispEdges"
     />
   </g>
 </template>
