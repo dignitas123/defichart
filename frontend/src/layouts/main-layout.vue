@@ -13,12 +13,15 @@
           unelevated
           class="q-px-sm"
           dense
+          padding="xs"
           color="transparent"
           :ripple="false"
           text-color="white"
           @click="walletDrawerOpen = true"
         >
-          <span class="q-mr-sm">{{ accountBalance }}</span
+          <span v-if="userSettings.getAccountBalanceShow" class="q-mr-sm">{{
+            accountBalance
+          }}</span
           ><q-btn
             dense
             glossy
@@ -79,9 +82,15 @@ import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import WalletDrawer from 'src/components/wallet-drawer/wallet-drawer.vue';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
 import { useCoinGecko } from 'src/stores/coin-gecko';
-import { AccountCurrencies, useUserSettings } from 'src/stores/user-settings';
+import {
+  AccountCurrencies,
+  accountCurrencySymbols,
+  useUserSettings,
+} from 'src/stores/user-settings';
 
 const coinGecko = useCoinGecko();
+
+const userSettings = useUserSettings();
 
 const { getProviderAndSigner } = useWeb3Provider();
 
@@ -92,10 +101,6 @@ const web3Accounts = ref<string[]>([]);
 
 // balance
 const ethBalance = ref<string>();
-
-const accountEthBalance = computed(() => {
-  return ethBalance.value?.substring(0, 5);
-});
 
 function getCoinGeckoPriceToEth(price: string) {
   // TODO: add balances from other relevant assets to this amount
@@ -117,8 +122,6 @@ function getCoinGeckoPriceToEth(price: string) {
   );
 }
 
-const settings = useUserSettings();
-
 function getCoinGeckoStringForCurrency(accountCurrency: AccountCurrencies) {
   switch (accountCurrency) {
     case AccountCurrencies.eth:
@@ -127,8 +130,8 @@ function getCoinGeckoStringForCurrency(accountCurrency: AccountCurrencies) {
       return 'usd';
     case AccountCurrencies.eur:
       return 'eur';
-    case AccountCurrencies.yen:
-      return 'yen';
+    case AccountCurrencies.jpy:
+      return 'jpy';
     case AccountCurrencies.krw:
       return 'krw';
     case AccountCurrencies.idr:
@@ -143,20 +146,20 @@ function getCoinGeckoStringForCurrency(accountCurrency: AccountCurrencies) {
 }
 
 const accountBalance = computed(() => {
-  if (settings.getAccountCurrency === AccountCurrencies.eth) {
-    return ethBalance.value + 'ETH';
+  if (userSettings.getAccountCurrency === AccountCurrencies.eth) {
+    return `${ethBalance.value?.substring(0, 5)} ${
+      accountCurrencySymbols[AccountCurrencies.eth]
+    }`;
   }
   const priceToEthInAccountCurrency = getCoinGeckoPriceToEth(
-    getCoinGeckoStringForCurrency(settings.getAccountCurrency)
+    getCoinGeckoStringForCurrency(userSettings.getAccountCurrency)
   );
-  if (
-    [AccountCurrencies.eth, AccountCurrencies.eur].includes(
-      settings.getAccountCurrency
-    )
-  ) {
-    return priceToEthInAccountCurrency + settings.getAccountCurrency;
+  const accountCurrencySymbol =
+    accountCurrencySymbols[userSettings.getAccountCurrency];
+  if (userSettings.getAccountCurrency === AccountCurrencies.eur) {
+    return priceToEthInAccountCurrency + accountCurrencySymbol;
   } else {
-    return settings.getAccountCurrency + priceToEthInAccountCurrency;
+    return accountCurrencySymbol + priceToEthInAccountCurrency;
   }
 });
 

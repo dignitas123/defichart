@@ -5,7 +5,10 @@
         <div class="row full-height">
           <div
             class="einklappen-col col-auto full-height flex justify-center cursor-pointer"
-            @click="open = false"
+            @click="
+              open = false;
+              settingsOpen = false;
+            "
           >
             <q-icon
               name="chevron_right"
@@ -14,7 +17,49 @@
               style="top: 25%"
             />
           </div>
-          <div class="col q-pa-md">
+          <div v-if="settingsOpen" class="col q-pa-md">
+            <div class="row">
+              <div class="col-auto">
+                <q-icon
+                  name="arrow_back"
+                  size="sm"
+                  class="cursor-pointer"
+                  @click="settingsOpen = false"
+                />
+              </div>
+              <div class="col text-center text-weight-bold">Settings</div>
+            </div>
+            <div class="row q-mt-md items-center">
+              <div class="col">Account Currency:</div>
+              <div class="col-auto">
+                <q-select
+                  dense
+                  outlined
+                  v-model="selectedAccountCurrency"
+                  :options="Object.values(accountCurrencySymbols)"
+                />
+              </div>
+            </div>
+            <div class="row q-mt-sm">
+              <div class="q-gutter-sm">
+                <q-radio
+                  v-model="hideOrShowBalance"
+                  dense
+                  checked-icon="task_alt"
+                  val="show"
+                  label="Show account balance"
+                />
+                <q-radio
+                  v-model="hideOrShowBalance"
+                  dense
+                  checked-icon="task_alt"
+                  val="hide"
+                  label="Hide account balance"
+                />
+              </div>
+            </div>
+          </div>
+          <div v-else class="col q-pa-md">
             <div class="row items-center" v-if="selectedAccountAddress">
               <q-btn
                 unelevated
@@ -83,11 +128,14 @@
                   dense
                   padding="sm"
                   size="xs"
-                  class="q-mr-xs"
+                  @click="settingsOpen = true"
                 />
               </div>
             </div>
-            <div v-if="accountBalance" class="row">
+            <div
+              v-if="accountBalance && userSettings.getAccountBalanceShow"
+              class="row"
+            >
               <!-- TODO: signed in -->
               <div class="text-h4 text-weight-medium q-mt-md">
                 {{ accountBalance }}
@@ -104,6 +152,12 @@
 import { watch, ref, computed } from 'vue';
 import useClipboard from 'vue-clipboard3';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
+import {
+  AccountCurrencies,
+  accountCurrencySymbols,
+  useUserSettings,
+} from 'src/stores/user-settings';
+import { getTargetValue } from 'src/shared/utils/object-functions';
 
 const props = defineProps<{
   open: boolean;
@@ -118,7 +172,10 @@ const emit = defineEmits<{
 
 const { toClipboard } = useClipboard();
 
+const userSettings = useUserSettings();
+
 const open = ref(props.open);
+const settingsOpen = ref(false);
 
 watch(
   () => props.open,
@@ -149,6 +206,28 @@ const accountAddessDottedVersion = computed(() => {
     '...' +
     props.selectedAccountAddress.slice(-4)
   );
+});
+
+//settings
+const selectedAccountCurrency = ref<string>(
+  accountCurrencySymbols[userSettings.getAccountCurrency]
+);
+
+watch(selectedAccountCurrency, () => {
+  userSettings.setAccountCurrency(
+    getTargetValue(
+      selectedAccountCurrency.value,
+      accountCurrencySymbols
+    ) as AccountCurrencies
+  );
+});
+
+const hideOrShowBalance = ref(
+  userSettings.getAccountBalanceShow ? 'show' : 'hide'
+);
+
+watch(hideOrShowBalance, () => {
+  userSettings.setAccountBalanceShow(hideOrShowBalance.value === 'show');
 });
 </script>
 
