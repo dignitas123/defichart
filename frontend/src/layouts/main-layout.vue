@@ -18,7 +18,7 @@
           text-color="white"
           @click="walletDrawerOpen = true"
         >
-          <span class="q-mr-sm">{{ ethBalance.substring(0, 5) }} ETH</span
+          <span class="q-mr-sm">{{ accountBalance }}</span
           ><q-btn
             dense
             glossy
@@ -61,7 +61,7 @@
     <WalletDrawer
       v-model:open="walletDrawerOpen"
       :selected-account-address="selectedAccountAddress"
-      :eth-balance="ethBalance"
+      :account-balance="accountBalance"
       @disconnect="disconnectWallet"
     />
 
@@ -78,6 +78,10 @@ import { useWeb3Provider } from 'src/shared/composables/web3provider';
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import WalletDrawer from 'src/components/wallet-drawer/wallet-drawer.vue';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
+import { useCoinGecko } from 'src/stores/coin-gecko';
+import { AccountCurrencies, useUserSettings } from 'src/stores/user-settings';
+
+const coinGecko = useCoinGecko();
 
 const { getProviderAndSigner } = useWeb3Provider();
 
@@ -85,7 +89,76 @@ const web3Instance = ref();
 let web3Provider: Web3Provider | undefined;
 const web3Signer = ref<JsonRpcSigner>();
 const web3Accounts = ref<string[]>([]);
+
+// balance
 const ethBalance = ref<string>();
+
+const accountEthBalance = computed(() => {
+  return ethBalance.value?.substring(0, 5);
+});
+
+function getCoinGeckoPriceToEth(price: string) {
+  // TODO: add balances from other relevant assets to this amount
+  if (!ethBalance.value) {
+    return undefined;
+  }
+  let roundingNumber = 100; // e.g. $100.52
+  if (price === 'idr') {
+    roundingNumber = 1;
+  } else if (price === 'eth') {
+    roundingNumber = 1000;
+  }
+  return (
+    Math.round(
+      coinGecko.getPrices.ethereum[price] *
+        Number(ethBalance.value) *
+        roundingNumber
+    ) / roundingNumber
+  );
+}
+
+const settings = useUserSettings();
+
+function getCoinGeckoStringForCurrency(accountCurrency: AccountCurrencies) {
+  switch (accountCurrency) {
+    case AccountCurrencies.eth:
+      return 'eth';
+    case AccountCurrencies.usd:
+      return 'usd';
+    case AccountCurrencies.eur:
+      return 'eur';
+    case AccountCurrencies.yen:
+      return 'yen';
+    case AccountCurrencies.krw:
+      return 'krw';
+    case AccountCurrencies.idr:
+      return 'idr';
+    case AccountCurrencies.twd:
+      return 'twd';
+    case AccountCurrencies.cny:
+      return 'cny';
+    case AccountCurrencies.rub:
+      return 'rub';
+  }
+}
+
+const accountBalance = computed(() => {
+  if (settings.getAccountCurrency === AccountCurrencies.eth) {
+    return ethBalance.value + 'ETH';
+  }
+  const priceToEthInAccountCurrency = getCoinGeckoPriceToEth(
+    getCoinGeckoStringForCurrency(settings.getAccountCurrency)
+  );
+  if (
+    [AccountCurrencies.eth, AccountCurrencies.eur].includes(
+      settings.getAccountCurrency
+    )
+  ) {
+    return priceToEthInAccountCurrency + settings.getAccountCurrency;
+  } else {
+    return settings.getAccountCurrency + priceToEthInAccountCurrency;
+  }
+});
 
 const selectedAccountAddress = computed(() => {
   const account = web3Accounts.value[0];

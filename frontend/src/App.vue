@@ -6,16 +6,31 @@ nnso
 <script setup lang="ts">
 import { useLanguageStore } from './stores/language';
 import { useCoinGecko } from './stores/coin-gecko';
+import { useUserSettings } from './stores/user-settings';
 import { onMounted } from 'vue';
 
 const { setLanguage } = useLanguageStore();
 
-const { setPricesVsUsd } = useCoinGecko();
+const { setPricesVsCurrency } = useCoinGecko();
+
+const { setDisplaySettingsFromLocalStorage } = useUserSettings();
+
+const settings = useUserSettings();
+
+// TODO: load all account balance tokens that are relevant for the perpetual broker
+const tokensPricesToLoad = ['ethereum'];
 
 onMounted(async () => {
-  await setPricesVsUsd();
+  setDisplaySettingsFromLocalStorage();
+  await setPricesVsCurrency(
+    tokensPricesToLoad,
+    settings.displaySettings.accountCurrency
+  );
   setInterval(async () => {
-    await setPricesVsUsd();
+    await setPricesVsCurrency(
+      tokensPricesToLoad,
+      settings.displaySettings.accountCurrency
+    );
   }, 1_000 * 15 * 60);
 });
 

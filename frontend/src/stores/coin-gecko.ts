@@ -16,14 +16,14 @@ export const useCoinGecko = defineStore('coin-gecko', {
     getPrices: (state) => state.prices,
   },
   actions: {
-    async setPricesVsUsd(prices = ['ethereum']) {
+    async setPricesVsCurrency(prices = ['ethereum'], currency = 'usd') {
       if (process.env.NODE_ENV === 'development') {
         this.prices = { bitcoin: { usd: 27802 }, ethereum: { usd: 1769.85 } };
         return;
       }
       const endpoint = `https://api.coingecko.com/api/v3/simple/price?ids=${prices.join(
         ','
-      )}&vs_currencies=usd`;
+      )}&vs_currencies=${currency}`;
       try {
         const response = await axios.get(endpoint);
         if (!response) {

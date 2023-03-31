@@ -87,10 +87,10 @@
                 />
               </div>
             </div>
-            <div v-if="worthInUSD" class="row">
+            <div v-if="accountBalance" class="row">
               <!-- TODO: signed in -->
               <div class="text-h4 text-weight-medium q-mt-md">
-                ${{ worthInUSD }}
+                {{ accountBalance }}
               </div>
             </div>
           </div>
@@ -104,14 +104,11 @@
 import { watch, ref, computed } from 'vue';
 import useClipboard from 'vue-clipboard3';
 import JazzIcon from 'src/components/jazz-icon/jazz-icon.vue';
-import { useCoinGecko } from 'src/stores/coin-gecko';
-
-const coinGecko = useCoinGecko();
 
 const props = defineProps<{
   open: boolean;
   selectedAccountAddress?: string;
-  ethBalance?: string;
+  accountBalance?: string;
 }>();
 
 const emit = defineEmits<{
@@ -122,17 +119,6 @@ const emit = defineEmits<{
 const { toClipboard } = useClipboard();
 
 const open = ref(props.open);
-
-const worthInUSD = computed(() => {
-  if (!props.ethBalance) {
-    return undefined;
-  }
-  return (
-    Math.round(
-      coinGecko.getPrices.ethereum.usd * Number(props.ethBalance) * 100
-    ) / 100
-  );
-});
 
 watch(
   () => props.open,
