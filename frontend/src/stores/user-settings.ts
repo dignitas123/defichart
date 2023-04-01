@@ -61,7 +61,7 @@ export const useUserSettings = defineStore('user-settings', {
 });
 
 function setItemToLocalStorage(item: string, value: string) {
-  const settingsFromLocalStorage = localStorage.getItem('settings');
+  const settingsFromLocalStorage = localStorage.getItem('displaySettings');
   let displaySettingsToLocalStorage = '';
   if (settingsFromLocalStorage) {
     const settingsObject = JSON.parse(settingsFromLocalStorage);
