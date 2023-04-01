@@ -11,10 +11,11 @@ AWS.config.update({
 const dynamoDB = new AWS.DynamoDB();
 
 const tableName = "btc_perp_tick_history";
-const newAttributeName = "price";
+const newAttributeName = "volume";
+const attributeType = "N";
+
 const indexName =
   newAttributeName[0].toUpperCase() + newAttributeName.slice(1) + "Index";
-const attributeType = "N";
 
 const params = {
   TableName: tableName,
