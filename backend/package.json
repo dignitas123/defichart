@@ -1,0 +1,18 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "add-table.js",
+  "scripts": {
+    "pretty": "pretty-quick",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk": "^2.1348.0",
+    "prettier": "^2.8.7",
+    "pretty-quick": "^3.1.3"
+  }
+}

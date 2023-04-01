@@ -6,6 +6,7 @@
   "author": "Niclas Hummel <niclashummel.fx@gmail.com>",
   "private": true,
   "scripts": {
+    "pretty": "pretty-quick",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "dev": "quasar dev",
     "build": "quasar build",
