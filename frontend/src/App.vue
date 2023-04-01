@@ -15,7 +15,7 @@ const { setPricesVsCurrency } = useCoinGecko();
 
 const { setDisplaySettingsFromLocalStorage } = useUserSettings();
 
-const settings = useUserSettings();
+const userSettings = useUserSettings();
 
 // TODO: load all account balance tokens that are relevant for the perpetual broker
 const tokensPricesToLoad = ['ethereum'];
@@ -24,12 +24,12 @@ onMounted(async () => {
   setDisplaySettingsFromLocalStorage();
   await setPricesVsCurrency(
     tokensPricesToLoad,
-    settings.displaySettings.accountCurrency
+    userSettings.getAccountCurrency
   );
   setInterval(async () => {
     await setPricesVsCurrency(
       tokensPricesToLoad,
-      settings.displaySettings.accountCurrency
+      userSettings.getAccountCurrency
     );
   }, 1_000 * 15 * 60);
 });

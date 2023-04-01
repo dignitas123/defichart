@@ -158,6 +158,7 @@ import {
   useUserSettings,
 } from 'src/stores/user-settings';
 import { getTargetValue } from 'src/shared/utils/object-functions';
+import { useCoinGecko } from 'src/stores/coin-gecko';
 
 const props = defineProps<{
   open: boolean;
@@ -171,6 +172,8 @@ const emit = defineEmits<{
 }>();
 
 const { toClipboard } = useClipboard();
+
+const { setPricesVsCurrency } = useCoinGecko();
 
 const userSettings = useUserSettings();
 
@@ -213,13 +216,15 @@ const selectedAccountCurrency = ref<string>(
   accountCurrencySymbols[userSettings.getAccountCurrency]
 );
 
-watch(selectedAccountCurrency, () => {
+watch(selectedAccountCurrency, async () => {
   userSettings.setAccountCurrency(
     getTargetValue(
       selectedAccountCurrency.value,
       accountCurrencySymbols
     ) as AccountCurrencies
   );
+  // TODO: '[ethereum] can be replaced with all relevant token balances'
+  await setPricesVsCurrency(['ethereum'], userSettings.getAccountCurrency);
 });
 
 const hideOrShowBalance = ref(

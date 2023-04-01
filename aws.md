@@ -59,13 +59,6 @@ server {
 - `sudo systemctl restart nginx`
 - check Public IPv4 DNS with http. U should see nginx welcome screen
 
-## deployment
-
-- Connect to Instance
-- cd defichart && git pull && yarn
-- cd frontend && yarn && yarn build
-- sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html
-
 ## connect github repo
 
 - `ssh-keygen`
@@ -122,3 +115,14 @@ sudo scp -i defichartsinstance.pem defichartsinstance.pem ec2-user@ec2-18-159-79
 ## Connect to instance
 
 `ssh -i defichartsinstance.pem ec2-user@ec2-18-159-79-156.eu-central-1.compute.amazonaws.com`
+
+## deployment
+
+- Connect to Instance
+- `nvm use 16`
+- `cd defichart`
+- `git pull`
+- `yarn`
+- `cd frontend`
+- `yarn build`
+- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
