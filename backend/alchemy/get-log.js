@@ -6,7 +6,7 @@ const provider = new JsonRpcProvider(
 );
 
 /**
- * @typedef {Log} = blockNumber: number;
+ * @typedef { Log } { blockNumber: number;
     blockHash: string;
     transactionIndex: number;
 
@@ -19,6 +19,7 @@ const provider = new JsonRpcProvider(
 
     transactionHash: string;
     logIndex: number;
+    }
  */
 
 /**
@@ -27,7 +28,7 @@ const provider = new JsonRpcProvider(
  * @param { number | 'latest' } fromBlock choose one of the earliest blocks fort test
  * @param { number | 'latest' } toBlock
  *
- * @return { NewType[] }
+ * @return { Promise<any>[] }
  */
 export async function getLogs(
   contract = "0x86f1e0420c26a858fc203A3645dD1A36868F18e5",
@@ -40,16 +41,16 @@ export async function getLogs(
     toBlock: toBlock,
   };
 
-  let logs = undefined;
+  let logs = [];
 
-  provider
-    .getLogs(filter)
-    .then((contractLogs) => {
-      contractLogs.forEach((log) => {
-        logs.pushg(log);
-      });
-    })
-    .catch(console.error);
+  try {
+    const contractLogs = await provider.getLogs(filter);
+    contractLogs.forEach((log) => {
+      logs.push(log);
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
   return logs;
 }

@@ -10,7 +10,7 @@ export const transferLogDataExample =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffff673bba52a87ffd000000000000000000000000000000000000000000000041f8122f856ccbd1d600000000000000000000000000000000000000a7fab519eab59b68fbaf68e539000000000000000000000000000000000000000000001a6670943ba4374151f40000000000000000000000000000000000000000000000000000000000019051";
 
 /**
- * data has to be retrieved from get-log.js, see ./mocks/receipt-mock.ts for example mock
+ * data has to be retrieved from get-receipt, see ./mocks/receipt-mock.ts for example mock
  *
  * @param { string } balanceOfLogData: log data from getLog.logs[0] (the from address in txn)
  * @param { string } transferLogData: log data from getLog.logs[2] (the to address in txn)
