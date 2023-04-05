@@ -16,7 +16,9 @@
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/strings": "^5.7.0",
     "node-fetch": "^3.3.1",
     "prettier": "^2.8.7",
     "pretty-quick": "^3.1.3",
