@@ -10,9 +10,9 @@ export function decodeReceiptSignature(receipt) {
   const wantedFunction = toUtf8Bytes(
     "Swap(address,address,int256,int256,uint160,uint128,int24)"
   );
-  const eventSignature = keccak256(wantedFunction);
+  const eventSignatureHash = keccak256(wantedFunction);
   const signatureLog = receipt.logs.find(
-    (log) => log.topics[0] === eventSignature
+    (log) => log.topics[0] === eventSignatureHash
   );
   if (!signatureLog) {
     console.error("Eventsignature not found");
@@ -32,6 +32,7 @@ export function getSwapResultData(decodedLogResult) {
       swapResultData.push(parseInt(result._hex));
     }
   }
+  return swapResultData;
 }
 
 // Example:
