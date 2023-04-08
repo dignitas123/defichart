@@ -1,5 +1,5 @@
 import AWS from "aws-sdk";
-import { credentials } from "./credentials.js";
+import { credentials } from "../credentials.js";
 
 AWS.config.update({
   accessKeyId: credentials.AWS_ACCESS_KEY_ID,

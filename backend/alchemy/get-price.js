@@ -50,11 +50,10 @@ export async function getPriceData(
     return Number(result) / 10 ** decimals;
   };
 
-  const currentTime = new Date();
   return {
     volume: divideBigInts(BigInt(abs(swapResultData[0])), divider, decimals),
     direction: swapResultData[0] > 0,
     price: abs(swapResultData[1]) / abs(swapResultData[0]),
-    timestamp: currentTime.getTime(),
+    timestamp: Date.now(),
   };
 }

@@ -1,4 +1,4 @@
-import { connect } from "../connectv2";
+import { connect } from "./connect.js";
 connect();
 
 const dynamodb = new AWS.DynamoDB();
