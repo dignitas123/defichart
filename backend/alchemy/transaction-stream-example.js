@@ -2,7 +2,6 @@ import { toUtf8Bytes } from "@ethersproject/strings";
 import { keccak256 } from "@ethersproject/keccak256";
 import { alchemy } from "./connect.js";
 import { getPriceData } from "./get-price.js";
-import { timestreamWrite } from "./aws-module/timestream-write.js";
 
 const contractAddress = "0x86f1e0420c26a858fc203A3645dD1A36868F18e5";
 
@@ -28,12 +27,7 @@ alchemy.ws.on(filter, async (log) => {
       previousVolume = priceData.volume;
     }
     previousTimeStamp = priceData.timestamp;
-    await timestreamWrite(
-      priceData.volume,
-      priceData.direction,
-      priceData.price,
-      priceData.timestamp
-    );
+    console.log(priceData);
   }
 });
 
