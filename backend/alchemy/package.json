@@ -15,6 +15,7 @@
     "alchemy-sdk": "^2.6.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-timestream-write": "^3.309.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/keccak256": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
