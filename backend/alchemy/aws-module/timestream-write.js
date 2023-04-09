@@ -50,14 +50,8 @@ export async function timestreamWrite(
   const command = new WriteRecordsCommand(params);
 
   try {
-    const data = await writeClient.send(command);
-    console.log(
-      "Data written",
-      data.requestId,
-      data.httpStatusCode,
-      "attempts",
-      data.attempts
-    );
+    const writeRecordDataOutput = await writeClient.send(command);
+    console.log(writeRecordDataOutput);
   } catch (error) {
     console.log("Error writing data. ", error);
   }
