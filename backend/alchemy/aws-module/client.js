@@ -1,4 +1,4 @@
-import { credentialsV2 } from "../credentials.js";
+import { credentialsV2 } from "./credentials.js";
 import { TimestreamWriteClient } from "@aws-sdk/client-timestream-write";
 
 export const writeClient = new TimestreamWriteClient({
