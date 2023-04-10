@@ -1,6 +1,6 @@
 ## Create an EC2 instance
 
-- First, create an EC2 instance on AWS. Choose an appropriate instance type based on your application's requirements. (Ubuntu preffered)
+First, create an EC2 instance on AWS. Choose an appropriate instance type based on your application's requirements. (Ubuntu preffered)
 
 ## Configure security groups
 
@@ -38,7 +38,7 @@ nvm install 16
 - `sudo mkdir /var/www/html`
 - `cd /etc/nginx/sites-available`
 - `sudo ln -s /etc/nginx/sites-available/deficharts /etc/nginx/sites-enabled/`
-- `sudo nano /etc/nginx/sites-available/deficharts`:
+- `sudo nano /etc/nginx/sites-available/deficharts`
 
 ```
 server {
@@ -53,6 +53,18 @@ server {
         try_files $uri $uri/ /index.html;
     }
 }
+// backend (for graphql):
+server {
+    listen 80;
+    server_name example.com;
+
+    location /graphql {
+        proxy_pass http://localhost:4000/graphql;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
 ```
 
 - `sudo systemctl start nginx`
@@ -64,7 +76,9 @@ server {
 - `ssh-keygen`
 - `cat ~/.ssh/id_rsa.pub`
 - copy the key
-- under github > options > SSH and GPG Keys > New SSH Key add copied key (ssh-rsa AAAAB3NzaC1yc2EAA… until whitespace)
+- under github > settings > SSH and GPG Keys > New SSH Key add copied key (ssh-rsa AAAAB3NzaC1yc2EAA… until whitespace)
+- `ssh -T git@github.com` for checking
+- restart instance if it doesn't work
 - git clone git@github.com:<username>/<repository>.git (git clone git@github.com:dignitas123/defichart.git)
 - `cd defichart & yarn & yarn build`
 
@@ -113,8 +127,10 @@ sudo scp -i defichartsinstance.pem defichartsinstance.pem ec2-user@ec2-18-159-79
 ```
 
 ## Connect to instance
-
+Frontend:
 `ssh -i defichartsinstance.pem ec2-user@ec2-18-159-79-156.eu-central-1.compute.amazonaws.com`
+Backend:
+`ssh -i defichartsinstancebackend.pem ec2-user@ec2-3-71-112-87.eu-central-1.compute.amazonaws.com`
 
 ## deployment
 

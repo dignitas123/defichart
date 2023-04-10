@@ -30,7 +30,7 @@ async function startApolloServer() {
 }
 
 startApolloServer().then(() => {
-  app.listen({ port: 4000 }, () => {
+  app.listen(4000, '0.0.0.0', () => {
     console.log(
       `🚀 Server ready at http://localhost:4000${server.graphqlPath}`
     );

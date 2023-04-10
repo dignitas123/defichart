@@ -1,6 +1,6 @@
 # Running as always-on-task on aws (or locallly)
 
-You have to start the process in the background, so that the 'tansaction-stream.js' doesn't terminate when the terminal is closed
+You have to start the process in the background, so that the 'tansaction-stream.js' doesn't terminate when the terminal is closed.
 
 ## install pm2 globally
 `npm install pm2 -g`
