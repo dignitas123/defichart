@@ -4,7 +4,7 @@ import { ApolloServer, gql } from "apollo-server-express";
 // Define your GraphQL schema
 const typeDefs = gql`
   type Query {
-    hello: String
+    hello: String!
   }
 `;
 
@@ -30,7 +30,7 @@ async function startApolloServer() {
 }
 
 startApolloServer().then(() => {
-  app.listen(4000, '0.0.0.0', () => {
+  app.listen(4000, "0.0.0.0", () => {
     console.log(
       `🚀 Server ready at http://localhost:4000${server.graphqlPath}`
     );
