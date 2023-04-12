@@ -37,4 +37,11 @@ export const typeDefs = gql`
   type Query {
     records(timeFrame: TimeFrame!, binAmount: Int!): [TimeStreamRecord]
   }
+  type Subscription {
+    tickData: TickDataResult
+  }
+  type TickDataResult {
+    ticker: String!
+    price: Float!
+  }
 `;

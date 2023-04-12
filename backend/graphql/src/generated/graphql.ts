@@ -32,6 +32,17 @@ export type QueryRecordsArgs = {
   timeFrame: TimeFrame;
 };
 
+export type Subscription = {
+  __typename?: "Subscription";
+  tickData?: Maybe<TickDataResult>;
+};
+
+export type TickDataResult = {
+  __typename?: "TickDataResult";
+  price: Scalars["Float"];
+  ticker: Scalars["String"];
+};
+
 export enum TimeFrame {
   D1 = "D1",
   D2 = "D2",
@@ -180,6 +191,8 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars["Int"]>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars["String"]>;
+  Subscription: ResolverTypeWrapper<{}>;
+  TickDataResult: ResolverTypeWrapper<TickDataResult>;
   TimeFrame: TimeFrame;
   TimeStreamRecord: ResolverTypeWrapper<TimeStreamRecord>;
 };
@@ -191,6 +204,8 @@ export type ResolversParentTypes = {
   Int: Scalars["Int"];
   Query: {};
   String: Scalars["String"];
+  Subscription: {};
+  TickDataResult: TickDataResult;
   TimeStreamRecord: TimeStreamRecord;
 };
 
@@ -204,6 +219,27 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryRecordsArgs, "binAmount" | "timeFrame">
   >;
+};
+
+export type SubscriptionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["Subscription"] = ResolversParentTypes["Subscription"]
+> = {
+  tickData?: SubscriptionResolver<
+    Maybe<ResolversTypes["TickDataResult"]>,
+    "tickData",
+    ParentType,
+    ContextType
+  >;
+};
+
+export type TickDataResultResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["TickDataResult"] = ResolversParentTypes["TickDataResult"]
+> = {
+  price?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
+  ticker?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type TimeStreamRecordResolvers<
@@ -220,5 +256,7 @@ export type TimeStreamRecordResolvers<
 
 export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
+  TickDataResult?: TickDataResultResolvers<ContextType>;
   TimeStreamRecord?: TimeStreamRecordResolvers<ContextType>;
 };

@@ -1,4 +1,4 @@
-import { timeStreamQueryClient } from "./client.js";
+import { timeStreamQueryClient } from "../client.js";
 import { QueryCommand } from "@aws-sdk/client-timestream-query";
 
 async function getRecords() {

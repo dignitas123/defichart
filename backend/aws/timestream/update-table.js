@@ -1,5 +1,5 @@
-import { writeClient } from "./client.js";
-import { constants } from "./constants.js";
+import { timestreamWriteClient } from "../client.js";
+import { constants } from "../constants.js";
 import { UpdateTableCommand } from "@aws-sdk/client-timestream-write";
 
 const params = {
@@ -14,7 +14,7 @@ const params = {
 const command = new UpdateTableCommand(params);
 
 try {
-  const data = await writeClient.send(command);
+  const data = await timestreamWriteClient.send(command);
   console.log("Table updated", data);
 } catch (error) {
   console.log("Error updating table. ", error);

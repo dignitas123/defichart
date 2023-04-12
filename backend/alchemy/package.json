@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-kinesis": "^3.310.0",
     "@aws-sdk/client-timestream-write": "^3.309.0",
     "alchemy-sdk": "^2.6.2"
   },

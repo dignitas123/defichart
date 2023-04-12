@@ -1,5 +1,5 @@
-import { constants } from "./constants.js";
-import { writeClient } from "./client.js";
+import { timestreamWriteClient } from "../client.js";
+import { constants } from "../constants.js";
 import { WriteRecordsCommand } from "@aws-sdk/client-timestream-write";
 
 async function writeRecordsWithCommonAttributes() {
@@ -53,7 +53,7 @@ async function writeRecordsWithCommonAttributes() {
   const command = new WriteRecordsCommand(params);
 
   try {
-    const data = await writeClient.send(command);
+    const data = await timestreamWriteClient.send(command);
     console.log("Data written", data);
   } catch (error) {
     console.log("Error writing data. ", error);
