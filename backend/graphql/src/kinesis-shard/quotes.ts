@@ -10,8 +10,6 @@ const params = {
   StreamName: constants.KINESIS_STREAM_NAME,
 };
 
-let previousValue: { ticker: string; price: number } | string = "";
-
 // Create a message consumer that listens for incoming messages from the Kinesis stream
 export async function* messageConsumer() {
   const command = new SubscribeToShardCommand(params);
@@ -25,17 +23,24 @@ export async function* messageConsumer() {
 
   for await (const chunk of EventStream) {
     // Parse the incoming message
-    const message = JSON.stringify(chunk);
-    const recordsData = JSON.parse(message).SubscribeToShardEvent.Records[0];
+    const message = JSON.parse(JSON.stringify(chunk));
+    const recordsData = message.SubscribeToShardEvent.Records[0];
 
     // Yield the message to the subscription resolver
     if (recordsData) {
+      const partitionKey =
+        message.SubscribeToShardEvent.Records[0].PartitionKey;
       const uintArray = new Uint8Array(Object.values(recordsData.Data));
       const payload = JSON.parse(new TextDecoder().decode(uintArray));
-      previousValue = payload;
-      yield { ticker: payload.ticker, price: payload.price };
+      yield {
+        ticker: partitionKey,
+        volume: payload.volume,
+        direction: payload.direction,
+        price: payload.price,
+        timestamp: payload.timestamp,
+      };
     } else {
-      yield previousValue;
+      yield "";
     }
   }
 }

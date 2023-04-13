@@ -23,9 +23,7 @@ export async function getTimestreamRecords(queryString: string) {
         return undefined;
       }
       res.push({
-        timestamp: new Date(row.Data[0].ScalarValue as string)
-          .getTime()
-          .toString(),
+        timestamp: new Date(row.Data[0].ScalarValue as string).getTime(),
         high: Number(row.Data[1].ScalarValue),
         low: Number(row.Data[2].ScalarValue),
         close: Number(row.Data[3].ScalarValue),

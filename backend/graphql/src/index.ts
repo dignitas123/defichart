@@ -43,11 +43,7 @@ const resolvers: Resolvers = {
   Subscription: {
     tickData: {
       subscribe: messageConsumer,
-      resolve: (payload: TickDataResult) => {
-        console.log("resolve payload", payload, typeof payload);
-        // Map the incoming payload to the subscription payload
-        return payload;
-      },
+      resolve: (payload: TickDataResult) => payload,
     },
   },
 };

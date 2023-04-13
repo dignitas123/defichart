@@ -39,8 +39,11 @@ export type Subscription = {
 
 export type TickDataResult = {
   __typename?: "TickDataResult";
-  price: Scalars["Float"];
-  ticker: Scalars["String"];
+  direction?: Maybe<Scalars["Boolean"]>;
+  price?: Maybe<Scalars["Float"]>;
+  ticker?: Maybe<Scalars["String"]>;
+  timestamp?: Maybe<Scalars["Float"]>;
+  volume?: Maybe<Scalars["Float"]>;
 };
 
 export enum TimeFrame {
@@ -75,7 +78,7 @@ export type TimeStreamRecord = {
   close: Scalars["Float"];
   high: Scalars["Float"];
   low: Scalars["Float"];
-  timestamp: Scalars["String"];
+  timestamp: Scalars["Float"];
   volume?: Maybe<Scalars["Float"]>;
 };
 
@@ -237,8 +240,15 @@ export type TickDataResultResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["TickDataResult"] = ResolversParentTypes["TickDataResult"]
 > = {
-  price?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
-  ticker?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  direction?: Resolver<
+    Maybe<ResolversTypes["Boolean"]>,
+    ParentType,
+    ContextType
+  >;
+  price?: Resolver<Maybe<ResolversTypes["Float"]>, ParentType, ContextType>;
+  ticker?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  timestamp?: Resolver<Maybe<ResolversTypes["Float"]>, ParentType, ContextType>;
+  volume?: Resolver<Maybe<ResolversTypes["Float"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -249,7 +259,7 @@ export type TimeStreamRecordResolvers<
   close?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   high?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   low?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
-  timestamp?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   volume?: Resolver<Maybe<ResolversTypes["Float"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

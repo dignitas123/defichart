@@ -28,7 +28,7 @@ export const typeDefs = gql`
     W4
   }
   type TimeStreamRecord {
-    timestamp: String!
+    timestamp: Float!
     high: Float!
     low: Float!
     close: Float!
@@ -41,7 +41,10 @@ export const typeDefs = gql`
     tickData: TickDataResult
   }
   type TickDataResult {
-    ticker: String!
-    price: Float!
+    ticker: String
+    volume: Float
+    direction: Boolean
+    price: Float
+    timestamp: Float
   }
 `;

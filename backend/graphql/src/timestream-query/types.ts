@@ -6,7 +6,7 @@ export const MONTH = DAY * 30;
 export const YEAR = MONTH * 12;
 
 export interface TimeStreamRecord {
-  timestamp: string;
+  timestamp: number;
   high: number;
   low: number;
   close: number;
