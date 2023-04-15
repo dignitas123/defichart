@@ -171,7 +171,7 @@ setInterval(() => {
     if (currentMinuteHigh === 0) {
       currentMinuteHigh = lastTick;
     }
-    if (currentMinuteLow === 0) {
+    if (currentMinuteLow === Infinity) {
       currentMinuteLow = lastTick;
     }
     candleStickStreamWrite(
@@ -190,7 +190,7 @@ setInterval(() => {
       if (current5MinuteHigh === 0) {
         current5MinuteHigh = lastTick;
       }
-      if (current5MinuteLow === 0) {
+      if (current5MinuteLow === Infinity) {
         current5MinuteLow = lastTick;
       }
       candleStickStreamWrite(
@@ -210,7 +210,7 @@ setInterval(() => {
       if (currentHourHigh === 0) {
         currentHourHigh = lastTick;
       }
-      if (currentHourLow === 0) {
+      if (currentHourLow === Infinity) {
         currentHourLow = lastTick;
       }
       candleStickStreamWrite(
@@ -229,7 +229,7 @@ setInterval(() => {
         if (currentDayHigh === 0) {
           currentDayHigh = lastTick;
         }
-        if (currentDayLow === 0) {
+        if (currentDayLow === Infinity) {
           currentDayLow = lastTick;
         }
         candleStickStreamWrite(
@@ -248,7 +248,7 @@ setInterval(() => {
           if (currentWeekHigh === 0) {
             currentWeekHigh = lastTick;
           }
-          if (currentWeekLow === 0) {
+          if (currentWeekLow === Infinity) {
             currentWeekLow = lastTick;
           }
           candleStickStreamWrite(
