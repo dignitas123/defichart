@@ -37,16 +37,36 @@ console.log(
   "getting current minute, 5 min, hour etc. high, low and volume aggregates for initial memory values.."
 );
 const currentMinuteData = await getLastBinRecords("1m", "minute");
+if (!currentMinuteData) {
+  console.error("Can\t get current minute data, shutting down");
+  process.exit();
+}
 await sleep(300);
 const current5MinuteData = await getLastBinRecordsFromStartTime(
   getLastRoundedFiveMinuteInterval()
 );
+if (!current5MinuteData) {
+  console.error("Can\t get current 5minute data, shutting down");
+  process.exit();
+}
 await sleep(300);
 const currentHourData = await getLastBinRecords("1h", "hour");
+if (!currentHourData) {
+  console.error("Can\t get current hour data, shutting down");
+  process.exit();
+}
 await sleep(300);
 const currentDayData = await getLastBinRecords("1d", "day");
+if (!currentDayData) {
+  console.error("Can\t get current day data, shutting down");
+  process.exit();
+}
 await sleep(300);
 const currentWeekData = await getLastBinRecordsFromStartTime(getUTCWeekbegin());
+if (!currentWeekData) {
+  console.error("Can\t get current week data, shutting down");
+  process.exit();
+}
 
 // memory save variables
 let lastTick = 0;
@@ -70,7 +90,7 @@ console.log("set last tick..");
 const tick = await getLastTick();
 lastTick = Number(tick.Rows[0].Data[0].ScalarValue);
 if (!lastTick) {
-  console.error("can't get last tick, shutting down");
+  console.error("Can't get last tick, shutting down");
   process.exit();
 }
 
