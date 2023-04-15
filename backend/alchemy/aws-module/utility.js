@@ -110,7 +110,7 @@ export function isM5ScalarValuesUndefined(queryCommandOutput) {
       }
     }
 
-    return undefinedCount === 1 || recordRowData.every(isEmptyOrUndefined);
+    return undefinedCount === 1 || queryCommandOutputRowData.every(isEmptyOrUndefined);
   } else {
     return true;
   }
