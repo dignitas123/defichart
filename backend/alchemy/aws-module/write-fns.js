@@ -2,7 +2,7 @@ import { constants } from "./constants.js";
 import { timestreamWriteClient } from "./client.js";
 import { WriteRecordsCommand } from "@aws-sdk/client-timestream-write";
 
-export async function timestreamWrite(
+export async function tickDataStreamWrite(
   _volume,
   _direction,
   _price,
@@ -12,7 +12,7 @@ export async function timestreamWrite(
   // '2023-04-02 08:21:15.007+00:00' for '2023-04-02 08:21:15.0070000' and then new Date('2023-04-02 08:21:15.007+00:00').getTime().toString()
   const currentTime = _timestamp.toString();
 
-  const dimensions = [{ Name: "region", Value: "eu-central-1" }];
+  const dimensions = [{ Name: "region", Value: constants.REGION }];
 
   const commonAttributes = {
     Dimensions: dimensions,
@@ -52,6 +52,67 @@ export async function timestreamWrite(
   try {
     const writeRecordDataOutput = await timestreamWriteClient.send(command);
     console.log(writeRecordDataOutput);
+  } catch (error) {
+    console.log("Error writing data. ", error);
+  }
+}
+
+export async function candleStickStreamWrite(
+  _volume,
+  _high,
+  _low,
+  _close,
+  _timestamp = Date.now(),
+  tableName
+) {
+  const currentTime = _timestamp.toString();
+
+  const dimensions = [{ Name: "region", Value: constants.REGION }];
+
+  const commonAttributes = {
+    Dimensions: dimensions,
+    Version: 1,
+    Time: currentTime,
+  };
+
+  const volume = {
+    MeasureValueType: "DOUBLE",
+    MeasureName: "volume",
+    MeasureValue: String(_volume),
+  };
+
+  const high = {
+    MeasureValueType: "DOUBLE",
+    MeasureName: "high",
+    MeasureValue: String(_high),
+  };
+
+  const low = {
+    MeasureValueType: "DOUBLE",
+    MeasureName: "low",
+    MeasureValue: String(_low),
+  };
+
+  const close = {
+    MeasureValueType: "DOUBLE",
+    MeasureName: "close",
+    MeasureValue: String(_close),
+  };
+
+  const records = [volume, high, low, close];
+
+  const params = {
+    DatabaseName: constants.DATABASE_NAME,
+    TableName: tableName,
+    Records: records,
+    CommonAttributes: commonAttributes,
+  };
+
+  const command = new WriteRecordsCommand(params);
+
+  try {
+    const writeRecordDataOutput = await timestreamWriteClient.send(command);
+    console.log("candlestick", writeRecordDataOutput);
   } catch (error) {
     console.log("Error writing data. ", error);
   }
