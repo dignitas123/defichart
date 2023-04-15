@@ -168,97 +168,77 @@ setInterval(() => {
   const now = new Date();
   if (now.getSeconds() === 0) {
     // beginning of new minute
-    if (currentMinuteHigh === 0) {
-      currentMinuteHigh = lastTick;
+    if (currentMinuteHigh !== 0 && currentMinuteLow !== Infinity) {
+      candleStickStreamWrite(
+        currentMinuteVolume,
+        currentMinuteHigh,
+        currentMinuteLow,
+        lastTick,
+        getPreviousRoundedMinuteInterval(),
+        "btcusd-perp_m1"
+      );
     }
-    if (currentMinuteLow === Infinity) {
-      currentMinuteLow = lastTick;
-    }
-    candleStickStreamWrite(
-      currentMinuteVolume,
-      currentMinuteHigh,
-      currentMinuteLow,
-      lastTick,
-      getPreviousRoundedMinuteInterval(),
-      "btcusd-perp_m1"
-    );
     currentMinuteVolume = 0;
     currentMinuteHigh = 0;
     currentMinuteLow = Infinity;
     if (now.getMinutes() % 5 === 0) {
       // beginning of new 5minute
-      if (current5MinuteHigh === 0) {
-        current5MinuteHigh = lastTick;
+      if (current5MinuteHigh !== 0 && current5MinuteLow !== Infinity) {
+        candleStickStreamWrite(
+          current5MinuteVolume,
+          current5MinuteHigh,
+          current5MinuteLow,
+          lastTick,
+          getPreviousRoundedMinuteInterval(5),
+          "btcusd-perp_m5"
+        );
       }
-      if (current5MinuteLow === Infinity) {
-        current5MinuteLow = lastTick;
-      }
-      candleStickStreamWrite(
-        current5MinuteVolume,
-        current5MinuteHigh,
-        current5MinuteLow,
-        lastTick,
-        getPreviousRoundedMinuteInterval(5),
-        "btcusd-perp_m5"
-      );
       current5MinuteVolume = 0;
       current5MinuteHigh = 0;
       current5MinuteLow = Infinity;
     }
     if (now.getMinutes() === 0) {
       // beginning of new hour
-      if (currentHourHigh === 0) {
-        currentHourHigh = lastTick;
+      if (currentHourHigh !== 0 && currentHourLow !== Infinity) {
+        candleStickStreamWrite(
+          currentHourVolume,
+          currentHourHigh,
+          currentHourLow,
+          lastTick,
+          getPreviousRoundedHourInterval(),
+          "btcusd-perp_h1"
+        );
       }
-      if (currentHourLow === Infinity) {
-        currentHourLow = lastTick;
-      }
-      candleStickStreamWrite(
-        currentHourVolume,
-        currentHourHigh,
-        currentHourLow,
-        lastTick,
-        getPreviousRoundedHourInterval(),
-        "btcusd-perp_h1"
-      );
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
       if (now.getHours() === 0) {
         // beginning of new day
-        if (currentDayHigh === 0) {
-          currentDayHigh = lastTick;
+        if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
+          candleStickStreamWrite(
+            currentDayVolume,
+            currentDayHigh,
+            currentDayLow,
+            lastTick,
+            getPreviousDayBeginning(),
+            "btcusd-perp_d1"
+          );
         }
-        if (currentDayLow === Infinity) {
-          currentDayLow = lastTick;
-        }
-        candleStickStreamWrite(
-          currentDayVolume,
-          currentDayHigh,
-          currentDayLow,
-          lastTick,
-          getPreviousDayBeginning(),
-          "btcusd-perp_d1"
-        );
         currentDayVolume = 0;
         currentDayHigh = 0;
         currentDayLow = Infinity;
         if (now.getDay() === 1) {
           // beginning of new week
-          if (currentWeekHigh === 0) {
-            currentWeekHigh = lastTick;
+          if (currentWeekHigh !== 0 && currentWeekLow === Infinity) {
+            candleStickStreamWrite(
+              currentWeekVolume,
+              currentWeekHigh,
+              currentWeekLow,
+              lastTick,
+              getPreviousWeekBeginning(),
+              "btcusd-perp_w1"
+            );
           }
-          if (currentWeekLow === Infinity) {
-            currentWeekLow = lastTick;
-          }
-          candleStickStreamWrite(
-            currentWeekVolume,
-            currentWeekHigh,
-            currentWeekLow,
-            lastTick,
-            getPreviousWeekBeginning(),
-            "btcusd-perp_w1"
-          );
           currentWeekVolume = 0;
           currentWeekHigh = 0;
           currentWeekLow = Infinity;
