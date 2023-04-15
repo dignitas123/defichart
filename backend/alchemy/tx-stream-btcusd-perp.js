@@ -95,11 +95,12 @@ if (!lastTick) {
 }
 
 console.log("fill currentMinute data..");
-const currentMinuteRowData = currentMinuteData.Rows[0].Data;
-if (currentMinuteRowData) {
-  currentMinuteHigh = currentMinuteRowData[0].ScalarValue ?? 0;
-  currentMinuteLow = currentMinuteRowData[1].ScalarValue ?? 0;
-  currentMinuteVolume = currentMinuteRowData[2].ScalarValue ?? 0;
+const currentMinuteRows = currentMinuteData.Rows;
+if (currentMinuteRows && currentMinuteRows[0].Data) {
+  const currentMinuteRowsData = currentMinuteRows[0].Data;
+  currentMinuteHigh = currentMinuteRowsData[0].ScalarValue ?? 0;
+  currentMinuteLow = currentMinuteRowsData[1].ScalarValue ?? 0;
+  currentMinuteVolume = currentMinuteRowsData[2].ScalarValue ?? 0;
 } else {
   currentMinuteHigh = lastTick;
   currentMinuteLow = lastTick;
@@ -107,11 +108,16 @@ if (currentMinuteRowData) {
 }
 
 console.log("fill current5Minute data..");
-const current5MinuteRowData = current5MinuteData.Rows[0].Data;
-if (current5MinuteRowData && !isM5ScalarValuesUndefined(current5MinuteData)) {
-  current5MinuteHigh = current5MinuteRowData[0].ScalarValue ?? 0;
-  current5MinuteLow = current5MinuteRowData[1].ScalarValue ?? 0;
-  current5MinuteVolume = current5MinuteRowData[2].ScalarValue ?? 0;
+const current5MinuteRows = current5MinuteData.Rows;
+if (
+  current5MinuteRows &&
+  current5MinuteRows[0].Data &&
+  !isM5ScalarValuesUndefined(current5MinuteData)
+) {
+  const current5MinuteRowsData = current5MinuteRows[0].Data;
+  current5MinuteHigh = current5MinuteRowsData[0].ScalarValue ?? 0;
+  current5MinuteLow = current5MinuteRowsData[1].ScalarValue ?? 0;
+  current5MinuteVolume = current5MinuteRowsData[2].ScalarValue ?? 0;
 } else {
   current5MinuteHigh = lastTick;
   current5MinuteLow = lastTick;
@@ -119,11 +125,12 @@ if (current5MinuteRowData && !isM5ScalarValuesUndefined(current5MinuteData)) {
 }
 
 console.log("fill currentHour data..");
-const currentHourRowData = currentHourData.Rows[0].Data;
-if (currentHourRowData) {
-  currentHourHigh = currentHourRowData[0].ScalarValue ?? 0;
-  currentHourLow = currentHourRowData[1].ScalarValue ?? 0;
-  currentHourVolume = currentHourRowData[2].ScalarValue ?? 0;
+const currentHourRows = currentHourData.Rows;
+if (currentHourRows && currentHourRows[0].Data) {
+  const currentHourRowsData = currentHourRows[0].Data;
+  currentHourHigh = currentHourRowsData[0].ScalarValue ?? 0;
+  currentHourLow = currentHourRowsData[1].ScalarValue ?? 0;
+  currentHourVolume = currentHourRowsData[2].ScalarValue ?? 0;
 } else {
   currentHourHigh = lastTick;
   currentHourLow = lastTick;
@@ -131,11 +138,12 @@ if (currentHourRowData) {
 }
 
 console.log("fill currentDay data..");
-const currentDayRowData = currentDayData.Rows[0].Data;
-if (currentDayRowData) {
-  currentDayHigh = currentDayRowData[0].ScalarValue ?? 0;
-  currentDayLow = currentDayRowData[1].ScalarValue ?? 0;
-  currentDayVolume = currentDayRowData[2].ScalarValue ?? 0;
+const currentDayRows = currentDayData.Rows;
+if (currentDayRows && currentDayRows[0].Data) {
+  const currentDayRowsData = currentDayRows[0].Data;
+  currentDayHigh = currentDayRowsData[0].ScalarValue ?? 0;
+  currentDayLow = currentDayRowsData[1].ScalarValue ?? 0;
+  currentDayVolume = currentDayRowsData[2].ScalarValue ?? 0;
 } else {
   currentDayHigh = lastTick;
   currentDayLow = lastTick;
@@ -143,11 +151,12 @@ if (currentDayRowData) {
 }
 
 console.log("fill currentWeek data..");
-const currentWeekRowData = currentWeekData.Rows[0].Data;
-if (currentWeekRowData) {
-  currentWeekHigh = currentWeekRowData[0].ScalarValue ?? 0;
-  currentWeekLow = currentWeekRowData[1].ScalarValue ?? 0;
-  currentWeekVolume = currentWeekRowData[2].ScalarValue ?? 0;
+const currentWeekRows = currentWeekData.Rows;
+if (currentWeekRows && currentWeekRows[0].Data) {
+  const currentWeekRowsData = currentWeekRows[0].Data;
+  currentWeekHigh = currentWeekRowsData[0].ScalarValue ?? 0;
+  currentWeekLow = currentWeekRowsData[1].ScalarValue ?? 0;
+  currentWeekVolume = currentWeekRowsData[2].ScalarValue ?? 0;
 } else {
   currentWeekHigh = lastTick;
   currentWeekLow = lastTick;
