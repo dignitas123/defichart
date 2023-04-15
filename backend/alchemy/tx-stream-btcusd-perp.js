@@ -96,7 +96,7 @@ if (!lastTick) {
 
 console.log("fill currentMinute data..");
 const currentMinuteRows = currentMinuteData.Rows;
-if (currentMinuteRows && currentMinuteRows[0].Data) {
+if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   const currentMinuteRowsData = currentMinuteRows[0].Data;
   currentMinuteHigh = currentMinuteRowsData[0].ScalarValue ?? 0;
   currentMinuteLow = currentMinuteRowsData[1].ScalarValue ?? 0;
@@ -111,6 +111,7 @@ console.log("fill current5Minute data..");
 const current5MinuteRows = current5MinuteData.Rows;
 if (
   current5MinuteRows &&
+  current5MinuteRows[0] &&
   current5MinuteRows[0].Data &&
   !isM5ScalarValuesUndefined(current5MinuteData)
 ) {
@@ -126,7 +127,7 @@ if (
 
 console.log("fill currentHour data..");
 const currentHourRows = currentHourData.Rows;
-if (currentHourRows && currentHourRows[0].Data) {
+if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   const currentHourRowsData = currentHourRows[0].Data;
   currentHourHigh = currentHourRowsData[0].ScalarValue ?? 0;
   currentHourLow = currentHourRowsData[1].ScalarValue ?? 0;
@@ -139,7 +140,7 @@ if (currentHourRows && currentHourRows[0].Data) {
 
 console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
-if (currentDayRows && currentDayRows[0].Data) {
+if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
   currentDayHigh = currentDayRowsData[0].ScalarValue ?? 0;
   currentDayLow = currentDayRowsData[1].ScalarValue ?? 0;
@@ -152,7 +153,7 @@ if (currentDayRows && currentDayRows[0].Data) {
 
 console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
-if (currentWeekRows && currentWeekRows[0].Data) {
+if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
   currentWeekHigh = currentWeekRowsData[0].ScalarValue ?? 0;
   currentWeekLow = currentWeekRowsData[1].ScalarValue ?? 0;
