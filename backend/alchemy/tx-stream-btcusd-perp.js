@@ -212,7 +212,15 @@ setInterval(() => {
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
+      console.log("new hour", now.getHours());
       if (now.getHours() === 0) {
+        console.log(
+          "beginning of new day",
+          currentDayHigh,
+          currentDayLow,
+          "previous day beginning",
+          getPreviousDayBeginning
+        );
         // beginning of new day
         if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
           candleStickStreamWrite(
@@ -282,37 +290,44 @@ alchemy.ws.on(filter, async (log) => {
 
     // check new highs, lows for each database
     if (lastTick > currentMinuteHigh) {
-      currentMinuteHigh = priceData.price;
+      currentMinuteHigh = lastTick;
     }
     if (lastTick < currentMinuteLow) {
-      currentMinuteLow = priceData.price;
+      currentMinuteLow = lastTick;
     }
     if (lastTick > current5MinuteHigh) {
-      current5MinuteHigh = priceData.price;
+      current5MinuteHigh = lastTick;
     }
     if (lastTick < current5MinuteLow) {
-      current5MinuteLow = priceData.price;
+      current5MinuteLow = lastTick;
     }
     if (lastTick > currentHourHigh) {
-      currentHourHigh = priceData.price;
+      currentHourHigh = lastTick;
     }
     if (lastTick < currentHourLow) {
-      currentHourLow = priceData.price;
+      currentHourLow = lastTick;
     }
     if (lastTick > currentDayHigh) {
-      currentDayHigh = priceData.price;
+      currentDayHigh = lastTick;
     }
     if (lastTick < currentDayLow) {
-      currentDayLow = priceData.price;
+      currentDayLow = lastTick;
     }
     if (lastTick > currentWeekHigh) {
-      currentWeekHigh = priceData.price;
+      currentWeekHigh = lastTick;
     }
     if (lastTick < currentWeekLow) {
-      currentWeekLow = priceData.price;
+      currentWeekLow = lastTick;
     }
 
     // write the new tick to the tickstream database
+    console.log(
+      "writing",
+      priceData.volume,
+      priceData.direction,
+      priceData.price,
+      priceData.timestamp
+    );
     await tickDataStreamWrite(
       priceData.volume,
       priceData.direction,
