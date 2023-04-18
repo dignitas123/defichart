@@ -19,6 +19,7 @@
   "dependencies": {
     "@aws-sdk/client-kinesis": "^3.310.0",
     "@aws-sdk/client-timestream-query": "^3.310.0",
-    "@aws-sdk/client-timestream-write": "^3.303.0"
+    "@aws-sdk/client-timestream-write": "^3.303.0",
+    "csvtojson": "^2.0.10"
   }
 }

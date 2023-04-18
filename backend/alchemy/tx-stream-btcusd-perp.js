@@ -212,15 +212,7 @@ setInterval(() => {
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
-      console.log("new hour", now.getHours());
       if (now.getHours() === 0) {
-        console.log(
-          "beginning of new day",
-          currentDayHigh,
-          currentDayLow,
-          "previous day beginning",
-          getPreviousDayBeginning
-        );
         // beginning of new day
         if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
           candleStickStreamWrite(
