@@ -1,7 +1,7 @@
-import { candleSticksStreamWrite } from "./write-data.js";
+import { candleSticksStreamWrite } from "../write-data.js";
 import csv from "csvtojson";
 
-const csvFilePath = "BTCUSD_d1.csv";
+const csvFilePath = "BTCUSD_d1_toy.csv"; // make sure files are formatted like the toy dataset
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
