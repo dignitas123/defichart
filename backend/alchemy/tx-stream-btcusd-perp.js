@@ -20,6 +20,7 @@ import {
   getPreviousRoundedMinuteInterval,
   getPreviousRoundedHourInterval,
   getPreviousDayBeginning,
+  getPreviousWeekBeginning,
 } from "./aws-module/utility.js";
 
 const contractAddress = "0x86f1e0420c26a858fc203A3645dD1A36868F18e5";

@@ -73,7 +73,7 @@ export function getPreviousWeekBeginning() {
   const startOfLastWeek = new Date(today);
   startOfLastWeek.setDate(today.getDate() - daysSinceMonday - 7);
   startOfLastWeek.setHours(0, 0, 0, 0); // Set time to midnight
-  return startOfLastWeek;
+  return startOfLastWeek.getTime();
 }
 
 export function getUTCWeekbegin() {
@@ -110,7 +110,10 @@ export function isM5ScalarValuesUndefined(queryCommandOutput) {
       }
     }
 
-    return undefinedCount === 1 || queryCommandOutputRowData.every(isEmptyOrUndefined);
+    return (
+      undefinedCount === 1 ||
+      queryCommandOutputRowData.every(isEmptyOrUndefined)
+    );
   } else {
     return true;
   }
