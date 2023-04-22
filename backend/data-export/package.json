@@ -1,7 +1,7 @@
 {
-  "name": "data-import from app.perp to csv",
+  "name": "data-export",
   "version": "1.0.0",
-  "description": "imports data from json from app.perp and creates csv files that you can upload to aws timestream",
+  "description": "data export for aws timestream tables to csv",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

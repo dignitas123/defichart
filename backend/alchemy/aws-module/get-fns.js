@@ -36,9 +36,9 @@ export async function getLastBinRecords(
                     ORDER BY time ASC
                 ) AS first_price
             FROM "defichartTickDatabase"."${symbol}"
-            WHERE time >= DATE_TRUNC(${timeInterval}, now())
+            WHERE time >= DATE_TRUNC('${timeInterval}', now())
         )
-        WHERE time >= DATE_TRUNC(${timeInterval}, now())
+        WHERE time >= DATE_TRUNC('${timeInterval}', now())
         GROUP BY bin(time, ${timeFrame}), first_price
         ORDER BY binned_time DESC
     `,
