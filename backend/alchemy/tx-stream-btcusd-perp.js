@@ -104,11 +104,12 @@ console.log("fill currentMinute data..");
 const currentMinuteRows = currentMinuteData.Rows;
 if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   const currentMinuteRowsData = currentMinuteRows[0].Data;
-  currentMinuteOpen = currentMinuteOpen[0].ScalarValue ?? 0;
+  currentMinuteOpen = currentMinuteRowsData[0].ScalarValue ?? 0;
   currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
   currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
   currentMinuteVolume = currentMinuteRowsData[3].ScalarValue ?? 0;
 } else {
+  currentMinuteOpen = lastTick;
   currentMinuteHigh = lastTick;
   currentMinuteLow = lastTick;
   currentMinuteVolume = 0;
@@ -128,6 +129,7 @@ if (
   current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
   current5MinuteVolume = current5MinuteRowsData[3].ScalarValue ?? 0;
 } else {
+  current5MinuteOpen = lastTick;
   current5MinuteHigh = lastTick;
   current5MinuteLow = lastTick;
   current5MinuteVolume = 0;
@@ -142,6 +144,7 @@ if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
   currentHourVolume = currentHourRowsData[3].ScalarValue ?? 0;
 } else {
+  currentHourOpen = lastTick;
   currentHourHigh = lastTick;
   currentHourLow = lastTick;
   currentHourVolume = 0;
@@ -156,6 +159,7 @@ if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
   currentDayVolume = currentDayRowsData[3].ScalarValue ?? 0;
 } else {
+  currentDayOpen = lastTick;
   currentDayHigh = lastTick;
   currentDayLow = lastTick;
   currentDayVolume = 0;
@@ -170,6 +174,7 @@ if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
   currentWeekVolume = currentWeekRowsData[3].ScalarValue ?? 0;
 } else {
+  currentWeekOpen = lastTick;
   currentWeekHigh = lastTick;
   currentWeekLow = lastTick;
   currentWeekVolume = 0;
@@ -190,6 +195,7 @@ setInterval(() => {
         "btcusd-perp_m1"
       );
     }
+    currentMinuteOpen = 0;
     currentMinuteVolume = 0;
     currentMinuteHigh = 0;
     currentMinuteLow = Infinity;
@@ -206,6 +212,7 @@ setInterval(() => {
           "btcusd-perp_m5"
         );
       }
+      current5MinuteOpen = 0;
       current5MinuteVolume = 0;
       current5MinuteHigh = 0;
       current5MinuteLow = Infinity;
@@ -224,6 +231,7 @@ setInterval(() => {
           "btcusd-perp_h1"
         );
       }
+      currentHourOpen = 0;
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
@@ -241,6 +249,7 @@ setInterval(() => {
             "btcusd-perp_d1"
           );
         }
+        currentDayOpen = 0;
         currentDayVolume = 0;
         currentDayHigh = 0;
         currentDayLow = Infinity;
@@ -258,6 +267,7 @@ setInterval(() => {
               "btcusd-perp_w1"
             );
           }
+          currentWeekOpen = 0;
           currentWeekVolume = 0;
           currentWeekHigh = 0;
           currentWeekLow = Infinity;
@@ -302,6 +312,23 @@ alchemy.ws.on(filter, async (log) => {
     currentDayVolume += priceData.volume;
     currentWeekVolume += priceData.volume;
 
+    // set open
+    if(!currentMinuteOpen) {
+      currentMinuteOpen = lastTick;
+    }
+    if(!current5MinuteOpen) {
+      current5MinuteOpen = lastTick;
+    }
+    if(!currentHourOpen) {
+      currentHourOpen = lastTick;
+    }
+    if(!currentDayOpen) {
+      currentDayOpen = lastTick;
+    }
+    if(!currentWeekOpen) {
+      currentWeekOpen = lastTick;
+    }
+
     // check new highs, lows for each database
     if (lastTick > currentMinuteHigh) {
       currentMinuteHigh = lastTick;
@@ -334,14 +361,9 @@ alchemy.ws.on(filter, async (log) => {
       currentWeekLow = lastTick;
     }
 
-    // write the new tick to the tickstream database
-    console.log(
-      "writing",
-      priceData.volume,
-      priceData.direction,
-      priceData.price,
-      priceData.timestamp
-    );
+    if(version === 2) {
+      console.log('Use Version 2');
+    }
     await tickDataStreamWrite(
       priceData.volume,
       priceData.direction,
