@@ -9,7 +9,7 @@ import {
 import { putRecordOnKinesis } from "./aws-module/kinesis-put.js";
 import {
   getLastBinRecords,
-  getLastBinRecordsFromStartTime,
+  getLastAggregateRecordsFromStartTime,
   getLastTick,
 } from "./aws-module/get-fns.js";
 import {
@@ -43,7 +43,7 @@ if (!currentMinuteData) {
   process.exit();
 }
 await sleep(300);
-const current5MinuteData = await getLastBinRecordsFromStartTime(
+const current5MinuteData = await getLastAggregateRecordsFromStartTime(
   getLastRoundedFiveMinuteInterval()
 );
 if (!current5MinuteData) {
@@ -63,7 +63,7 @@ if (!currentDayData) {
   process.exit();
 }
 await sleep(300);
-const currentWeekData = await getLastBinRecordsFromStartTime(getUTCWeekbegin());
+const currentWeekData = await getLastAggregateRecordsFromStartTime(getUTCWeekbegin());
 if (!currentWeekData) {
   console.error("Can\'t get current week data, shutting down");
   process.exit();

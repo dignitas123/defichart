@@ -57,7 +57,7 @@ export async function getLastBinRecords(
  * Will get high, low, volume from start time (utc)
  * @param { string } startTime F.e. '2023-04-14 11:01:00'
  */
-export async function getLastBinRecordsFromStartTime(
+export async function getLastAggregateRecordsFromStartTime(
   startTime,
   symbol = "btcusd-perp"
 ) {
