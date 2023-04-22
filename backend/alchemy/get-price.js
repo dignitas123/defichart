@@ -14,7 +14,8 @@ import { decodeReceiptSignature, getSwapResultData } from "./log-data-fns.js";
 export async function getPriceData(
   txHash,
   divider = 1000000000000000000n,
-  decimals = 8
+  decimals = 8,
+  maxPricePrecision = 15
 ) {
   if (!txHash) {
     console.log("noTxHash");
@@ -50,10 +51,21 @@ export async function getPriceData(
     return Number(result) / 10 ** decimals;
   };
 
+  let swapPrice = abs(swapResultData[1]) / abs(swapResultData[0])
+  
+  const countDecimals = (number) => {
+    const decimalString = number.toString().split('.')[1];
+    return decimalString ? decimalString.length : 0;
+  }
+
+  if(countDecimals(swapPrice) > maxPricePrecision) {
+    swapPrice = Math.round(swapPrice * 10**maxPricePrecision) / 10**maxPricePrecision;
+  }
+
   return {
     volume: divideBigInts(BigInt(abs(swapResultData[0])), divider, decimals),
     direction: swapResultData[0] > 0,
-    price: abs(swapResultData[1]) / abs(swapResultData[0]),
+    price: swapPrice, 
     timestamp: Date.now(),
   };
 }
