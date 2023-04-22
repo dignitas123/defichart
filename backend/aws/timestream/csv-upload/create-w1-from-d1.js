@@ -52,6 +52,7 @@ hlcvtRecords.forEach((candlestick) => {
   }
   if (new Date(Number(candlestick.timestamp)).getDay() === 1) {
     res.push({
+      open: candlestick.open,
       high: aggregateHigh,
       low: aggregateLow,
       close: candlestick.close,

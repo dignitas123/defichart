@@ -1,7 +1,7 @@
 import { candleSticksStreamWrite } from "../write-data.js";
 import csv from "csvtojson";
 
-const csvFilePath = "BTCUSD_w1.csv"; // make sure files are formatted like the toy dataset
+const csvFilePath = "XBTUSD_60.csv"; // make sure files are formatted like the toy dataset
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
@@ -22,6 +22,6 @@ console.log("Process each chunk one by one");
 for (let i = 0; i < chunks.length; i++) {
   setTimeout(async () => {
     console.log(`Processing chunk ${i + 1} chunk length ${chunks[i].length}`);
-    await candleSticksStreamWrite(chunks[i], "btcusd-perp_w1");
-  }, i * 1000);
+    await candleSticksStreamWrite(chunks[i], "btcusd-perp_h1");
+  }, i * 500);
 }

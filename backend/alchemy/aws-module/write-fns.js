@@ -6,7 +6,8 @@ export async function tickDataStreamWrite(
   _volume,
   _direction,
   _price,
-  _timestamp = Date.now()
+  _timestamp = Date.now(),
+  _version = 1
 ) {
   // to overwrite data you need the time and set it to utc by adding +00:00 like
   // '2023-04-02 08:21:15.007+00:00' for '2023-04-02 08:21:15.0070000' and then new Date('2023-04-02 08:21:15.007+00:00').getTime().toString()
@@ -16,7 +17,7 @@ export async function tickDataStreamWrite(
 
   const commonAttributes = {
     Dimensions: dimensions,
-    Version: 1,
+    Version: _version,
     Time: currentTime,
   };
 
@@ -50,8 +51,7 @@ export async function tickDataStreamWrite(
   const command = new WriteRecordsCommand(params);
 
   try {
-    const writeRecordDataOutput = await timestreamWriteClient.send(command);
-    console.log(writeRecordDataOutput);
+    await timestreamWriteClient.send(command);
   } catch (error) {
     console.log("Error writing data. ", error);
   }
@@ -59,6 +59,7 @@ export async function tickDataStreamWrite(
 
 export async function candleStickStreamWrite(
   _volume,
+  _open,
   _high,
   _low,
   _close,
@@ -81,6 +82,12 @@ export async function candleStickStreamWrite(
     MeasureValue: String(_volume),
   };
 
+  const open = {
+    MeasureValueType: "DOUBLE",
+    MeasureName: "open",
+    MeasureValue: String(_open),
+  };
+
   const high = {
     MeasureValueType: "DOUBLE",
     MeasureName: "high",
@@ -99,7 +106,7 @@ export async function candleStickStreamWrite(
     MeasureValue: String(_close),
   };
 
-  const records = [volume, high, low, close];
+  const records = [volume, open, high, low, close];
 
   const params = {
     DatabaseName: constants.DATABASE_NAME,
@@ -111,8 +118,7 @@ export async function candleStickStreamWrite(
   const command = new WriteRecordsCommand(params);
 
   try {
-    const writeRecordDataOutput = await timestreamWriteClient.send(command);
-    console.log("candlestick", writeRecordDataOutput);
+    await timestreamWriteClient.send(command);
   } catch (error) {
     console.log("Error writing data. ", error);
   }

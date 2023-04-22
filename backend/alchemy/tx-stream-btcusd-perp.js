@@ -71,18 +71,23 @@ if (!currentWeekData) {
 
 // memory save variables
 let lastTick = 0;
+let currentMinuteOpen = 0;
 let currentMinuteHigh = 0;
 let currentMinuteLow = Infinity;
 let currentMinuteVolume = 0;
+let current5MinuteOpen = 0;
 let current5MinuteHigh = 0;
 let current5MinuteLow = Infinity;
 let current5MinuteVolume = 0;
+let currentHourOpen = 0;
 let currentHourHigh = 0;
 let currentHourLow = Infinity;
 let currentHourVolume = 0;
+let currentDayOpen = 0;
 let currentDayHigh = 0;
 let currentDayLow = Infinity;
 let currentDayVolume = 0;
+let currentWeekOpen = 0;
 let currentWeekHigh = 0;
 let currentWeekLow = Infinity;
 let currentWeekVolume = 0;
@@ -99,9 +104,10 @@ console.log("fill currentMinute data..");
 const currentMinuteRows = currentMinuteData.Rows;
 if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   const currentMinuteRowsData = currentMinuteRows[0].Data;
-  currentMinuteHigh = currentMinuteRowsData[0].ScalarValue ?? 0;
-  currentMinuteLow = currentMinuteRowsData[1].ScalarValue ?? 0;
-  currentMinuteVolume = currentMinuteRowsData[2].ScalarValue ?? 0;
+  currentMinuteOpen = currentMinuteOpen[0].ScalarValue ?? 0;
+  currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
+  currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
+  currentMinuteVolume = currentMinuteRowsData[3].ScalarValue ?? 0;
 } else {
   currentMinuteHigh = lastTick;
   currentMinuteLow = lastTick;
@@ -117,9 +123,10 @@ if (
   !isM5ScalarValuesUndefined(current5MinuteData)
 ) {
   const current5MinuteRowsData = current5MinuteRows[0].Data;
-  current5MinuteHigh = current5MinuteRowsData[0].ScalarValue ?? 0;
-  current5MinuteLow = current5MinuteRowsData[1].ScalarValue ?? 0;
-  current5MinuteVolume = current5MinuteRowsData[2].ScalarValue ?? 0;
+  current5MinuteOpen = current5MinuteRowsData[0].ScalarValue ?? 0;
+  current5MinuteHigh = current5MinuteRowsData[1].ScalarValue ?? 0;
+  current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
+  current5MinuteVolume = current5MinuteRowsData[3].ScalarValue ?? 0;
 } else {
   current5MinuteHigh = lastTick;
   current5MinuteLow = lastTick;
@@ -130,9 +137,10 @@ console.log("fill currentHour data..");
 const currentHourRows = currentHourData.Rows;
 if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   const currentHourRowsData = currentHourRows[0].Data;
-  currentHourHigh = currentHourRowsData[0].ScalarValue ?? 0;
-  currentHourLow = currentHourRowsData[1].ScalarValue ?? 0;
-  currentHourVolume = currentHourRowsData[2].ScalarValue ?? 0;
+  currentHourOpen = currentHourRowsData[0].ScalarValue ?? 0;
+  currentHourHigh = currentHourRowsData[1].ScalarValue ?? 0;
+  currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
+  currentHourVolume = currentHourRowsData[3].ScalarValue ?? 0;
 } else {
   currentHourHigh = lastTick;
   currentHourLow = lastTick;
@@ -143,9 +151,10 @@ console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
 if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
-  currentDayHigh = currentDayRowsData[0].ScalarValue ?? 0;
-  currentDayLow = currentDayRowsData[1].ScalarValue ?? 0;
-  currentDayVolume = currentDayRowsData[2].ScalarValue ?? 0;
+  currentDayOpen = currentDayRowsData[0].ScalarValue ?? 0;
+  currentDayHigh = currentDayRowsData[1].ScalarValue ?? 0;
+  currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
+  currentDayVolume = currentDayRowsData[3].ScalarValue ?? 0;
 } else {
   currentDayHigh = lastTick;
   currentDayLow = lastTick;
@@ -156,9 +165,10 @@ console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
 if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
-  currentWeekHigh = currentWeekRowsData[0].ScalarValue ?? 0;
-  currentWeekLow = currentWeekRowsData[1].ScalarValue ?? 0;
-  currentWeekVolume = currentWeekRowsData[2].ScalarValue ?? 0;
+  currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
+  currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
+  currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
+  currentWeekVolume = currentWeekRowsData[3].ScalarValue ?? 0;
 } else {
   currentWeekHigh = lastTick;
   currentWeekLow = lastTick;
@@ -172,6 +182,7 @@ setInterval(() => {
     if (currentMinuteHigh !== 0 && currentMinuteLow !== Infinity) {
       candleStickStreamWrite(
         currentMinuteVolume,
+        currentMinuteOpen,
         currentMinuteHigh,
         currentMinuteLow,
         lastTick,
@@ -187,6 +198,7 @@ setInterval(() => {
       if (current5MinuteHigh !== 0 && current5MinuteLow !== Infinity) {
         candleStickStreamWrite(
           current5MinuteVolume,
+          current5MinuteOpen,
           current5MinuteHigh,
           current5MinuteLow,
           lastTick,
@@ -203,6 +215,7 @@ setInterval(() => {
       if (currentHourHigh !== 0 && currentHourLow !== Infinity) {
         candleStickStreamWrite(
           currentHourVolume,
+          currentHourOpen,
           currentHourHigh,
           currentHourLow,
           lastTick,
@@ -218,6 +231,7 @@ setInterval(() => {
         if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
           candleStickStreamWrite(
             currentDayVolume,
+            currentDayOpen,
             currentDayHigh,
             currentDayLow,
             lastTick,
@@ -233,6 +247,7 @@ setInterval(() => {
           if (currentWeekHigh !== 0 && currentWeekLow === Infinity) {
             candleStickStreamWrite(
               currentWeekVolume,
+              currentWeekOpen,
               currentWeekHigh,
               currentWeekLow,
               lastTick,
@@ -263,11 +278,14 @@ alchemy.ws.on(filter, async (log) => {
       priceData.timestamp
     );
     const currentTimeStamp = priceData.timestamp;
+    let version = 1;
     // in case there have been two trades on the same timestamp, account for the added volume
     if (previousTimeStamp && previousTimeStamp === currentTimeStamp) {
       priceData.volume += previousVolume;
+      version = 2; // increase version to overwrite the current timestamp
       previousVolume = priceData.volume;
     } else {
+      version = 1;
       previousVolume = priceData.volume;
     }
     previousTimeStamp = priceData.timestamp;
@@ -325,7 +343,8 @@ alchemy.ws.on(filter, async (log) => {
       priceData.volume,
       priceData.direction,
       priceData.price,
-      priceData.timestamp
+      priceData.timestamp,
+      version
     );
   }
 });

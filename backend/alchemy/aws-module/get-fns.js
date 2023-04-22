@@ -14,28 +14,33 @@ export async function getLastBinRecords(
 ) {
   const params = {
     QueryString: `
-      SELECT
-          bin(time, ${timeFrame}) as binned_time,
-          MAX(
-              CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
-          ) AS high,
-          MIN(
-              CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
-          ) AS low,
-          SUM(
-              CASE WHEN measure_name = 'volume' THEN measure_value::double ELSE 0 END
-          ) AS volume
-      FROM (
-        SELECT 
-          time,
-          measure_name,
-          measure_value::double
-        FROM "defichartTickDatabase"."${symbol}"
-        WHERE time >= DATE_TRUNC('${timeInterval}', now())
-      )
-      WHERE time >= DATE_TRUNC('${timeInterval}', now())
-      GROUP BY bin(time, ${timeFrame})
-      ORDER BY binned_time DESC
+        SELECT
+            bin(time, ${timeFrame}) AS binned_time,
+            first_price AS open,
+            MAX(
+                CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
+            ) AS high,
+            MIN(
+                CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
+            ) AS low,
+            SUM(
+                CASE WHEN measure_name = 'volume' THEN measure_value::double ELSE 0 END
+            ) AS volume
+        FROM (
+            SELECT 
+                time,
+                measure_name,
+                measure_value::double,
+                FIRST_VALUE(measure_value::double) OVER (
+                    PARTITION BY bin(time, ${timeFrame})
+                    ORDER BY time ASC
+                ) AS first_price
+            FROM "defichartTickDatabase"."${symbol}"
+            WHERE time >= DATE_TRUNC(${timeInterval}, now())
+        )
+        WHERE time >= DATE_TRUNC(${timeInterval}, now())
+        GROUP BY bin(time, ${timeFrame}), first_price
+        ORDER BY binned_time DESC
     `,
   };
 
@@ -58,7 +63,13 @@ export async function getLastBinRecordsFromStartTime(
 ) {
   const params = {
     QueryString: `
-      SELECT
+        SELECT
+          (SELECT measure_value::double
+          FROM "defichartTickDatabase"."${symbol}"
+          WHERE time >= '${startTime}'
+          AND measure_name = 'price'
+          ORDER BY time ASC
+          LIMIT 1) AS open,
           MAX(
               CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
           ) AS high,
