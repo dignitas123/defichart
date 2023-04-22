@@ -4,7 +4,7 @@ import { QueryCommand } from "@aws-sdk/client-timestream-query";
 /**
  * Gets the records until a rounded up time, f.e. all ticks aggregated with high, low, volume for '1m'
  * (`timeFrame`) and 'minute' (`timeInterval` to be rounded)
- * @param { '1m' | '1h' | '1d' } timeFrame
+ * @param { '1m' | '1h' | '1d' } timeFrame e.g. '5m' also possible
  * @param { 'minute' | 'hour' | 'day' } timeInterval
  */
 export async function getLastBinRecords(
@@ -31,7 +31,7 @@ export async function getLastBinRecords(
                 time,
                 measure_name,
                 measure_value::double,
-                FIRST_VALUE(measure_value::double) OVER (
+                FIRST_VALUE(CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END) OVER (
                     PARTITION BY bin(time, ${timeFrame})
                     ORDER BY time ASC
                 ) AS first_price
