@@ -29,6 +29,7 @@ const d1 = {
 const res = [];
 d1.data.listCandleSticks.items.forEach((item) => {
   res.push({
+    open: item.open,
     high: item.high,
     low: item.low,
     close: item.close,

@@ -212,6 +212,7 @@ setInterval(() => {
     }
     if (now.getMinutes() === 0) {
       // beginning of new hour
+      console.log('writing new hour', new Date().toISOString());
       if (currentHourHigh !== 0 && currentHourLow !== Infinity) {
         candleStickStreamWrite(
           currentHourVolume,
@@ -228,6 +229,7 @@ setInterval(() => {
       currentHourLow = Infinity;
       if (now.getHours() === 0) {
         // beginning of new day
+        console.log('writing new day', new Date().toISOString());
         if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
           candleStickStreamWrite(
             currentDayVolume,
@@ -244,6 +246,7 @@ setInterval(() => {
         currentDayLow = Infinity;
         if (now.getDay() === 1) {
           // beginning of new week
+          console.log('writing new week', new Date().toISOString());
           if (currentWeekHigh !== 0 && currentWeekLow === Infinity) {
             candleStickStreamWrite(
               currentWeekVolume,

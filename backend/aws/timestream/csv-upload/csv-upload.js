@@ -4,7 +4,7 @@ import {
 } from "../write-data.js";
 import csv from "csvtojson";
 
-const csvFilePath = "BTCUSD_d1_only_until_2023.csv"; // make sure files are formatted like the toy dataset
+const csvFilePath = "BTCUSD_d1_only22_perp.csv"; // make sure files are formatted like the toy dataset
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
@@ -26,7 +26,7 @@ for (let i = 0; i < chunks.length; i++) {
   setTimeout(async () => {
     console.log(
       `Processing chunk ${i + 1} chunk length ${chunks[i].length} Progress: ${(
-        (chunks.length / i) *
+        (i / chunks.length) *
         100
       ).toFixed(2)}%`
     );
