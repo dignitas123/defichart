@@ -114,7 +114,7 @@ export async function tickDataStreamWrite(
 }
 
 /**
- * @param { obj } hlcvt {
+ * @param { obj } ohlcvt {
     high: number,
     low: number,
     close: number,
@@ -123,12 +123,12 @@ export async function tickDataStreamWrite(
   }
   @param { string } tableName
  */
-export async function candleSticksStreamWrite(hlcvt, tableName) {
-  if (!Array.isArray(hlcvt) || hlcvt.length > 200) {
+export async function candleSticksStreamWrite(ohlcvt, tableName) {
+  if (!Array.isArray(ohlcvt) || ohlcvt.length > 200) {
     throw new Error(
-      !Array.isArray(hlcvt)
-        ? "hlcvt has to be an array"
-        : "hlcvt array can't be longer than 500"
+      !Array.isArray(ohlcvt)
+        ? "ohlcvt has to be an array"
+        : "ohlcvt array can't be longer than 500"
     );
   }
 
@@ -141,8 +141,15 @@ export async function candleSticksStreamWrite(hlcvt, tableName) {
 
   const records = [];
 
-  hlcvt.forEach((entry) => {
+  ohlcvt.forEach((entry) => {
     const timeStampInMilliseconds = entry.timestamp.toString();
+
+    const open = {
+      MeasureValueType: "DOUBLE",
+      MeasureName: "open",
+      MeasureValue: String(entry.open),
+      Time: timeStampInMilliseconds,
+    };
 
     const high = {
       MeasureValueType: "DOUBLE",
@@ -172,10 +179,69 @@ export async function candleSticksStreamWrite(hlcvt, tableName) {
       Time: timeStampInMilliseconds,
     };
 
+    records.push(open);
     records.push(high);
     records.push(low);
     records.push(close);
     records.push(volume);
+  });
+
+  const params = {
+    DatabaseName: constants.DATABASE_NAME,
+    TableName: tableName,
+    Records: records,
+    CommonAttributes: commonAttributes,
+  };
+
+  const command = new WriteRecordsCommand(params);
+
+  try {
+    const writeRecordDataOutput = await timestreamWriteClient.send(command);
+    console.log("candlesticks written", writeRecordDataOutput);
+  } catch (error) {
+    console.log("Error writing data. ", error);
+  }
+}
+
+/**
+ * @param { obj } ohlcvt {
+    high: number,
+    low: number,
+    close: number,
+    volume: number,
+    timestamp: number, // timestamp in milliseconds
+  }
+  @param { string } tableName
+ */
+export async function candleSticksStreamWriteOnlyOpen(ohlcvt, tableName) {
+  if (!Array.isArray(ohlcvt) || ohlcvt.length > 200) {
+    throw new Error(
+      !Array.isArray(ohlcvt)
+        ? "ohlcvt has to be an array"
+        : "ohlcvt array can't be longer than 500"
+    );
+  }
+
+  const dimensions = [{ Name: "region", Value: constants.REGION }];
+
+  const commonAttributes = {
+    Dimensions: dimensions,
+    Version: 1,
+  };
+
+  const records = [];
+
+  ohlcvt.forEach((entry) => {
+    const timeStampInMilliseconds = entry.timestamp.toString();
+
+    const open = {
+      MeasureValueType: "DOUBLE",
+      MeasureName: "open",
+      MeasureValue: String(entry.open),
+      Time: timeStampInMilliseconds,
+    };
+
+    records.push(open);
   });
 
   const params = {
