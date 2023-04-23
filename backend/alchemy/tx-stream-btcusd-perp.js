@@ -108,11 +108,6 @@ if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
   currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
   currentMinuteVolume = currentMinuteRowsData[3].ScalarValue ?? 0;
-} else {
-  currentMinuteOpen = lastTick;
-  currentMinuteHigh = lastTick;
-  currentMinuteLow = lastTick;
-  currentMinuteVolume = 0;
 }
 
 console.log("fill current5Minute data..");
@@ -128,11 +123,6 @@ if (
   current5MinuteHigh = current5MinuteRowsData[1].ScalarValue ?? 0;
   current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
   current5MinuteVolume = current5MinuteRowsData[3].ScalarValue ?? 0;
-} else {
-  current5MinuteOpen = lastTick;
-  current5MinuteHigh = lastTick;
-  current5MinuteLow = lastTick;
-  current5MinuteVolume = 0;
 }
 
 console.log("fill currentHour data..");
@@ -143,11 +133,6 @@ if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   currentHourHigh = currentHourRowsData[1].ScalarValue ?? 0;
   currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
   currentHourVolume = currentHourRowsData[3].ScalarValue ?? 0;
-} else {
-  currentHourOpen = lastTick;
-  currentHourHigh = lastTick;
-  currentHourLow = lastTick;
-  currentHourVolume = 0;
 }
 
 console.log("fill currentDay data..");
@@ -158,11 +143,6 @@ if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   currentDayHigh = currentDayRowsData[1].ScalarValue ?? 0;
   currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
   currentDayVolume = currentDayRowsData[3].ScalarValue ?? 0;
-} else {
-  currentDayOpen = lastTick;
-  currentDayHigh = lastTick;
-  currentDayLow = lastTick;
-  currentDayVolume = 0;
 }
 
 console.log("fill currentWeek data..");
@@ -173,11 +153,6 @@ if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
   currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
   currentWeekVolume = currentWeekRowsData[3].ScalarValue ?? 0;
-} else {
-  currentWeekOpen = lastTick;
-  currentWeekHigh = lastTick;
-  currentWeekLow = lastTick;
-  currentWeekVolume = 0;
 }
 
 setInterval(() => {
