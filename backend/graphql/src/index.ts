@@ -18,7 +18,7 @@ import cors from "cors";
 // Define your resolver functions
 const resolvers: Resolvers = {
   Query: {
-    records: async (_root, { timeFrame, binAmount }) => {
+    binRecords: async (_root, { timeFrame, binAmount }) => {
       if (binAmount > 200) {
         throw new GraphQLError(
           `Bin amount ${binAmount} is too high. It can\'t be higher than 200.`,

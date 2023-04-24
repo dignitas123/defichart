@@ -16,11 +16,11 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
-  records?: Maybe<Array<Maybe<TimeStreamRecord>>>;
+  binRecords?: Maybe<Array<Maybe<TimeStreamRecord>>>;
 };
 
 
-export type QueryRecordsArgs = {
+export type QueryBinRecordsArgs = {
   binAmount: Scalars['Int'];
   timeFrame: TimeFrame;
 };
@@ -171,7 +171,7 @@ export type ResolversParentTypes = {
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  records?: Resolver<Maybe<Array<Maybe<ResolversTypes['TimeStreamRecord']>>>, ParentType, ContextType, RequireFields<QueryRecordsArgs, 'binAmount' | 'timeFrame'>>;
+  binRecords?: Resolver<Maybe<Array<Maybe<ResolversTypes['TimeStreamRecord']>>>, ParentType, ContextType, RequireFields<QueryBinRecordsArgs, 'binAmount' | 'timeFrame'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {

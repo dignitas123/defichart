@@ -44,13 +44,13 @@ function calculateAgo(timeFrame: TimeFrame, amount: number) {
     case "D4":
       return amount * 4 + "d";
     case "W1":
-      return amount + "w";
+      return amount * 7 + "d";
     case "W2":
-      return amount * 2 + "w";
+      return amount * 7 * 2 + "d";
     case "W3":
-      return amount * 3 + "w";
+      return amount * 7 * 3 + "d";
     case "W4":
-      return amount * 4 + "w";
+      return amount * 7 * 4 + "d";
   }
 }
 
