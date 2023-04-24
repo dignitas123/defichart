@@ -2,7 +2,7 @@ import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { Resolvers, TickDataResult } from "./generated/graphql";
 import { getTimestreamRecords } from "./aws-module/get-data";
-import { timestreamRecordsQuery } from "./timestream-query/queries";
+import { timeFrameQuery } from "./timestream-query/queries";
 import { typeDefs } from "./type-defs";
 import { GraphQLError } from "graphql";
 import { messageConsumer } from "./kinesis-shard/quotes";
@@ -30,7 +30,7 @@ const resolvers: Resolvers = {
         );
       }
       const timestreamRecords = await getTimestreamRecords(
-        timestreamRecordsQuery(timeFrame, binAmount)
+        timeFrameQuery(timeFrame, binAmount)
       );
       if (!timestreamRecords) {
         throw new GraphQLError(

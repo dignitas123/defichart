@@ -24,10 +24,11 @@ export async function getTimestreamRecords(queryString: string) {
       }
       res.push({
         timestamp: new Date(row.Data[0].ScalarValue as string).getTime(),
-        high: Number(row.Data[1].ScalarValue),
-        low: Number(row.Data[2].ScalarValue),
-        close: Number(row.Data[3].ScalarValue),
-        volume: Number(row.Data[4].ScalarValue),
+        open: Number(row.Data[1].ScalarValue),
+        high: Number(row.Data[2].ScalarValue),
+        low: Number(row.Data[3].ScalarValue),
+        close: Number(row.Data[4].ScalarValue),
+        volume: Number(row.Data[5].ScalarValue),
       });
     });
     return res;

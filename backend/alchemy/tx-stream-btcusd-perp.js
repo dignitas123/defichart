@@ -231,7 +231,7 @@ setInterval(() => {
         if (now.getDay() === 1) {
           // beginning of new week
           console.log('writing new week', new Date().toISOString());
-          if (currentWeekHigh !== 0 && currentWeekLow === Infinity) {
+          if (currentWeekHigh !== 0 && currentWeekLow !== Infinity) {
             candleStickStreamWrite(
               currentWeekVolume,
               currentWeekOpen,
@@ -270,7 +270,7 @@ alchemy.ws.on(filter, async (log) => {
     // in case there have been two trades on the same timestamp, account for the added volume
     if (previousTimeStamp && previousTimeStamp === currentTimeStamp) {
       priceData.volume += previousVolume;
-      version = 2; // increase version to overwrite the current timestamp
+      version++; // increase version to overwrite the current timestamp
       previousVolume = priceData.volume;
     } else {
       version = 1;
@@ -336,8 +336,8 @@ alchemy.ws.on(filter, async (log) => {
       currentWeekLow = lastTick;
     }
 
-    if(version === 2) {
-      console.log('Use Version 2');
+    if(version > 1) {
+      console.log(`Use Version ${version}`);
     }
     await tickDataStreamWrite(
       priceData.volume,

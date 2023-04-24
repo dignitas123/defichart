@@ -1,4 +1,4 @@
-import { TimeFrame, timeFrameMapping } from "./types";
+import { TimeFrame, TimeFrameOnlyWeek, timeFrameMapping } from "./types";
 import { constants } from "../aws-module/constants";
 
 function calculateAgo(timeFrame: TimeFrame, amount: number) {
@@ -54,7 +54,7 @@ function calculateAgo(timeFrame: TimeFrame, amount: number) {
   }
 }
 
-export const timestreamRecordsQuery = (
+export const timeFrameQuery = (
   timeFrame: TimeFrame,
   binAmount = 200,
   amountStartShift = 0,
@@ -87,10 +87,37 @@ export const timestreamRecordsQuery = (
                 measure_value::double,
                 RANK() OVER (PARTITION BY bin(time, ${mappedTimeFrame}) ORDER BY time DESC) as desc_rank
             FROM "${database}"."${table}"
-            WHERE time between ago(${agoString}) and ${startAgoString}
+            WHERE time between ago(${agoString}) and '${startAgoString}'
         )
-        WHERE time between ago(${agoString}) and ${startAgoString}
+        WHERE time between ago(${agoString}) and '${startAgoString}'
         GROUP BY bin(time, ${mappedTimeFrame})
         ORDER BY binned_time DESC
+    `;
+};
+
+export const timeFrameQueryOnlyWeek = (
+  timeFrame: TimeFrameOnlyWeek,
+  binAmount = 200,
+  amountStartShift = 0,
+  database = constants.DATABASE_NAME,
+  table = constants.TABLE_NAME
+) => {
+  const agoString = calculateAgo(timeFrame, amountStartShift + binAmount);
+  let startAgoString = "now()";
+  if (amountStartShift > 0) {
+    startAgoString = `ago(${calculateAgo(timeFrame, amountStartShift)})`;
+  }
+  return `
+      SELECT
+        time,
+        MAX(CASE WHEN measure_name = 'open' THEN measure_value::double ELSE NULL END) as open,
+        MAX(CASE WHEN measure_name = 'high' THEN measure_value::double ELSE NULL END) as high,
+        MAX(CASE WHEN measure_name = 'low' THEN measure_value::double ELSE NULL END) as low,
+        MAX(CASE WHEN measure_name = 'close' THEN measure_value::double ELSE NULL END) as close,
+        MAX(CASE WHEN measure_name = 'volume' THEN measure_value::double ELSE NULL END) as volume
+      FROM "${database}"."${table}"
+      WHERE time between ago(${agoString}) and '${startAgoString}'
+      GROUP BY time
+      ORDER BY time DESC
     `;
 };

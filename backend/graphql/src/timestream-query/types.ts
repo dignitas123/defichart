@@ -7,6 +7,7 @@ export const YEAR = MONTH * 12;
 
 export interface TimeStreamRecord {
   timestamp: number;
+  open: number;
   high: number;
   low: number;
   close: number;
@@ -34,6 +35,12 @@ export type TimeFrame =
   | "D2"
   | "D3"
   | "D4"
+  | "W1"
+  | "W2"
+  | "W3"
+  | "W4";
+
+  export type TimeFrameOnlyWeek =
   | "W1"
   | "W2"
   | "W3"

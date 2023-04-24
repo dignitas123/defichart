@@ -29,6 +29,7 @@ export const typeDefs = gql`
   }
   type TimeStreamRecord {
     timestamp: Float!
+    open: Float!
     high: Float!
     low: Float!
     close: Float!

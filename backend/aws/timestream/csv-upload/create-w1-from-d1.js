@@ -1,8 +1,7 @@
 import csv from "csvtojson";
 import fs from "fs";
 
-// const csvFilePath = "BTCUSD_d1_toy.csv"; // make sure files are formatted like the toy dataset
-const csvFilePath = "BTCUSD_d1.csv"; // make sure files are formatted like the toy dataset
+const csvFilePath = "BTCUSD_d1.csv"; // make sure file has open, high, low, close, volume, timestamp columns
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
@@ -10,11 +9,11 @@ async function readCSVFileFrom(csvFilePath) {
 
 function getPreviousWeekBeginning(startDateInMs) {
   const today = new Date(startDateInMs);
-  const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+  const dayOfWeek = today.getUTCDay();
   const daysSinceMonday = (dayOfWeek + 6) % 7;
-  const startOfLastWeek = new Date(today);
-  startOfLastWeek.setDate(today.getDate() - daysSinceMonday - 7);
-  startOfLastWeek.setHours(0, 0, 0, 0); // Set time to midnight
+  const startOfLastWeek = new Date(today.getTime());
+  startOfLastWeek.setUTCDate(today.getUTCDate() - daysSinceMonday - 7);
+  startOfLastWeek.setUTCHours(0, 0, 0, 0); // Set time to midnight UTC
   return startOfLastWeek.getTime();
 }
 
