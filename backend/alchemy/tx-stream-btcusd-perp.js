@@ -35,11 +35,15 @@ const filter = {
 
 // get current Tick High, Low, Volume aggregates
 console.log(
-  "getting current minute, 5 min, hour etc. high, low and volume aggregates for initial memory values.."
+  "getting current minute, 5 min, hour etc. high, low and volume aggregates for initial memory values..",
+  new Date().toISOString()
 );
 const currentMinuteData = await getLastBinRecords("1m", "minute");
 if (!currentMinuteData) {
-  console.error("Can\'t get current minute data, shutting down");
+  console.error(
+    "Can't get current minute data, shutting down",
+    new Date().toISOString()
+  );
   process.exit();
 }
 await sleep(300);
@@ -47,25 +51,39 @@ const current5MinuteData = await getLastAggregateRecordsFromStartTime(
   getLastRoundedFiveMinuteInterval()
 );
 if (!current5MinuteData) {
-  console.error("Can\'t get current 5minute data, shutting down");
+  console.error(
+    "Can't get current 5minute data, shutting down",
+    new Date().toISOString()
+  );
   process.exit();
 }
 await sleep(300);
 const currentHourData = await getLastBinRecords("1h", "hour");
 if (!currentHourData) {
-  console.error("Can\'t get current hour data, shutting down");
+  console.error(
+    "Can't get current hour data, shutting down",
+    new Date().toISOString()
+  );
   process.exit();
 }
 await sleep(300);
 const currentDayData = await getLastBinRecords("1d", "day");
 if (!currentDayData) {
-  console.error("Can\'t get current day data, shutting down");
+  console.error(
+    "Can't get current day data, shutting down",
+    new Date().toISOString()
+  );
   process.exit();
 }
 await sleep(300);
-const currentWeekData = await getLastAggregateRecordsFromStartTime(getUTCWeekbegin());
+const currentWeekData = await getLastAggregateRecordsFromStartTime(
+  getUTCWeekbegin()
+);
 if (!currentWeekData) {
-  console.error("Can\'t get current week data, shutting down");
+  console.error(
+    "Can't get current week data, shutting down",
+    new Date().toISOString()
+  );
   process.exit();
 }
 
@@ -96,7 +114,7 @@ console.log("set last tick..");
 const tick = await getLastTick();
 lastTick = Number(tick.Rows[0].Data[0].ScalarValue);
 if (!lastTick) {
-  console.error("Can't get last tick, shutting down");
+  console.error("Can't get last tick, shutting down", new Date().toISOString());
   process.exit();
 }
 
@@ -194,8 +212,17 @@ setInterval(() => {
     }
     if (now.getMinutes() === 0) {
       // beginning of new hour
-      console.log('writing new hour', new Date().toISOString());
+      console.log("writing new hour", new Date().toISOString());
       if (currentHourHigh !== 0 && currentHourLow !== Infinity) {
+        console.log(
+          "writing",
+          currentHourVolume,
+          currentHourOpen,
+          currentHourHigh,
+          currentHourLow,
+          lastTick,
+          getPreviousRoundedHourInterval()
+        );
         candleStickStreamWrite(
           currentHourVolume,
           currentHourOpen,
@@ -212,7 +239,7 @@ setInterval(() => {
       currentHourLow = Infinity;
       if (now.getHours() === 0) {
         // beginning of new day
-        console.log('writing new day', new Date().toISOString());
+        console.log("writing new day", new Date().toISOString());
         if (currentDayHigh !== 0 && currentDayLow !== Infinity) {
           candleStickStreamWrite(
             currentDayVolume,
@@ -230,7 +257,7 @@ setInterval(() => {
         currentDayLow = Infinity;
         if (now.getDay() === 1) {
           // beginning of new week
-          console.log('writing new week', new Date().toISOString());
+          console.log("writing new week", new Date().toISOString());
           if (currentWeekHigh !== 0 && currentWeekLow !== Infinity) {
             candleStickStreamWrite(
               currentWeekVolume,
@@ -288,19 +315,19 @@ alchemy.ws.on(filter, async (log) => {
     currentWeekVolume += priceData.volume;
 
     // set open
-    if(!currentMinuteOpen) {
+    if (!currentMinuteOpen) {
       currentMinuteOpen = lastTick;
     }
-    if(!current5MinuteOpen) {
+    if (!current5MinuteOpen) {
       current5MinuteOpen = lastTick;
     }
-    if(!currentHourOpen) {
+    if (!currentHourOpen) {
       currentHourOpen = lastTick;
     }
-    if(!currentDayOpen) {
+    if (!currentDayOpen) {
       currentDayOpen = lastTick;
     }
-    if(!currentWeekOpen) {
+    if (!currentWeekOpen) {
       currentWeekOpen = lastTick;
     }
 
@@ -336,7 +363,7 @@ alchemy.ws.on(filter, async (log) => {
       currentWeekLow = lastTick;
     }
 
-    if(version > 1) {
+    if (version > 1) {
       console.log(`Use Version ${version}`);
     }
     await tickDataStreamWrite(

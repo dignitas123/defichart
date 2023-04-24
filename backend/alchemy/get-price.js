@@ -32,7 +32,6 @@ export async function getPriceData(
   const decodedLogResult = decodeReceiptSignature(receiptResult);
 
   if (!decodedLogResult) {
-    console.error("noDecodedLogResult");
     return undefined;
   }
 
@@ -51,21 +50,22 @@ export async function getPriceData(
     return Number(result) / 10 ** decimals;
   };
 
-  let swapPrice = abs(swapResultData[1]) / abs(swapResultData[0])
-  
-  const countDecimals = (number) => {
-    const decimalString = number.toString().split('.')[1];
-    return decimalString ? decimalString.length : 0;
-  }
+  let swapPrice = abs(swapResultData[1]) / abs(swapResultData[0]);
 
-  if(countDecimals(swapPrice) > maxPricePrecision) {
-    swapPrice = Math.round(swapPrice * 10**maxPricePrecision) / 10**maxPricePrecision;
+  const countDecimals = (number) => {
+    const decimalString = number.toString().split(".")[1];
+    return decimalString ? decimalString.length : 0;
+  };
+
+  if (countDecimals(swapPrice) > maxPricePrecision) {
+    swapPrice =
+      Math.round(swapPrice * 10 ** maxPricePrecision) / 10 ** maxPricePrecision;
   }
 
   return {
     volume: divideBigInts(BigInt(abs(swapResultData[0])), divider, decimals),
     direction: swapResultData[0] > 0,
-    price: swapPrice, 
+    price: swapPrice,
     timestamp: Date.now(),
   };
 }
