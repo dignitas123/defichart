@@ -1,4 +1,4 @@
-import { TimeFrame, TimeFrameOnlyWeek, timeFrameMapping } from "./types";
+import { TimeFrame, timeFrameMapping } from "./types";
 import { constants } from "../aws-module/constants";
 
 function calculateAgo(timeFrame: TimeFrame, amount: number) {
@@ -54,12 +54,43 @@ function calculateAgo(timeFrame: TimeFrame, amount: number) {
   }
 }
 
-export const timeFrameQuery = (
+function getTimestreamTableFrom(symbol: string, timeFrame: TimeFrame) {
+  switch (timeFrame) {
+    case "M1":
+    case "M2":
+    case "M3":
+    case "M4":
+      return symbol + "_m1";
+    case "M5":
+    case "M10":
+    case "M15":
+    case "M20":
+    case "M30":
+      return symbol + "_m5";
+    case "H1":
+    case "H2":
+    case "H3":
+    case "H4":
+    case "H6":
+    case "H8":
+    case "H12":
+      return symbol + "_h1";
+    case "D1":
+    case "D2":
+    case "D3":
+    case "D4":
+      return symbol + "_d1";
+    default:
+      return symbol + "_w1";
+  }
+}
+
+export const timeFrameBinQuery = (
   timeFrame: TimeFrame,
+  symbol = constants.TABLE_NAME,
   binAmount = 200,
   amountStartShift = 0,
-  database = constants.DATABASE_NAME,
-  table = constants.TABLE_NAME
+  database = constants.DATABASE_NAME
 ) => {
   const agoString = calculateAgo(timeFrame, amountStartShift + binAmount);
   let startAgoString = "now()";
@@ -86,27 +117,28 @@ export const timeFrameQuery = (
                 measure_name,
                 measure_value::double,
                 RANK() OVER (PARTITION BY bin(time, ${mappedTimeFrame}) ORDER BY time DESC) as desc_rank
-            FROM "${database}"."${table}"
-            WHERE time between ago(${agoString}) and '${startAgoString}'
+            FROM "${database}"."${symbol}"
+            WHERE time between ago(${agoString}) and ${startAgoString}
         )
-        WHERE time between ago(${agoString}) and '${startAgoString}'
+        WHERE time between ago(${agoString}) and ${startAgoString}
         GROUP BY bin(time, ${mappedTimeFrame})
         ORDER BY binned_time DESC
     `;
 };
 
-export const timeFrameQueryOnlyWeek = (
-  timeFrame: TimeFrameOnlyWeek,
+export const timeFrameQuery = (
+  timeFrame: TimeFrame,
+  symbol = constants.TABLE_NAME,
   binAmount = 200,
   amountStartShift = 0,
-  database = constants.DATABASE_NAME,
-  table = constants.TABLE_NAME
+  database = constants.DATABASE_NAME
 ) => {
   const agoString = calculateAgo(timeFrame, amountStartShift + binAmount);
   let startAgoString = "now()";
   if (amountStartShift > 0) {
     startAgoString = `ago(${calculateAgo(timeFrame, amountStartShift)})`;
   }
+  const timestreamTable = getTimestreamTableFrom(symbol, timeFrame);
   return `
       SELECT
         time,
@@ -115,8 +147,8 @@ export const timeFrameQueryOnlyWeek = (
         MAX(CASE WHEN measure_name = 'low' THEN measure_value::double ELSE NULL END) as low,
         MAX(CASE WHEN measure_name = 'close' THEN measure_value::double ELSE NULL END) as close,
         MAX(CASE WHEN measure_name = 'volume' THEN measure_value::double ELSE NULL END) as volume
-      FROM "${database}"."${table}"
-      WHERE time between ago(${agoString}) and '${startAgoString}'
+      FROM "${database}"."${timestreamTable}"
+      WHERE time between ago(${agoString}) and ${startAgoString}
       GROUP BY time
       ORDER BY time DESC
     `;

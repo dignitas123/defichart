@@ -2,7 +2,7 @@ import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { Resolvers, TickDataResult } from "./generated/graphql";
 import { getTimestreamRecords } from "./aws-module/get-data";
-import { timeFrameQuery } from "./timestream-query/queries";
+import { timeFrameBinQuery, timeFrameQuery } from "./timestream-query/queries";
 import { typeDefs } from "./type-defs";
 import { GraphQLError } from "graphql";
 import { messageConsumer } from "./kinesis-shard/quotes";
@@ -14,11 +14,19 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
+import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
 
 // Define your resolver functions
 const resolvers: Resolvers = {
   Query: {
-    binRecords: async (_root, { timeFrame, binAmount }) => {
+    binRecords: async (_root, { symbol, timeFrame, binAmount }) => {
+      if (!SYMBOL_BROKER_LIST.includes(symbol)) {
+        throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
+          extensions: {
+            code: "BAD_USER_INPUT",
+          },
+        });
+      }
       if (binAmount > 200) {
         throw new GraphQLError(
           `Bin amount ${binAmount} is too high. It can\'t be higher than 200.`,
@@ -30,7 +38,35 @@ const resolvers: Resolvers = {
         );
       }
       const timestreamRecords = await getTimestreamRecords(
-        timeFrameQuery(timeFrame, binAmount)
+        timeFrameBinQuery(timeFrame, symbol, binAmount)
+      );
+      if (!timestreamRecords) {
+        throw new GraphQLError(
+          "Not able to query timesteam records from database. Try again later."
+        );
+      }
+      return timestreamRecords;
+    },
+    timeFrameRecords: async (_root, { symbol, timeFrame, binAmount }) => {
+      if (!SYMBOL_BROKER_LIST.includes(symbol)) {
+        throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
+          extensions: {
+            code: "BAD_USER_INPUT",
+          },
+        });
+      }
+      if (binAmount > 200) {
+        throw new GraphQLError(
+          `Bin amount ${binAmount} is too high. It can\'t be higher than 200.`,
+          {
+            extensions: {
+              code: "BAD_USER_INPUT",
+            },
+          }
+        );
+      }
+      const timestreamRecords = await getTimestreamRecords(
+        timeFrameQuery(timeFrame, symbol, binAmount)
       );
       if (!timestreamRecords) {
         throw new GraphQLError(

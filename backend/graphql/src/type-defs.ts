@@ -36,7 +36,16 @@ export const typeDefs = gql`
     volume: Float
   }
   type Query {
-    binRecords(timeFrame: TimeFrame!, binAmount: Int!): [TimeStreamRecord]
+    binRecords(
+      symbol: String!
+      timeFrame: TimeFrame!
+      binAmount: Int!
+    ): [TimeStreamRecord]
+    timeFrameRecords(
+      symbol: String!
+      timeFrame: TimeFrame!
+      binAmount: Int!
+    ): [TimeStreamRecord]
   }
   type Subscription {
     tickData: TickDataResult

@@ -3,10 +3,7 @@ import { timeStreamQueryClient } from "./client";
 import { QueryCommand } from "@aws-sdk/client-timestream-query";
 
 export async function getTimestreamRecords(queryString: string) {
-  const params = {
-    QueryString: queryString,
-    ClientToken: "a-long-client-token-coming-from-localhost",
-  };
+  const params = { QueryString: queryString };
 
   try {
     const command = new QueryCommand(params);
