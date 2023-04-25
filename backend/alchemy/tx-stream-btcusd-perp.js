@@ -5,13 +5,13 @@ import { getPriceData } from "./get-price.js";
 import {
   tickDataStreamWrite,
   candleStickStreamWrite,
-} from "./aws-module/write-fns.js";
+} from "./aws-module/timestream-write-fns.js";
 import { putRecordOnKinesis } from "./aws-module/kinesis-put.js";
 import {
   getLastBinRecords,
   getLastAggregateRecordsFromStartTime,
   getLastTick,
-} from "./aws-module/get-fns.js";
+} from "./aws-module/timestream-get-fns.js";
 import {
   sleep,
   getLastRoundedFiveMinuteInterval,
@@ -22,6 +22,7 @@ import {
   getPreviousDayBeginning,
   getPreviousWeekBeginning,
 } from "./aws-module/utility.js";
+import { putObjectOnS3 } from "./aws-module/s3-fns.js";
 
 const contractAddress = "0x86f1e0420c26a858fc203A3645dD1A36868F18e5";
 
@@ -173,9 +174,54 @@ if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   currentWeekVolume = currentWeekRowsData[3].ScalarValue ?? 0;
 }
 
+console.log("put the btcusd-perp-cp object in s3 storage");
+const getCurrentS3Object = () => {
+  return {
+    m1: currentMinuteOpen
+      ? {
+          open: currentMinuteOpen,
+          high: currentMinuteHigh,
+          low: currentMinuteLow,
+        }
+      : 0,
+    m5: current5MinuteOpen
+      ? {
+          open: current5MinuteOpen,
+          high: current5MinuteHigh,
+          low: current5MinuteLow,
+        }
+      : 0,
+    h1: currentHourOpen
+      ? {
+          open: currentHourOpen,
+          high: currentHourHigh,
+          low: currentHourLow,
+        }
+      : 0,
+    d1: currentDayOpen
+      ? {
+          open: currentDayOpen,
+          high: currentDayHigh,
+          low: currentDayLow,
+        }
+      : 0,
+    w1: currentWeekOpen
+      ? {
+          open: currentWeekOpen,
+          high: currentWeekHigh,
+          low: currentWeekLow,
+        }
+      : 0,
+    close: lastTick,
+  };
+};
+
+await putObjectOnS3(getCurrentS3Object());
+
 setInterval(() => {
   const now = new Date();
   if (now.getSeconds() === 0) {
+    let hasToPutNewObjOnS3 = false;
     // beginning of new minute
     if (currentMinuteHigh !== 0 && currentMinuteLow !== Infinity) {
       candleStickStreamWrite(
@@ -192,6 +238,7 @@ setInterval(() => {
     currentMinuteVolume = 0;
     currentMinuteHigh = 0;
     currentMinuteLow = Infinity;
+    hasToPutNewObjOnS3 = true;
     if (now.getMinutes() % 5 === 0) {
       // beginning of new 5minute
       if (current5MinuteHigh !== 0 && current5MinuteLow !== Infinity) {
@@ -209,6 +256,7 @@ setInterval(() => {
       current5MinuteVolume = 0;
       current5MinuteHigh = 0;
       current5MinuteLow = Infinity;
+      hasToPutNewObjOnS3 = true;
     }
     if (now.getMinutes() === 0) {
       // beginning of new hour
@@ -237,6 +285,7 @@ setInterval(() => {
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
+      hasToPutNewObjOnS3 = true;
       if (now.getHours() === 0) {
         // beginning of new day
         console.log("writing new day", new Date().toISOString());
@@ -255,6 +304,7 @@ setInterval(() => {
         currentDayVolume = 0;
         currentDayHigh = 0;
         currentDayLow = Infinity;
+        hasToPutNewObjOnS3 = true;
         if (now.getDay() === 1) {
           // beginning of new week
           console.log("writing new week", new Date().toISOString());
@@ -273,14 +323,19 @@ setInterval(() => {
           currentWeekVolume = 0;
           currentWeekHigh = 0;
           currentWeekLow = Infinity;
+          hasToPutNewObjOnS3 = true;
         }
       }
+    }
+    if (hasToPutNewObjOnS3) {
+      putObjectOnS3(getCurrentS3Object());
     }
   }
 }, 1000); // Run every second
 
 let previousTimeStamp = undefined;
 let previousVolume = 0;
+let version = 1;
 
 alchemy.ws.on(filter, async (log) => {
   const priceData = await getPriceData(log.transactionHash);
@@ -293,7 +348,6 @@ alchemy.ws.on(filter, async (log) => {
       priceData.timestamp
     );
     const currentTimeStamp = priceData.timestamp;
-    let version = 1;
     // in case there have been two trades on the same timestamp, account for the added volume
     if (previousTimeStamp && previousTimeStamp === currentTimeStamp) {
       priceData.volume += previousVolume;
@@ -304,7 +358,12 @@ alchemy.ws.on(filter, async (log) => {
       previousVolume = priceData.volume;
     }
     previousTimeStamp = priceData.timestamp;
-    // current price is set
+
+    let hasToUpdateS3 = false;
+    if (lastTick !== priceData.price) {
+      hasToUpdateS3 = true;
+    }
+
     lastTick = priceData.price;
 
     // fill current volumes
@@ -373,5 +432,9 @@ alchemy.ws.on(filter, async (log) => {
       priceData.timestamp,
       version
     );
+
+    if (hasToUpdateS3) {
+      putObjectOnS3(getCurrentS3Object());
+    }
   }
 });

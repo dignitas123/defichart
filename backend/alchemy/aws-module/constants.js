@@ -5,4 +5,5 @@ export const constants = {
   KINESIS_STREAM_ARN:
     "arn:aws:kinesis:eu-central-1:234291048405:stream/defichartsSymbols",
   REGION: "eu-central-1",
+  S3_BUCKET_NAME: "deficharts-current-prices",
 };
