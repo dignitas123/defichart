@@ -24,7 +24,7 @@ function streamToString(stream) {
  */
 export async function putObjectOnS3(obj, objKey = "btcusd-perp-cp") {
   const input = {
-    Body: obj,
+    Body: JSON.stringify(obj),
     Bucket: constants.S3_BUCKET_NAME,
     Key: objKey,
     ContentType: "application/json",
