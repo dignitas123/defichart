@@ -123,11 +123,11 @@ console.log("fill currentMinute data..");
 const currentMinuteRows = currentMinuteData.Rows;
 if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   const currentMinuteRowsData = currentMinuteRows[0].Data;
-  currentMinuteOpen = currentMinuteRowsData[0].ScalarValue ?? 0;
-  currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
-  currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
-  currentMinuteVolume = currentMinuteRowsData[3].ScalarValue
-    ? Number(currentMinuteRowsData[3].ScalarValue)
+  currentMinuteOpen = currentMinuteRowsData[1].ScalarValue ?? 0;
+  currentMinuteHigh = currentMinuteRowsData[2].ScalarValue ?? 0;
+  currentMinuteLow = currentMinuteRowsData[3].ScalarValue ?? 0;
+  currentMinuteVolume = currentMinuteRowsData[4].ScalarValue
+    ? Number(currentMinuteRowsData[4].ScalarValue)
     : 0;
 }
 
@@ -140,11 +140,11 @@ if (
   !isM5ScalarValuesUndefined(current5MinuteData)
 ) {
   const current5MinuteRowsData = current5MinuteRows[0].Data;
-  current5MinuteOpen = current5MinuteRowsData[0].ScalarValue ?? 0;
-  current5MinuteHigh = current5MinuteRowsData[1].ScalarValue ?? 0;
-  current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
-  current5MinuteVolume = current5MinuteRowsData[3].ScalarValue
-    ? Number(current5MinuteRowsData[3].ScalarValue)
+  current5MinuteOpen = current5MinuteRowsData[1].ScalarValue ?? 0;
+  current5MinuteHigh = current5MinuteRowsData[2].ScalarValue ?? 0;
+  current5MinuteLow = current5MinuteRowsData[3].ScalarValue ?? 0;
+  current5MinuteVolume = current5MinuteRowsData[4].ScalarValue
+    ? Number(current5MinuteRowsData[4].ScalarValue)
     : 0;
 }
 
@@ -152,11 +152,11 @@ console.log("fill currentHour data..");
 const currentHourRows = currentHourData.Rows;
 if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   const currentHourRowsData = currentHourRows[0].Data;
-  currentHourOpen = currentHourRowsData[0].ScalarValue ?? 0;
-  currentHourHigh = currentHourRowsData[1].ScalarValue ?? 0;
-  currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
-  currentHourVolume = currentHourRowsData[3].ScalarValue
-    ? Number(currentHourRowsData[3].ScalarValue)
+  currentHourOpen = currentHourRowsData[1].ScalarValue ?? 0;
+  currentHourHigh = currentHourRowsData[2].ScalarValue ?? 0;
+  currentHourLow = currentHourRowsData[3].ScalarValue ?? 0;
+  currentHourVolume = currentHourRowsData[4].ScalarValue
+    ? Number(currentHourRowsData[4].ScalarValue)
     : 0;
 }
 
@@ -164,11 +164,11 @@ console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
 if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
-  currentDayOpen = currentDayRowsData[0].ScalarValue ?? 0;
-  currentDayHigh = currentDayRowsData[1].ScalarValue ?? 0;
-  currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
-  currentDayVolume = currentDayRowsData[3].ScalarValue
-    ? Number(currentDayRowsData[3].ScalarValue)
+  currentDayOpen = currentDayRowsData[1].ScalarValue ?? 0;
+  currentDayHigh = currentDayRowsData[2].ScalarValue ?? 0;
+  currentDayLow = currentDayRowsData[3].ScalarValue ?? 0;
+  currentDayVolume = currentDayRowsData[4].ScalarValue
+    ? Number(currentDayRowsData[4].ScalarValue)
     : 0;
 }
 
@@ -176,11 +176,11 @@ console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
 if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
-  currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
-  currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
-  currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
-  currentWeekVolume = currentWeekRowsData[3].ScalarValue
-    ? Number(currentWeekRowsData[3].ScalarValue)
+  currentWeekOpen = currentWeekRowsData[1].ScalarValue ?? 0;
+  currentWeekHigh = currentWeekRowsData[2].ScalarValue ?? 0;
+  currentWeekLow = currentWeekRowsData[3].ScalarValue ?? 0;
+  currentWeekVolume = currentWeekRowsData[4].ScalarValue
+    ? Number(currentWeekRowsData[4].ScalarValue)
     : 0;
 }
 
