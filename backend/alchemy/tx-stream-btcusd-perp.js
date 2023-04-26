@@ -126,7 +126,9 @@ if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   currentMinuteOpen = currentMinuteRowsData[0].ScalarValue ?? 0;
   currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
   currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
-  currentMinuteVolume = currentMinuteRowsData[3].ScalarValue ?? 0;
+  currentMinuteVolume = currentMinuteRowsData[3].ScalarValue
+    ? Number(currentMinuteRowsData[3].ScalarValue)
+    : 0;
 }
 
 console.log("fill current5Minute data..");
@@ -141,7 +143,9 @@ if (
   current5MinuteOpen = current5MinuteRowsData[0].ScalarValue ?? 0;
   current5MinuteHigh = current5MinuteRowsData[1].ScalarValue ?? 0;
   current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
-  current5MinuteVolume = current5MinuteRowsData[3].ScalarValue ?? 0;
+  current5MinuteVolume = current5MinuteRowsData[3].ScalarValue
+    ? Number(current5MinuteRowsData[3].ScalarValue)
+    : 0;
 }
 
 console.log("fill currentHour data..");
@@ -151,7 +155,9 @@ if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   currentHourOpen = currentHourRowsData[0].ScalarValue ?? 0;
   currentHourHigh = currentHourRowsData[1].ScalarValue ?? 0;
   currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
-  currentHourVolume = currentHourRowsData[3].ScalarValue ?? 0;
+  currentHourVolume = currentHourRowsData[3].ScalarValue
+    ? Number(currentHourRowsData[3].ScalarValue)
+    : 0;
 }
 
 console.log("fill currentDay data..");
@@ -161,7 +167,9 @@ if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   currentDayOpen = currentDayRowsData[0].ScalarValue ?? 0;
   currentDayHigh = currentDayRowsData[1].ScalarValue ?? 0;
   currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
-  currentDayVolume = currentDayRowsData[3].ScalarValue ?? 0;
+  currentDayVolume = currentDayRowsData[3].ScalarValue
+    ? Number(currentDayRowsData[3].ScalarValue)
+    : 0;
 }
 
 console.log("fill currentWeek data..");
@@ -171,7 +179,9 @@ if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
   currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
   currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
-  currentWeekVolume = currentWeekRowsData[3].ScalarValue ?? 0;
+  currentWeekVolume = currentWeekRowsData[3].ScalarValue
+    ? Number(currentWeekRowsData[3].ScalarValue)
+    : 0;
 }
 
 console.log("put the btcusd-perp-cp object in s3 storage");
@@ -190,7 +200,7 @@ const getCurrentS3Object = () => {
           open: current5MinuteOpen,
           high: current5MinuteHigh,
           low: current5MinuteLow,
-          volume: current5MinuteVolume
+          volume: current5MinuteVolume,
         }
       : 0,
     h1: currentHourOpen
@@ -198,7 +208,7 @@ const getCurrentS3Object = () => {
           open: currentHourOpen,
           high: currentHourHigh,
           low: currentHourLow,
-          volume: currentHourVolume
+          volume: currentHourVolume,
         }
       : 0,
     d1: currentDayOpen
@@ -206,7 +216,7 @@ const getCurrentS3Object = () => {
           open: currentDayOpen,
           high: currentDayHigh,
           low: currentDayLow,
-          volume: currentDayVolume
+          volume: currentDayVolume,
         }
       : 0,
     w1: currentWeekOpen
@@ -214,7 +224,7 @@ const getCurrentS3Object = () => {
           open: currentWeekOpen,
           high: currentWeekHigh,
           low: currentWeekLow,
-          volume: currentWeekVolume
+          volume: currentWeekVolume,
         }
       : 0,
     close: lastTick,
