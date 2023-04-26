@@ -17,6 +17,7 @@
   "dependencies": {
     "@apollo/server": "^4.6.0",
     "@aws-sdk/client-kinesis": "^3.310.0",
+    "@aws-sdk/client-s3": "^3.319.0",
     "@aws-sdk/client-timestream-query": "^3.310.0",
     "@graphql-tools/schema": "^9.0.17",
     "apollo-server-express": "^3.12.0",

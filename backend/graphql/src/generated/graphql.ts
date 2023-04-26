@@ -56,29 +56,10 @@ export type TickDataResult = {
 
 export enum TimeFrame {
   D1 = "D1",
-  D2 = "D2",
-  D3 = "D3",
-  D4 = "D4",
   H1 = "H1",
-  H2 = "H2",
-  H3 = "H3",
-  H4 = "H4",
-  H6 = "H6",
-  H8 = "H8",
-  H12 = "H12",
   M1 = "M1",
-  M2 = "M2",
-  M3 = "M3",
-  M4 = "M4",
   M5 = "M5",
-  M10 = "M10",
-  M15 = "M15",
-  M20 = "M20",
-  M30 = "M30",
   W1 = "W1",
-  W2 = "W2",
-  W3 = "W3",
-  W4 = "W4",
 }
 
 export type TimeStreamRecord = {

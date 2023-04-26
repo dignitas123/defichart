@@ -5,80 +5,26 @@ function calculateAgo(timeFrame: TimeFrame, amount: number) {
   switch (timeFrame) {
     case "M1":
       return amount + "m";
-    case "M2":
-      return amount * 2 + "m";
-    case "M3":
-      return amount * 3 + "m";
-    case "M4":
-      return amount * 4 + "m";
     case "M5":
       return amount * 5 + "m";
-    case "M10":
-      return amount * 10 + "m";
-    case "M15":
-      return amount * 15 + "m";
-    case "M20":
-      return amount * 20 + "m";
-    case "M30":
-      return amount * 30 + "m";
     case "H1":
       return amount + "h";
-    case "H2":
-      return amount * 2 + "h";
-    case "H3":
-      return amount * 3 + "h";
-    case "H4":
-      return amount * 4 + "h";
-    case "H6":
-      return amount * 6 + "h";
-    case "H8":
-      return amount * 8 + "h";
-    case "H12":
-      return amount * 12 + "h";
     case "D1":
       return amount + "d";
-    case "D2":
-      return amount * 2 + "d";
-    case "D3":
-      return amount * 3 + "d";
-    case "D4":
-      return amount * 4 + "d";
     case "W1":
       return amount * 7 + "d";
-    case "W2":
-      return amount * 7 * 2 + "d";
-    case "W3":
-      return amount * 7 * 3 + "d";
-    case "W4":
-      return amount * 7 * 4 + "d";
   }
 }
 
 function getTimestreamTableFrom(symbol: string, timeFrame: TimeFrame) {
   switch (timeFrame) {
     case "M1":
-    case "M2":
-    case "M3":
-    case "M4":
       return symbol + "_m1";
     case "M5":
-    case "M10":
-    case "M15":
-    case "M20":
-    case "M30":
       return symbol + "_m5";
     case "H1":
-    case "H2":
-    case "H3":
-    case "H4":
-    case "H6":
-    case "H8":
-    case "H12":
       return symbol + "_h1";
     case "D1":
-    case "D2":
-    case "D3":
-    case "D4":
       return symbol + "_d1";
     default:
       return symbol + "_w1";

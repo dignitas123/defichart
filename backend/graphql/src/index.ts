@@ -15,11 +15,12 @@ import { useServer } from "graphql-ws/lib/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
+import { getCurrentCandleDataForTF, getObjectOnS3 } from "./aws-module/s3-fns";
 
 // Define your resolver functions
 const resolvers: Resolvers = {
   Query: {
-    binRecords: async (_root, { symbol, timeFrame, binAmount }) => {
+    binRecords: async (_root, { timeFrame, symbol, binAmount }) => {
       if (!SYMBOL_BROKER_LIST.includes(symbol)) {
         throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
           extensions: {
@@ -47,7 +48,7 @@ const resolvers: Resolvers = {
       }
       return timestreamRecords;
     },
-    timeFrameRecords: async (_root, { symbol, timeFrame, binAmount }) => {
+    timeFrameRecords: async (_root, { timeFrame, symbol, binAmount }) => {
       if (!SYMBOL_BROKER_LIST.includes(symbol)) {
         throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
           extensions: {
@@ -73,7 +74,22 @@ const resolvers: Resolvers = {
           "Not able to query timesteam records from database. Try again later."
         );
       }
-      return timestreamRecords;
+      const currentCandleData = await getObjectOnS3(`${symbol}-cp`);
+      const currentCandle = getCurrentCandleDataForTF(
+        currentCandleData,
+        timeFrame
+      );
+      const currentRecord = [
+        {
+          timestamp: currentCandle.timestamp,
+          open: currentCandle.open,
+          high: currentCandle.high,
+          low: currentCandle.low,
+          close: currentCandleData.close,
+          volume: currentCandle.volume,
+        },
+      ];
+      return [...currentRecord, ...timestreamRecords];
     },
   },
   Subscription: {
