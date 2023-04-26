@@ -140,11 +140,11 @@ if (
   !isM5ScalarValuesUndefined(current5MinuteData)
 ) {
   const current5MinuteRowsData = current5MinuteRows[0].Data;
-  current5MinuteOpen = current5MinuteRowsData[1].ScalarValue ?? 0;
-  current5MinuteHigh = current5MinuteRowsData[2].ScalarValue ?? 0;
-  current5MinuteLow = current5MinuteRowsData[3].ScalarValue ?? 0;
-  current5MinuteVolume = current5MinuteRowsData[4].ScalarValue
-    ? Number(current5MinuteRowsData[4].ScalarValue)
+  current5MinuteOpen = current5MinuteRowsData[0].ScalarValue ?? 0;
+  current5MinuteHigh = current5MinuteRowsData[1].ScalarValue ?? 0;
+  current5MinuteLow = current5MinuteRowsData[2].ScalarValue ?? 0;
+  current5MinuteVolume = current5MinuteRowsData[3].ScalarValue
+    ? Number(current5MinuteRowsData[3].ScalarValue)
     : 0;
 }
 
@@ -176,11 +176,11 @@ console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
 if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
-  currentWeekOpen = currentWeekRowsData[1].ScalarValue ?? 0;
-  currentWeekHigh = currentWeekRowsData[2].ScalarValue ?? 0;
-  currentWeekLow = currentWeekRowsData[3].ScalarValue ?? 0;
-  currentWeekVolume = currentWeekRowsData[4].ScalarValue
-    ? Number(currentWeekRowsData[4].ScalarValue)
+  currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
+  currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
+  currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
+  currentWeekVolume = currentWeekRowsData[3].ScalarValue
+    ? Number(currentWeekRowsData[3].ScalarValue)
     : 0;
 }
 
