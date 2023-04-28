@@ -1,0 +1,8 @@
+schema: http://ec2-3-71-112-87.eu-central-1.compute.amazonaws.com/graphql
+documents: ./src/**/*.graphql
+generates:
+  ./src/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-vue

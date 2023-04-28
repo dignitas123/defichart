@@ -1,0 +1,14 @@
+query timeFrame($symbol: String!, $timeFrame: TimeFrame!, $binAmount: Int!) {
+  timeFrameRecords(
+    symbol: $symbol
+    timeFrame: $timeFrame
+    binAmount: $binAmount
+  ) {
+    timestamp
+    open
+    high
+    low
+    close
+    volume
+  }
+}

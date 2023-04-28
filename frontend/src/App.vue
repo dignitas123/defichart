@@ -8,6 +8,9 @@ import { useLanguageStore } from './stores/language';
 import { useCoinGecko } from './stores/coin-gecko';
 import { useUserSettings } from './stores/user-settings';
 import { onMounted } from 'vue';
+import { setupGraphQL } from './apollo/client';
+
+setupGraphQL();
 
 const { setLanguage } = useLanguageStore();
 
