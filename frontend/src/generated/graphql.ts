@@ -1,8 +1,14 @@
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -18,13 +24,11 @@ export type Query = {
   timeFrameRecords?: Maybe<Array<Maybe<TimeStreamRecord>>>;
 };
 
-
 export type QueryBinRecordsArgs = {
   binAmount: Scalars['Int'];
   symbol: Scalars['String'];
   timeFrame: TimeFrame;
 };
-
 
 export type QueryTimeFrameRecordsArgs = {
   binAmount: Scalars['Int'];
@@ -51,7 +55,7 @@ export enum TimeFrame {
   H1 = 'H1',
   M1 = 'M1',
   M5 = 'M5',
-  W1 = 'W1'
+  W1 = 'W1',
 }
 
 export type TimeStreamRecord = {
@@ -64,11 +68,21 @@ export type TimeStreamRecord = {
   volume?: Maybe<Scalars['Float']>;
 };
 
-export type TimeFrameQueryVariables = Exact<{
+export type GetTimeFrameQueryVariables = Exact<{
   symbol: Scalars['String'];
   timeFrame: TimeFrame;
   binAmount: Scalars['Int'];
 }>;
 
-
-export type TimeFrameQuery = { __typename?: 'Query', timeFrameRecords?: Array<{ __typename?: 'TimeStreamRecord', timestamp: number, open: number, high: number, low: number, close: number, volume?: number | null } | null> | null };
+export type GetTimeFrameQuery = {
+  __typename?: 'Query';
+  timeFrameRecords?: Array<{
+    __typename?: 'TimeStreamRecord';
+    timestamp: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume?: number | null;
+  } | null> | null;
+};
