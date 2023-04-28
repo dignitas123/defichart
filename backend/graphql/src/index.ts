@@ -16,6 +16,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
 import { getCurrentCandleDataForTF, getObjectOnS3 } from "./aws-module/s3-fns";
+import { allowedOrigins } from "./allowed";
 
 // Define your resolver functions
 const resolvers: Resolvers = {
@@ -103,6 +104,27 @@ const resolvers: Resolvers = {
 // Create an Express app and mount the ApolloServer instance on it
 const app = express();
 const httpServer = createServer(app);
+
+import { Request, Response, NextFunction } from "express";
+
+export const corsMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const origin = req.headers.origin as string;
+  const ip = req.ip;
+
+  if (allowedOrigins.includes(origin) || ip === process.env.ALLOWED_IP) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    next();
+  } else {
+    res.status(403).send("Access Forbidden");
+  }
+};
+
+// Use the corsMiddleware function as middleware
+app.use(corsMiddleware);
 
 // Create schema, which will be used separately by ApolloServer and
 // the WebSocket server.
