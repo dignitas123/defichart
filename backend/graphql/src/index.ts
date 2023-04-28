@@ -114,7 +114,7 @@ export const corsMiddleware = (
 ) => {
   const origin = req.headers.origin as string;
   const ip = req.ip;
-
+  console.log('ip', req.ip);
   if (allowedOrigins.includes(origin) || ip === process.env.ALLOWED_IP) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     next();
