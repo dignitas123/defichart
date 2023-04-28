@@ -18,4 +18,6 @@ curl ifconfig.me
 export ALLOWED_IP=yourip
 
 ## update
-pm2 reload index // (or other name)
+pm2 stop index // (or other name)
+pm2 delete index // (or other name)
+cd build && pm2 start index --name graphql // (or other name)
