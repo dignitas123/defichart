@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config({path: './.env'});
 import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { Resolvers, TickDataResult } from "./generated/graphql";
