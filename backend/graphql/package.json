@@ -21,6 +21,7 @@
     "@aws-sdk/client-timestream-query": "^3.310.0",
     "@graphql-tools/schema": "^9.0.17",
     "apollo-server-express": "^3.12.0",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "graphql": "^16.6.0",
     "graphql-ws": "^5.12.1",
