@@ -51,7 +51,7 @@ export async function tickDataStreamWrite(
   const command = new WriteRecordsCommand(params);
 
   try {
-    await timestreamWriteClient.send(command);
+    return await timestreamWriteClient.send(command);
   } catch (error) {
     console.log("Error writing data. ", error);
   }

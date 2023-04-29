@@ -11,16 +11,19 @@ export function decodeReceiptSignature(receipt) {
     "Swap(address,address,int256,int256,uint160,uint128,int24)"
   );
   const eventSignatureHash = keccak256(wantedFunction);
-  const signatureLog = receipt.logs.find(
+  const signatureLog = receipt.logs.filter(
     (log) => log.topics[0] === eventSignatureHash
   );
-  if (!signatureLog) {
+  if (!signatureLog.length) {
     console.error("Eventsignature not found");
+    return undefined;
+  }
+  if (signatureLog.length > 1) {
     return undefined;
   }
   const decodedLog = defaultAbiCoder.decode(
     ["int256", "int256", "uint160", "uint128", "int24"],
-    signatureLog.data
+    signatureLog[0].data
   );
   return decodedLog;
 }
