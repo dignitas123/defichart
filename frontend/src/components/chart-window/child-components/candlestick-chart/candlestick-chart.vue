@@ -59,7 +59,7 @@ import { TimeFrame } from '../header-bar/child-components/time-frame-dropdown.if
 
 const props = withDefaults(
   defineProps<{
-    data: OHLC[];
+    data: OHLC[] | undefined;
     dates?: Date[];
     candleCount: number;
     h2l?: number;
@@ -72,7 +72,7 @@ const props = withDefaults(
     currentCandleOHLC?: OHLC;
     timeFrame: TimeFrame;
     datePosition?: DatePosition;
-    startingDistanceDifference: number;
+    startingDistanceDifference?: number;
     candleWidth: number;
     candleDistance: number;
     offset: number;
@@ -80,6 +80,7 @@ const props = withDefaults(
   {
     priceLines: () => [],
     dateLines: () => [],
+    startingDistanceDifference: 0,
   }
 );
 
@@ -181,7 +182,7 @@ const previousDate = ref<Date | undefined>(undefined);
 
 async function drawChart() {
   await nextTick();
-  if (!props.width || !props.height || !props.dates) {
+  if (!props.width || !props.height || !props.dates || !props.data) {
     return;
   }
   candles.value = [];

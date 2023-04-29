@@ -4,13 +4,11 @@ nnso
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
+import { onMounted } from 'vue';
 import { useLanguageStore } from './stores/language';
 import { useCoinGecko } from './stores/coin-gecko';
 import { useUserSettings } from './stores/user-settings';
 import { setupGraphQL } from './apollo/client';
-import { useQuery } from '@vue/apollo-composable';
-import { getTimeFrameQuery } from './apollo/timeFrame.query';
 
 setupGraphQL();
 
@@ -42,14 +40,4 @@ onMounted(async () => {
 const languageCode = navigator.language.split('-')[0];
 
 setLanguage(languageCode);
-
-const { result: ohlcv } = useQuery(getTimeFrameQuery, {
-  symbol: 'btcusd-perp',
-  timeFrame: 'W1',
-  binAmount: 1,
-});
-
-watch(ohlcv, () => {
-  console.log('ohlcv', ohlcv.value);
-});
 </script>

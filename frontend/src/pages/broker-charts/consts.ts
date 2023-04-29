@@ -11,8 +11,8 @@ export const CANDLE_BULL_COLOR = 'green';
 export const CANDLE_BEAR_COLOR = 'red';
 export const CANDLE_BORDER = true;
 export const CANDLE_BORDER_COLOR = 'black';
-export const INITIAL_TIME_FRAME: TimeFrame = 'M5';
-export const INITIAL_LOOKBACK_PERIOD: LookbackPeriod = '1day';
+export const INITIAL_TIME_FRAME: TimeFrame = 'D1';
+export const INITIAL_LOOKBACK_PERIOD: LookbackPeriod = '1year';
 export const WANTED_PX_PER_CANDLE = 8;
 
 export const MIN = 1000 * 60;

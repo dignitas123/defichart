@@ -24,8 +24,9 @@ let aggregateVolume = 0;
 let aggregateHigh = 0;
 let aggregateLow = Infinity;
 let firstWeek = false;
+let weekOpen = 0;
 
-function aggregateCandlestick(candlestick) {
+function aggregateCandlestickHighLowVolume(candlestick) {
   aggregateVolume += Number(candlestick.volume);
   if (candlestick.high > aggregateHigh) {
     aggregateHigh = candlestick.high;
@@ -41,26 +42,32 @@ function resetAggregateCandlestick() {
   aggregateLow = Infinity;
 }
 
+let previousClose = undefined;
 hlcvtRecords.forEach((candlestick) => {
   if (!firstWeek) {
     if (new Date(Number(candlestick.timestamp)).getDay() === 1) {
       firstWeek = true;
-      aggregateCandlestick(candlestick);
+      weekOpen = candlestick.open;
+      aggregateCandlestickHighLowVolume(candlestick);
     }
     return;
   }
   if (new Date(Number(candlestick.timestamp)).getDay() === 1) {
-    res.push({
-      open: candlestick.open,
-      high: aggregateHigh,
-      low: aggregateLow,
-      close: candlestick.close,
-      volume: aggregateVolume,
-      timestamp: getPreviousWeekBeginning(Number(candlestick.timestamp)),
-    });
+    if (previousClose) {
+      res.push({
+        open: weekOpen,
+        high: aggregateHigh,
+        low: aggregateLow,
+        close: previousClose,
+        volume: aggregateVolume,
+        timestamp: getPreviousWeekBeginning(Number(candlestick.timestamp)),
+      });
+    }
+    weekOpen = candlestick.open;
     resetAggregateCandlestick();
   }
-  aggregateCandlestick(candlestick);
+  aggregateCandlestickHighLowVolume(candlestick);
+  previousClose = candlestick.close;
 });
 
 const headers = Object.keys(res[0]).join(",");

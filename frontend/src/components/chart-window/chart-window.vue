@@ -18,10 +18,6 @@
       selected = true;
     "
   >
-    <!-- TODO: loading spinner when loading chart data -->
-    <div v-if="false" class="spinner-bar-wrapper">
-      <q-spinner-ios color="primary" size="xl" />
-    </div>
     <div class="container">
       <div class="resize-area" @mousedown="$emit('resizeDrag', false, false)" />
       <div
@@ -43,7 +39,13 @@
           @setLookbackPeriod="setLookbackPeriod"
         />
       </div>
-      <div class="price-row">
+      <div
+        v-if="ohlcvLoading"
+        class="price-row spinner-bar-wrapper position-absolute flex items-center justify-center"
+      >
+        <q-spinner-facebook color="secondary" size="xl" />
+      </div>
+      <div v-else class="price-row">
         <div
           class="chart"
           ref="chartRef"
@@ -142,7 +144,6 @@ import {
   reactive,
   onUnmounted,
   provide,
-  onMounted,
   computed,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
@@ -180,6 +181,9 @@ import {
   lookbackPeriodEnum,
   LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
+import { useQuery } from '@vue/apollo-composable';
+import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
+import { GetTimeFrameQuery } from 'src/generated/graphql';
 
 const props = defineProps<{
   id: string;
@@ -214,7 +218,7 @@ const emit = defineEmits<{
 const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
 
-const data = ref<OHLC[]>([]);
+const data = ref<OHLC[] | undefined>();
 const datePosition = ref<DatePosition>({
   standardDateFormat: 'HH:mm',
   entries: [],
@@ -738,7 +742,7 @@ setInterval(() => {
   }
   const upDown = Math.random() >= 0.5 ? true : false;
   const random = Math.random();
-  const h2l10p = chartH2L.value / 10;
+  const h2l10p = chartH2L.value / 1000;
   currentCandleOHLC.value.c += roundToTicksize(
     upDown ? h2l10p * random : -h2l10p * random,
     DATA_TICKSIZE
@@ -779,14 +783,13 @@ async function setTimeFrame(tf: TimeFrame) {
     return;
   }
   timeFrame.value = tf;
-  await generateChartData();
   calculateAndSetlookbackNumber();
 }
 
 // @setLookbackPeriod emit (.header-bar)
 async function setLookbackPeriod(period: LookbackPeriodString) {
   lookbackPeriod.value = period;
-  await setChartVariables(lookbackPeriod.value);
+  await setAppropriateTimeFrame(lookbackPeriod.value);
 }
 
 function calculateAdditionalCandles(candlesDiffInMs: number) {
@@ -804,7 +807,7 @@ function calculateAdditionalCandles(candlesDiffInMs: number) {
 }
 
 const afterChartDataAvailable = ref(false);
-async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
+async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
   if (!chartWidth.value) {
     return;
   }
@@ -825,7 +828,10 @@ async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
     nearestAppropriatePeriodFromAllowedTimeFramesIndex
   ];
   timeFrame.value = appropriateTimeFrame as TimeFrame;
-  await generateChartData();
+
+  if (!data.value) {
+    return;
+  }
   const additionalCandles = calculateAdditionalCandles(
     data.value[data.value.length - 1].d.getTime() -
       data.value[data.value.length - appropriateCandles].d.getTime()
@@ -843,23 +849,55 @@ async function setChartVariables(lookBackPeriod: LookbackPeriodString) {
   }
 }
 
+const { loading: ohlcvLoading, onResult: onOhlcvResult } =
+  useQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
+    symbol: 'btcusd-perp',
+    timeFrame: 'D1',
+    binAmount: 200,
+  });
+
 const afterCandlesShowSet = ref(false);
-onMounted(async () => {
-  await setChartVariables(INITIAL_LOOKBACK_PERIOD);
-  afterCandlesShowSet.value = true;
+onOhlcvResult(async (result) => {
+  if (!afterCandlesShowSet.value) {
+    afterCandlesShowSet.value = true;
+  }
+  const timeFrameRecords = result.data.timeFrameRecords
+    ? [...result.data.timeFrameRecords]
+    : undefined;
+  const reversedResult = timeFrameRecords?.reverse();
+  data.value = reversedResult?.map((record) => {
+    return {
+      o: record?.open ?? 0,
+      h: record?.high ?? 0,
+      l: record?.low ?? 0,
+      c: record?.close ?? 0,
+      v: record?.volume ?? 0,
+      d: new Date(record?.timestamp ?? 0),
+    };
+  });
+  // data.value = generateData('W', 1); // this will generate fake data
+  await nextTick();
+  if (!data.value) {
+    return;
+  }
+  await setAppropriateTimeFrame(INITIAL_LOOKBACK_PERIOD);
+  if (data.value.length < maxCandles.value) {
+    maxCandles.value = data.value.length;
+  }
+  startCurrentCandleStream();
 });
 
-async function generateChartData() {
+function startCurrentCandleStream() {
   if (
     !timeFrame.value ||
     !lookbackPeriod.value ||
     !timeMode.value ||
-    !timeModeCount.value
+    !timeModeCount.value ||
+    !data.value
   ) {
     return;
   }
-  // TODO: data have to come from graqphql query result
-  data.value = generateData(timeMode.value, timeModeCount.value);
+  // data.value = generateData(timeMode.value, timeModeCount.value); // use Fake Data for testing purposes
   if (data.value.length <= 0) {
     return;
   }
@@ -889,14 +927,12 @@ async function generateChartData() {
   };
   currentCandleOHLC.value = lastCandleRawMock;
   data.value.push(currentCandleOHLC.value);
-
-  await nextTick();
-  if (data.value.length < maxCandles.value) {
-    maxCandles.value = data.value.length;
-  }
 }
 
 function calculateAndSetlookbackNumber() {
+  if (!candlesInChartData.value) {
+    return;
+  }
   const timeDiffInMs =
     candlesInChartData.value[candlesInChartData.value.length - 1].d.getTime() -
     candlesInChartData.value[0].d.getTime();
@@ -931,7 +967,6 @@ watch(timeFrameSetByUser, async () => {
   ) {
     return;
   }
-  await generateChartData();
   timeFrame.value = timeFrameSetByUser.value;
   calculateAndSetlookbackNumber();
 });
