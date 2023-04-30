@@ -57,7 +57,7 @@
           @mouseleave="onChartLeave"
         >
           <CandlestickChart
-            v-if="afterChartDataAvailable"
+            v-if="afterCandlesShowSet"
             :data="candlesInChartData"
             :dates="dataDates"
             :candleCount="candlesShow"
@@ -806,7 +806,6 @@ function calculateAdditionalCandles(candlesDiffInMs: number) {
   }
 }
 
-const afterChartDataAvailable = ref(false);
 async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
   if (!chartWidth.value) {
     return;
@@ -841,7 +840,6 @@ async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
   }
   candlesShow.value = Math.round(appropriateCandles + additionalCandles);
   initialCandlesShow.value = candlesShow.value;
-  afterChartDataAvailable.value = true;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
   } else {
@@ -852,15 +850,12 @@ async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
 const { loading: ohlcvLoading, onResult: onOhlcvResult } =
   useQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
     symbol: 'btcusd-perp',
-    timeFrame: 'D1',
+    timeFrame: 'W1',
     binAmount: 200,
   });
 
 const afterCandlesShowSet = ref(false);
 onOhlcvResult(async (result) => {
-  if (!afterCandlesShowSet.value) {
-    afterCandlesShowSet.value = true;
-  }
   const timeFrameRecords = result.data.timeFrameRecords
     ? [...result.data.timeFrameRecords]
     : undefined;
@@ -879,6 +874,9 @@ onOhlcvResult(async (result) => {
   await nextTick();
   if (!data.value) {
     return;
+  }
+  if (!afterCandlesShowSet.value) {
+    afterCandlesShowSet.value = true;
   }
   await setAppropriateTimeFrame(INITIAL_LOOKBACK_PERIOD);
   if (data.value.length < maxCandles.value) {
@@ -930,7 +928,7 @@ function startCurrentCandleStream() {
 }
 
 function calculateAndSetlookbackNumber() {
-  if (!candlesInChartData.value) {
+  if (!candlesInChartData.value || !candlesInChartData.value.length) {
     return;
   }
   const timeDiffInMs =
