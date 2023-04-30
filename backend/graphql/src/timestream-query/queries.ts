@@ -1,4 +1,4 @@
-import { TimeFrame, timeFrameMapping } from "./types";
+import { TimeFrame } from "./types";
 import { constants } from "../aws-module/constants";
 
 function calculateAgo(timeFrame: TimeFrame, amount: number) {
@@ -30,47 +30,6 @@ function getTimestreamTableFrom(symbol: string, timeFrame: TimeFrame) {
       return symbol + "_w1";
   }
 }
-
-export const timeFrameBinQuery = (
-  timeFrame: TimeFrame,
-  symbol = constants.TABLE_NAME,
-  binAmount = 200,
-  amountStartShift = 0,
-  database = constants.DATABASE_NAME
-) => {
-  const agoString = calculateAgo(timeFrame, amountStartShift + binAmount);
-  let startAgoString = "now()";
-  if (amountStartShift > 0) {
-    startAgoString = `ago(${calculateAgo(timeFrame, amountStartShift)})`;
-  }
-  const mappedTimeFrame = timeFrameMapping[timeFrame];
-  return `
-        SELECT
-            bin(time, ${mappedTimeFrame}) as binned_time,
-            MAX(
-                CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
-            ) AS high,
-            MIN(
-                CASE WHEN measure_name = 'price' THEN measure_value::double ELSE NULL END
-            ) AS low,
-            MAX(CASE WHEN desc_rank = 1 THEN measure_value::double ELSE NULL END) as close,
-            SUM(
-                CASE WHEN measure_name = 'volume' THEN measure_value::double ELSE 0 END
-            ) AS volume
-        FROM (
-            SELECT 
-                time,
-                measure_name,
-                measure_value::double,
-                RANK() OVER (PARTITION BY bin(time, ${mappedTimeFrame}) ORDER BY time DESC) as desc_rank
-            FROM "${database}"."${symbol}"
-            WHERE time between ago(${agoString}) and ${startAgoString}
-        )
-        WHERE time between ago(${agoString}) and ${startAgoString}
-        GROUP BY bin(time, ${mappedTimeFrame})
-        ORDER BY binned_time DESC
-    `;
-};
 
 export const timeFrameQuery = (
   timeFrame: TimeFrame,

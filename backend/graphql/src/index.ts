@@ -2,7 +2,7 @@ import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { Resolvers, TickDataResult } from "./generated/graphql";
 import { getTimestreamRecords } from "./aws-module/get-data";
-import { timeFrameBinQuery, timeFrameQuery } from "./timestream-query/queries";
+import { timeFrameQuery } from "./timestream-query/queries";
 import { typeDefs } from "./type-defs";
 import { GraphQLError } from "graphql";
 import { messageConsumer } from "./kinesis-shard/quotes";
@@ -21,7 +21,10 @@ import { allowedOrigins } from "./allowed";
 // Define your resolver functions
 const resolvers: Resolvers = {
   Query: {
-    binRecords: async (_root, { timeFrame, symbol, binAmount }) => {
+    timeFrameRecords: async (
+      _root,
+      { timeFrame, symbol, binAmount, startShift }
+    ) => {
       if (!SYMBOL_BROKER_LIST.includes(symbol)) {
         throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
           extensions: {
@@ -40,35 +43,7 @@ const resolvers: Resolvers = {
         );
       }
       const timestreamRecords = await getTimestreamRecords(
-        timeFrameBinQuery(timeFrame, symbol, binAmount)
-      );
-      if (!timestreamRecords) {
-        throw new GraphQLError(
-          "Not able to query timesteam records from database. Try again later."
-        );
-      }
-      return timestreamRecords;
-    },
-    timeFrameRecords: async (_root, { timeFrame, symbol, binAmount }) => {
-      if (!SYMBOL_BROKER_LIST.includes(symbol)) {
-        throw new GraphQLError(`Symbol ${symbol} is not allowed.`, {
-          extensions: {
-            code: "BAD_USER_INPUT",
-          },
-        });
-      }
-      if (binAmount > 200) {
-        throw new GraphQLError(
-          `Bin amount ${binAmount} is too high. It can\'t be higher than 200.`,
-          {
-            extensions: {
-              code: "BAD_USER_INPUT",
-            },
-          }
-        );
-      }
-      const timestreamRecords = await getTimestreamRecords(
-        timeFrameQuery(timeFrame, symbol, binAmount)
+        timeFrameQuery(timeFrame, symbol, binAmount, startShift ?? 0)
       );
       if (!timestreamRecords) {
         throw new GraphQLError(

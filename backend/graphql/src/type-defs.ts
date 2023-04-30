@@ -17,15 +17,11 @@ export const typeDefs = gql`
     volume: Float
   }
   type Query {
-    binRecords(
-      symbol: String!
-      timeFrame: TimeFrame!
-      binAmount: Int!
-    ): [TimeStreamRecord]
     timeFrameRecords(
       symbol: String!
       timeFrame: TimeFrame!
       binAmount: Int!
+      startShift: Int
     ): [TimeStreamRecord]
   }
   type Subscription {

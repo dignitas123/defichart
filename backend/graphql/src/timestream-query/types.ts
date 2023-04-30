@@ -15,11 +15,3 @@ export interface TimeStreamRecord {
 }
 
 export type TimeFrame = "M1" | "M5" | "H1" | "D1" | "W1";
-
-export const timeFrameMapping = {
-  M1: "1m",
-  M5: "5m",
-  H1: "1h",
-  D1: "1d",
-  W1: "1w",
-};
