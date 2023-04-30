@@ -61,9 +61,6 @@ export function useDateFunctions(
         return new Date(newestDate.setHours(newestDate.getHours() - 4));
       case 'H6':
         return new Date(newestDate.setHours(newestDate.getHours() - 6));
-      case 'H8':
-        return new Date(newestDate.setHours(newestDate.getHours() - 8));
-      case 'H12':
         return new Date(newestDate.setHours(newestDate.getHours() - 12));
       case 'D1':
         return new Date(newestDate.setDate(newestDate.getDate() - 1));
@@ -201,9 +198,6 @@ export function useDateFunctions(
           showEntryDateFormat = 'YYY';
         } else if (hours === 0) {
           showEntryDateFormat = 'dd.MM';
-          if (timeFrame.value !== 'H8' && timeFrame.value !== 'H12') {
-            bold = true;
-          }
         } else if (minutes % 60 === 0) {
           if (timeDisplayProps.value.mode === TimeMode.H1 && hours % 4 === 0) {
             showEntryDateFormat = 'HH:mm';
@@ -223,11 +217,7 @@ export function useDateFunctions(
             if (days % 4 === 0 && hours === 0) {
               bold = true;
             }
-            if (timeFrame.value === 'H12') {
-              if (days % 2 === 0 && hours === 0) {
-                showEntryDateFormat = 'HH:mm';
-              }
-            } else if (hours % 12 === 0) {
+            if (hours % 12 === 0) {
               showEntryDateFormat = 'HH:mm';
             }
           }

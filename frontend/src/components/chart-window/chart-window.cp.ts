@@ -180,10 +180,6 @@ export function useTimeFrame() {
         return HOUR * 4;
       case 'H6':
         return HOUR * 6;
-      case 'H8':
-        return HOUR * 8;
-      case 'H12':
-        return HOUR * 12;
       case 'D1':
         return DAY;
       case 'D2':
