@@ -64,7 +64,8 @@ export async function tickDataStreamWrite(
   _volume,
   _direction,
   _price,
-  _timestamp = Date.now()
+  _timestamp = Date.now(),
+  _version = 1
 ) {
   const currentTime = _timestamp.toString();
 
@@ -72,7 +73,7 @@ export async function tickDataStreamWrite(
 
   const commonAttributes = {
     Dimensions: dimensions,
-    Version: 1,
+    Version: _version,
     Time: currentTime,
   };
 
@@ -123,7 +124,7 @@ export async function tickDataStreamWrite(
   }
   @param { string } tableName
  */
-export async function candleSticksStreamWrite(ohlcvt, tableName) {
+export async function candleSticksStreamWrite(ohlcvt, tableName, _version = 1) {
   if (!Array.isArray(ohlcvt) || ohlcvt.length > 200) {
     throw new Error(
       !Array.isArray(ohlcvt)
@@ -136,7 +137,7 @@ export async function candleSticksStreamWrite(ohlcvt, tableName) {
 
   const commonAttributes = {
     Dimensions: dimensions,
-    Version: 1,
+    Version: _version,
   };
 
   const records = [];

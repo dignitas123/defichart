@@ -4,7 +4,7 @@ import {
 } from "../write-data.js";
 import csv from "csvtojson";
 
-const csvFilePath = "BTCUSD_d1_only22_perp.csv"; // make sure files are formatted like the toy dataset
+const csvFilePath = "BTCUSD_w1.csv"; // make sure files are formatted like the toy dataset
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
@@ -30,7 +30,7 @@ for (let i = 0; i < chunks.length; i++) {
         100
       ).toFixed(2)}%`
     );
-    await candleSticksStreamWrite(chunks[i], "btcusd-perp_h1");
+    await candleSticksStreamWrite(chunks[i], "btcusd-perp_w1", 2);
     // await candleSticksStreamWriteOnlyOpen(chunks[i], "btcusd-perp_d1");
   }, i * 500);
 }
