@@ -4,7 +4,7 @@ import { tickDataStreamWrite } from "./aws-module/timestream-write-fns.js";
  * Converts Datetimestring to UTC Timestamp in Miliseconds since 1970
  * @param { string } datetimeStr example '2023-04-28 02:46:06.694000000'
  */
-function convertDatetimeStrToUTCTimestampInMS(datetimeStr) {
+export function convertDatetimeStrToUTCTimestampInMS(datetimeStr) {
   const dateObj = new Date(
     Date.UTC(
       datetimeStr.slice(0, 4), // year

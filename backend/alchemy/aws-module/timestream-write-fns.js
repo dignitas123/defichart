@@ -64,7 +64,8 @@ export async function candleStickStreamWrite(
   _low,
   _close,
   _timestamp = Date.now(),
-  tableName
+  tableName,
+  _version = 1
 ) {
   const currentTime = _timestamp.toString();
 
@@ -72,7 +73,7 @@ export async function candleStickStreamWrite(
 
   const commonAttributes = {
     Dimensions: dimensions,
-    Version: 1,
+    Version: _version,
     Time: currentTime,
   };
 
@@ -118,7 +119,7 @@ export async function candleStickStreamWrite(
   const command = new WriteRecordsCommand(params);
 
   try {
-    await timestreamWriteClient.send(command);
+    return await timestreamWriteClient.send(command);
   } catch (error) {
     console.log("Error writing data. ", error);
   }
