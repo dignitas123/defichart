@@ -41,9 +41,21 @@
       </div>
       <div
         v-if="ohlcvLoading"
-        class="price-row spinner-bar-wrapper position-absolute flex items-center justify-center"
+        class="price-row flex items-center justify-center"
       >
         <q-spinner-facebook color="secondary" size="xl" />
+      </div>
+      <div
+        class="price-row flex items-center justify-center q-pr-lg"
+        v-else-if="ohlcvError"
+      >
+        <div class="column items-center">
+          <div class="col">Backend not reachable. Try again later.</div>
+          <div class="col">Error Code:</div>
+          <div class="col">
+            <code>{{ ohlcvError }}</code>
+          </div>
+        </div>
       </div>
       <div v-else class="price-row">
         <div
@@ -109,7 +121,7 @@
           <q-resize-observer :debounce="0" @resize="onPriceAxisResize" />
         </div>
       </div>
-      <div class="date-row">
+      <div v-if="!ohlcvError" class="date-row">
         <div
           class="timestamps"
           @mousedown="startXDrag"
@@ -847,12 +859,15 @@ async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
   }
 }
 
-const { loading: ohlcvLoading, onResult: onOhlcvResult } =
-  useQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
-    symbol: 'btcusd-perp',
-    timeFrame: 'W1',
-    binAmount: 200,
-  });
+const {
+  loading: ohlcvLoading,
+  onResult: onOhlcvResult,
+  error: ohlcvError,
+} = useQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
+  symbol: 'btcusd-perp',
+  timeFrame: 'W1',
+  binAmount: 200,
+});
 
 const afterCandlesShowSet = ref(false);
 onOhlcvResult(async (result) => {
