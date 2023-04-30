@@ -1,7 +1,7 @@
 import csv from "csvtojson";
 import fs from "fs";
 
-const csvFilePath = "BTCUSD_d1.csv"; // make sure file has open, high, low, close, volume, timestamp columns
+const csvFilePath = "BTCUSD_d1_toy.csv"; // make sure file has open, high, low, close, volume, timestamp columns
 
 async function readCSVFileFrom(csvFilePath) {
   return await csv().fromFile(csvFilePath);
@@ -28,10 +28,10 @@ let weekOpen = 0;
 
 function aggregateCandlestickHighLowVolume(candlestick) {
   aggregateVolume += Number(candlestick.volume);
-  if (candlestick.high > aggregateHigh) {
+  if (Number(candlestick.high) > Number(aggregateHigh)) {
     aggregateHigh = candlestick.high;
   }
-  if (candlestick.low < aggregateLow) {
+  if (Number(candlestick.low) < Number(aggregateLow)) {
     aggregateLow = candlestick.low;
   }
 }
