@@ -4,6 +4,7 @@ import {
   DATA_TICKSIZE,
   DAY,
   HOUR,
+  MAX_CANDLES_LOAD,
   MIN,
   WEEK,
 } from 'src/pages/broker-charts/consts';
@@ -12,7 +13,6 @@ import { TimeFrame } from './child-components/header-bar/child-components/time-f
 
 export function useChartData(
   data: Ref<OHLC[] | undefined>,
-  maxCandles: Ref<number>,
   candlesShow: Ref<number>,
   offset: Ref<number>,
   chartHighScale: Ref<number>,
@@ -34,7 +34,7 @@ export function useChartData(
     if (!data.value) {
       return undefined;
     }
-    return data.value.slice(-maxCandles.value);
+    return data.value.slice(-MAX_CANDLES_LOAD);
   });
 
   const candlesInChartData = computed(() => {

@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, watch, onMounted, Ref, ref, computed } from 'vue';
+import { inject, watch, Ref, ref, computed } from 'vue';
 import InfoBadge from 'src/shared/components/info-badge.vue';
 import {
   LookbackPeriod,
@@ -179,10 +179,6 @@ function lookbackBlink() {
     isBlinking.value = false;
   }, 400);
 }
-
-onMounted(() => {
-  emit('lookBackPeriodChanged', selectedLookback.value);
-});
 </script>
 
 <style lang="scss" scoped>

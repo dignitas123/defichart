@@ -2,7 +2,7 @@ import { LookbackPeriod } from 'src/components/chart-window/child-components/hea
 import { TimeFrame } from 'src/components/chart-window/child-components/header-bar/child-components/time-frame-dropdown.if';
 
 export type Network = 'optimism';
-export type Broker = 'perpetual' | 'gains';
+export type Broker = 'perp' | 'gains';
 export type AssetPair = 'btcusd' | 'ethusd';
 
 export interface OHLC {
@@ -27,7 +27,6 @@ export interface Chart {
   candlesShow: number;
   selected: boolean;
   offset: number;
-  maxCandles: number;
   timeFrame: TimeFrame;
   lookbackPeriod: LookbackPeriod;
 }

@@ -14,6 +14,7 @@ export const CANDLE_BORDER_COLOR = 'black';
 export const INITIAL_TIME_FRAME: TimeFrame = 'D1';
 export const INITIAL_LOOKBACK_PERIOD: LookbackPeriod = '1year';
 export const WANTED_PX_PER_CANDLE = 8;
+export const MAX_CANDLES_LOAD = 200;
 
 export const MIN = 1000 * 60;
 export const HOUR = MIN * 60;

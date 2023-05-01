@@ -4,7 +4,7 @@ import { INITIAL_LOOKBACK_PERIOD, INITIAL_TIME_FRAME } from '../consts';
 
 export const defaultOptions: Chart = {
   symbol: 'btcusd',
-  broker: 'perpetual',
+  broker: 'perp',
   network: 'optimism',
   x: 0,
   y: 0,
@@ -12,10 +12,9 @@ export const defaultOptions: Chart = {
   height: 500,
   fullWidth: true,
   fullHeight: true,
-  candlesShow: 30,
+  candlesShow: 0,
   selected: true,
   offset: 0,
-  maxCandles: 200,
   timeFrame: INITIAL_TIME_FRAME,
   lookbackPeriod: INITIAL_LOOKBACK_PERIOD,
 };

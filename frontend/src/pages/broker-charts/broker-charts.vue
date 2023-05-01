@@ -11,6 +11,8 @@
       v-for="(chart, id) in charts"
       :key="id"
       :id="id"
+      :broker="chart.broker"
+      :symbol="chart.symbol"
       v-model:width="chart.width"
       v-model:height="chart.height"
       v-model:fullWidth="chart.fullWidth"
@@ -18,7 +20,6 @@
       v-model:candlesShow="chart.candlesShow"
       v-model:selected="chart.selected"
       v-model:offset="chart.offset"
-      v-model:maxCandles="chart.maxCandles"
       v-model:timeFrame="chart.timeFrame"
       v-model:lookbackPeriod="chart.lookbackPeriod"
       @chartClick="onChartClick"
@@ -40,6 +41,7 @@ import { useBrokerChartSizes } from './broker-charts.cp';
 import { generateChartObject } from './helper/chart-generator';
 import {
   HEADER_HEIGHT,
+  MAX_CANDLES_LOAD,
 } from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
 
@@ -60,23 +62,22 @@ const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 const { setCursor, removeCursor } = useCursorOverwrite();
 
 // TODO: make real charts created by users and saved in localStorage
-const nonStandardChart = generateChartObject({
-  symbol: 'ethusd',
-  broker: 'perpetual',
-  network: 'optimism',
-  x: 0,
-  y: 0,
-  width: 300,
-  height: 300,
-  fullWidth: false,
-  fullHeight: false,
-  candlesShow: 80,
-  selected: false,
-  offset: 0,
-  maxCandles: 200,
-  timeFrame: 'M30',
-  lookbackPeriod: '1quarter',
-});
+// const nonStandardChart = generateChartObject({
+//   symbol: 'ethusd',
+//   broker: 'perpetual',
+//   network: 'optimism',
+//   x: 0,
+//   y: 0,
+//   width: 300,
+//   height: 300,
+//   fullWidth: false,
+//   fullHeight: false,
+//   candlesShow: 0,
+//   selected: false,
+//   offset: 0,
+//   timeFrame: 'M30',
+//   lookbackPeriod: '1quarter',
+// });
 
 const testCharts = {
   ...generateChartObject(),
@@ -107,11 +108,7 @@ function handleKeyDown(event: KeyboardEvent) {
       charts[selectedChartId.value].offset++;
     }
   } else if (event.code === 'ArrowLeft') {
-    if (
-      charts[selectedChartId.value].maxCandles +
-        charts[selectedChartId.value].offset >
-      1
-    ) {
+    if (MAX_CANDLES_LOAD + charts[selectedChartId.value].offset > 1) {
       charts[selectedChartId.value].offset--;
     }
   }

@@ -20,18 +20,12 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
-  binRecords?: Maybe<Array<Maybe<TimeStreamRecord>>>;
   timeFrameRecords?: Maybe<Array<Maybe<TimeStreamRecord>>>;
-};
-
-export type QueryBinRecordsArgs = {
-  binAmount: Scalars['Int'];
-  symbol: Scalars['String'];
-  timeFrame: TimeFrame;
 };
 
 export type QueryTimeFrameRecordsArgs = {
   binAmount: Scalars['Int'];
+  startShift?: InputMaybe<Scalars['Int']>;
   symbol: Scalars['String'];
   timeFrame: TimeFrame;
 };

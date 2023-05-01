@@ -40,13 +40,15 @@
         />
       </div>
       <div
-        v-if="ohlcvLoading"
+        v-if="ohlcvLoading || !data"
         class="price-row flex items-center justify-center"
+        ref="chartRef"
       >
         <q-spinner-facebook color="secondary" size="xl" />
       </div>
       <div
         class="price-row flex items-center justify-center q-pr-lg"
+        ref="chartRef"
         v-else-if="ohlcvError"
       >
         <div class="column items-center">
@@ -69,7 +71,7 @@
           @mouseleave="onChartLeave"
         >
           <CandlestickChart
-            v-if="afterCandlesShowSet"
+            v-if="dataAvailable"
             :data="candlesInChartData"
             :dates="dataDates"
             :candleCount="candlesShow"
@@ -108,7 +110,7 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
-            v-if="afterCandlesShowSet"
+            v-if="dataAvailable"
             :currentCandleClose="currentCandleOHLC?.c"
             :h2l="chartH2L"
             :high="chartHigh"
@@ -121,7 +123,7 @@
           <q-resize-observer :debounce="0" @resize="onPriceAxisResize" />
         </div>
       </div>
-      <div v-if="!ohlcvError" class="date-row">
+      <div v-if="!ohlcvError && !ohlcvLoading && data" class="date-row">
         <div
           class="timestamps"
           @mousedown="startXDrag"
@@ -157,6 +159,7 @@ import {
   onUnmounted,
   provide,
   computed,
+  onMounted,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
@@ -164,7 +167,12 @@ import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
 import DateAxis from './child-components/date-axis.vue';
 import { generateData } from './helpers/fake-data-generator';
-import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
+import {
+  DatePosition,
+  OHLC,
+  AssetPair,
+  Broker,
+} from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
@@ -180,6 +188,7 @@ import {
   WEEK,
   MONTH,
   YEAR,
+  MAX_CANDLES_LOAD,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { roundToTicksize } from './helpers/digits';
@@ -193,12 +202,14 @@ import {
   lookbackPeriodEnum,
   LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
-import { useQuery } from '@vue/apollo-composable';
+import { useLazyQuery } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import { GetTimeFrameQuery } from 'src/generated/graphql';
 
 const props = defineProps<{
   id: string;
+  symbol: AssetPair;
+  broker: Broker;
   width: number;
   height: number;
   fullWidth: boolean;
@@ -206,7 +217,6 @@ const props = defineProps<{
   candlesShow: number;
   selected: boolean;
   offset: number;
-  maxCandles: number;
   timeFrame: TimeFrame;
   lookbackPeriod: LookbackPeriodString;
 }>();
@@ -222,7 +232,6 @@ const emit = defineEmits<{
   (event: 'update:candlesShow', candles: number): void;
   (event: 'update:selected', selected: boolean): void;
   (event: 'update:offset', offset: number): void;
-  (event: 'update:maxCandles', maxCandes: number): void;
   (event: 'update:timeFrame', timeFrame: TimeFrame): void;
   (event: 'update:lookbackPeriod', lookbackPeriod: LookbackPeriodString): void;
 }>();
@@ -236,6 +245,58 @@ const datePosition = ref<DatePosition>({
   entries: [],
 });
 
+const {
+  loading: ohlcvLoading,
+  error: ohlcvError,
+  load: loadOhlcvQuery,
+  onResult: onOhlcvResult,
+} = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
+
+onMounted(async () => {
+  // INFO: if no candlesShow in user settings
+  if (candlesShow.value === 0 && chartWidth.value) {
+    candlesShow.value = calculateAppropriateCandlesBasedOnChartWidth(
+      chartWidth.value
+    );
+  }
+  const ohlcvQueryVariables = {
+    symbol: `${props.symbol}-${props.broker}`,
+    timeFrame: timeFrame.value,
+    binAmount: MAX_CANDLES_LOAD,
+  };
+  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+});
+
+const dataAvailable = ref(false);
+onOhlcvResult(async (result) => {
+  if (!result.data) {
+    return;
+  }
+  const timeFrameRecords = result.data.timeFrameRecords
+    ? [...result.data.timeFrameRecords]
+    : undefined;
+  const reversedResult = timeFrameRecords?.reverse();
+  data.value = reversedResult?.map((record) => {
+    return {
+      o: record?.open ?? 0,
+      h: record?.high ?? 0,
+      l: record?.low ?? 0,
+      c: record?.close ?? 0,
+      v: record?.volume ?? 0,
+      d: new Date(record?.timestamp ?? 0),
+    };
+  });
+  // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
+  await nextTick();
+  if (!data.value || !data.value.length) {
+    return;
+  }
+  if (!dataAvailable.value) {
+    dataAvailable.value = true;
+  }
+  startCurrentCandleStream();
+});
+
 const width = ref(props.width);
 const height = ref(props.height);
 const fullWidth = ref(props.fullWidth);
@@ -243,7 +304,6 @@ const fullHeight = ref(props.fullHeight);
 const candlesShow = ref(props.candlesShow);
 const selected = ref(props.selected);
 const offset = ref(props.offset);
-const maxCandles = ref(props.maxCandles);
 const timeFrame = ref(props.timeFrame);
 const lookbackPeriod = ref(props.lookbackPeriod);
 
@@ -418,17 +478,14 @@ watch(
     selected.value = props.selected;
   }
 );
-watch(maxCandles, () => {
-  emit('update:maxCandles', maxCandles.value);
-});
-watch(
-  () => props.maxCandles,
-  () => {
-    maxCandles.value = props.maxCandles;
-  }
-);
 watch(timeFrame, () => {
   emit('update:timeFrame', timeFrame.value);
+  const ohlcvQueryVariables = {
+    symbol: `${props.symbol}-${props.broker}`,
+    timeFrame: timeFrame.value,
+    binAmount: MAX_CANDLES_LOAD,
+  };
+  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
 });
 watch(
   () => props.timeFrame,
@@ -525,14 +582,7 @@ const {
   chartLow,
   dataDates,
   startingDistanceDifference,
-} = useChartData(
-  data,
-  maxCandles,
-  candlesShow,
-  offset,
-  chartHighScale,
-  chartLowScale
-);
+} = useChartData(data, candlesShow, offset, chartHighScale, chartLowScale);
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -801,7 +851,7 @@ async function setTimeFrame(tf: TimeFrame) {
 // @setLookbackPeriod emit (.header-bar)
 async function setLookbackPeriod(period: LookbackPeriodString) {
   lookbackPeriod.value = period;
-  await setAppropriateTimeFrame(lookbackPeriod.value);
+  fitTimeFrameAndCandlesShowToLookbackPeriodString(lookbackPeriod.value);
 }
 
 function calculateAdditionalCandles(candlesDiffInMs: number) {
@@ -818,19 +868,14 @@ function calculateAdditionalCandles(candlesDiffInMs: number) {
   }
 }
 
-async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
-  if (!chartWidth.value) {
+function fitTimeFrameAndCandlesShowToLookbackPeriodString(
+  lookBackPeriod: LookbackPeriodString
+) {
+  if (!chartWidth.value || !candlesShow.value) {
     return;
   }
-  const chartsWidthWithoutPriceAxisWidth = chartWidth.value;
-  const assumedPriceAxisAverageWidth = 50;
-  const actualTemporaryChartWidth =
-    chartsWidthWithoutPriceAxisWidth - assumedPriceAxisAverageWidth;
-  const appropriateCandles = Math.round(
-    actualTemporaryChartWidth / WANTED_PX_PER_CANDLE
-  );
   const appropriatePeriodInMs =
-    lookbackPeriodEnum[lookBackPeriod] / appropriateCandles;
+    lookbackPeriodEnum[lookBackPeriod] / candlesShow.value;
   const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
     appropriatePeriodInMs,
     Object.values(allowedTimeFramesEnum)
@@ -839,18 +884,17 @@ async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
     nearestAppropriatePeriodFromAllowedTimeFramesIndex
   ];
   timeFrame.value = appropriateTimeFrame as TimeFrame;
-
   if (!data.value) {
     return;
   }
   const additionalCandles = calculateAdditionalCandles(
     data.value[data.value.length - 1].d.getTime() -
-      data.value[data.value.length - appropriateCandles].d.getTime()
+      data.value[data.value.length - candlesShow.value].d.getTime()
   );
   if (!additionalCandles) {
     return;
   }
-  candlesShow.value = Math.round(appropriateCandles + additionalCandles);
+  candlesShow.value = Math.round(candlesShow.value + additionalCandles);
   initialCandlesShow.value = candlesShow.value;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
@@ -859,46 +903,16 @@ async function setAppropriateTimeFrame(lookBackPeriod: LookbackPeriodString) {
   }
 }
 
-const {
-  loading: ohlcvLoading,
-  onResult: onOhlcvResult,
-  error: ohlcvError,
-} = useQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
-  symbol: 'btcusd-perp',
-  timeFrame: 'W1',
-  binAmount: 200,
-});
-
-const afterCandlesShowSet = ref(false);
-onOhlcvResult(async (result) => {
-  const timeFrameRecords = result.data.timeFrameRecords
-    ? [...result.data.timeFrameRecords]
-    : undefined;
-  const reversedResult = timeFrameRecords?.reverse();
-  data.value = reversedResult?.map((record) => {
-    return {
-      o: record?.open ?? 0,
-      h: record?.high ?? 0,
-      l: record?.low ?? 0,
-      c: record?.close ?? 0,
-      v: record?.volume ?? 0,
-      d: new Date(record?.timestamp ?? 0),
-    };
-  });
-  // data.value = generateData('W', 1); // this will generate fake data
-  await nextTick();
-  if (!data.value) {
-    return;
+function calculateAppropriateCandlesBasedOnChartWidth(_chartWidth: number) {
+  if (!_chartWidth) {
+    return 10; // INFO: should never happen, but in case it's a value fit for even small width charts
   }
-  if (!afterCandlesShowSet.value) {
-    afterCandlesShowSet.value = true;
-  }
-  await setAppropriateTimeFrame(INITIAL_LOOKBACK_PERIOD);
-  if (data.value.length < maxCandles.value) {
-    maxCandles.value = data.value.length;
-  }
-  startCurrentCandleStream();
-});
+  const chartsWidthWithoutPriceAxisWidth = _chartWidth;
+  const assumedPriceAxisAverageWidth = 50;
+  const actualTemporaryChartWidth =
+    chartsWidthWithoutPriceAxisWidth - assumedPriceAxisAverageWidth;
+  return Math.round(actualTemporaryChartWidth / WANTED_PX_PER_CANDLE);
+}
 
 function startCurrentCandleStream() {
   if (
