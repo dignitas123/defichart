@@ -16,7 +16,8 @@ export function useChartData(
   candlesShow: Ref<number>,
   offset: Ref<number>,
   chartHighScale: Ref<number>,
-  chartLowScale: Ref<number>
+  chartLowScale: Ref<number>,
+  chartUpdateKey: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -30,11 +31,13 @@ export function useChartData(
     candlesShow.value += n;
   }
 
-  const maxData = computed(() => {
+  const maxData = ref<OHLC[]>();
+
+  watch([data, chartUpdateKey], () => {
     if (!data.value) {
       return undefined;
     }
-    return data.value.slice(-MAX_CANDLES_LOAD);
+    maxData.value = data.value.slice(-MAX_CANDLES_LOAD);
   });
 
   const candlesInChartData = computed(() => {

@@ -69,23 +69,23 @@ const props = withDefaults(
     width?: number;
     priceLines?: number[];
     dateLines?: number[];
-    currentCandleOHLC?: OHLC;
     timeFrame: TimeFrame;
     datePosition?: DatePosition;
     startingDistanceDifference?: number;
     candleWidth: number;
     candleDistance: number;
     offset: number;
+    chartUpdateKey?: number;
   }>(),
   {
     priceLines: () => [],
     dateLines: () => [],
     startingDistanceDifference: 0,
+    chartUpdateKey: 0,
   }
 );
 
 const emit = defineEmits<{
-  (event: 'update:currentCandleClose', close: number): void;
   (event: 'update:datePosition', datePosition: DatePosition | undefined): void;
   (event: 'update:candleWidth', width: number): void;
   (event: 'update:candleDistance', distance: number): void;
@@ -133,23 +133,6 @@ watch(candleWidth, () => {
 watch(candleDistance, () => {
   emit('update:candleDistance', candleDistance.value);
 });
-
-watch(
-  () => props.currentCandleOHLC,
-  () => {
-    if (!props.currentCandleOHLC || props.offset < 0) {
-      return;
-    }
-    const currentCandle = drawCandle(
-      lastXPositionCandlestick.value,
-      props.currentCandleOHLC
-    );
-    if (currentCandle) {
-      candles.value[candles.value.length - 1] = currentCandle;
-    }
-  },
-  { deep: true }
-);
 
 const candles = ref<Candle[]>([]);
 
@@ -318,6 +301,7 @@ watch(
     () => props.offset,
     () => props.high,
     () => props.low,
+    () => props.chartUpdateKey,
   ],
   () => {
     drawChart();

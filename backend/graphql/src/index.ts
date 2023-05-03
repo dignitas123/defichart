@@ -55,6 +55,9 @@ const resolvers: Resolvers = {
         currentCandleData,
         timeFrame
       );
+      if (startShift) {
+        return timestreamRecords;
+      }
       const currentRecord = [
         {
           timestamp: currentCandle.timestamp,

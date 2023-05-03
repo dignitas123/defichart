@@ -47,13 +47,12 @@
         <q-spinner-facebook color="secondary" size="xl" />
       </div>
       <div
-        class="price-row flex items-center justify-center q-pr-lg"
+        class="price-row flex items-center justify-center"
         ref="chartRef"
         v-else-if="ohlcvError"
       >
-        <div class="column items-center">
+        <div class="column items-center q-px-lg">
           <div class="col">Backend not reachable. Try again later.</div>
-          <div class="col">Error Code:</div>
           <div class="col">
             <code>{{ ohlcvError }}</code>
           </div>
@@ -84,8 +83,8 @@
             :dateLines="dateLines"
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
-            :currentCandleOHLC="currentCandleOHLC"
             :timeFrame="timeFrame ?? INITIAL_TIME_FRAME as StandardTimeFrames"
+            :chartUpdateKey="chartUpdateKey"
             v-model:datePosition="datePosition"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -111,7 +110,7 @@
         >
           <PriceAxis
             v-if="dataAvailable"
-            :currentCandleClose="currentCandleOHLC?.c"
+            :currentCandleClose="data[data.length - 1].c"
             :h2l="chartH2L"
             :high="chartHigh"
             :low="chartLow"
@@ -191,7 +190,6 @@ import {
   MAX_CANDLES_LOAD,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
-import { roundToTicksize } from './helpers/digits';
 import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
 import {
   allowedTimeFramesEnum,
@@ -205,6 +203,7 @@ import {
 import { useLazyQuery } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import { GetTimeFrameQuery } from 'src/generated/graphql';
+import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 
 const props = defineProps<{
   id: string;
@@ -239,6 +238,8 @@ const emit = defineEmits<{
 const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
 
+const chartUpdateKey = ref(0);
+
 const data = ref<OHLC[] | undefined>();
 const datePosition = ref<DatePosition>({
   standardDateFormat: 'HH:mm',
@@ -248,9 +249,31 @@ const datePosition = ref<DatePosition>({
 const {
   loading: ohlcvLoading,
   error: ohlcvError,
+  result: ohlcvResult,
   load: loadOhlcvQuery,
-  onResult: onOhlcvResult,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
+
+const previousTimeFrame = ref<TimeFrame>();
+async function executeTimeFrameQuery() {
+  let timeFrameForQuery = timeFrame.value;
+  if (timeModeCount.value > 1) {
+    timeFrameForQuery = `${timeFrameMode.value}1`;
+  }
+  const ohlcvQueryVariables = {
+    symbol: `${props.symbol}-${props.broker}`,
+    timeFrame: timeFrameForQuery,
+    binAmount: MAX_CANDLES_LOAD,
+  };
+  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  if (
+    ohlcvResult.value &&
+    previousTimeFrame.value &&
+    previousTimeFrame.value !== timeFrame.value
+  ) {
+    await setCandleDataValues();
+  }
+  previousTimeFrame.value = timeFrame.value;
+}
 
 onMounted(async () => {
   // INFO: if no candlesShow in user settings
@@ -259,33 +282,40 @@ onMounted(async () => {
       chartWidth.value
     );
   }
-  const ohlcvQueryVariables = {
-    symbol: `${props.symbol}-${props.broker}`,
-    timeFrame: timeFrame.value,
-    binAmount: MAX_CANDLES_LOAD,
-  };
-  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  await executeTimeFrameQuery();
 });
 
 const dataAvailable = ref(false);
-onOhlcvResult(async (result) => {
-  if (!result.data) {
+watch(ohlcvResult, async () => {
+  await setCandleDataValues();
+});
+
+async function setCandleDataValues() {
+  if (!ohlcvResult.value) {
     return;
   }
-  const timeFrameRecords = result.data.timeFrameRecords
-    ? [...result.data.timeFrameRecords]
+  const timeFrameRecords = ohlcvResult.value.timeFrameRecords
+    ? [...ohlcvResult.value.timeFrameRecords]
     : undefined;
   const reversedResult = timeFrameRecords?.reverse();
-  data.value = reversedResult?.map((record) => {
-    return {
-      o: record?.open ?? 0,
-      h: record?.high ?? 0,
-      l: record?.low ?? 0,
-      c: record?.close ?? 0,
-      v: record?.volume ?? 0,
-      d: new Date(record?.timestamp ?? 0),
-    };
-  });
+  if (timeModeCount.value > 1) {
+    data.value = timeFrameAggregate(
+      reversedResult,
+      timeFrameMode.value,
+      timeModeCount.value
+    );
+  } else {
+    data.value = reversedResult?.map((record) => {
+      return {
+        o: record?.open ?? 0,
+        h: record?.high ?? 0,
+        l: record?.low ?? 0,
+        c: record?.close ?? 0,
+        v: record?.volume ?? 0,
+        d: new Date(record?.timestamp ?? 0),
+      };
+    });
+  }
   // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
   await nextTick();
   if (!data.value || !data.value.length) {
@@ -293,9 +323,11 @@ onOhlcvResult(async (result) => {
   }
   if (!dataAvailable.value) {
     dataAvailable.value = true;
+    calculateAndSetlookbackNumber();
+    startCurrentCandleStream();
   }
-  startCurrentCandleStream();
-});
+  chartUpdateKey.value++;
+}
 
 const width = ref(props.width);
 const height = ref(props.height);
@@ -309,7 +341,7 @@ const lookbackPeriod = ref(props.lookbackPeriod);
 
 const initialCandlesShow = ref(0);
 
-const timeMode = computed(() => {
+const timeFrameMode = computed(() => {
   return timeFrame.value.charAt(0) as TimeFrameMode;
 });
 const timeModeCount = computed(() => {
@@ -478,14 +510,9 @@ watch(
     selected.value = props.selected;
   }
 );
-watch(timeFrame, () => {
+watch(timeFrame, async () => {
   emit('update:timeFrame', timeFrame.value);
-  const ohlcvQueryVariables = {
-    symbol: `${props.symbol}-${props.broker}`,
-    timeFrame: timeFrame.value,
-    binAmount: MAX_CANDLES_LOAD,
-  };
-  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  await executeTimeFrameQuery();
 });
 watch(
   () => props.timeFrame,
@@ -582,7 +609,14 @@ const {
   chartLow,
   dataDates,
   startingDistanceDifference,
-} = useChartData(data, candlesShow, offset, chartHighScale, chartLowScale);
+} = useChartData(
+  data,
+  candlesShow,
+  offset,
+  chartHighScale,
+  chartLowScale,
+  chartUpdateKey
+);
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -790,55 +824,6 @@ function onPriceAxisResize(size: { width: number }) {
   }
 }
 
-/**
- * TODO: current candle stream should set data
- * here, not the simulation of course. Can keep
- * simulation for some feature in the future
- */
-const currentCandleOHLC = ref<OHLC>();
-
-// TODO: simulates the current candle stream changes, but has to be replaced by real stream
-setInterval(() => {
-  if (!chartH2L.value || !currentCandleOHLC.value) {
-    return;
-  }
-  const upDown = Math.random() >= 0.5 ? true : false;
-  const random = Math.random();
-  const h2l10p = chartH2L.value / 1000;
-  currentCandleOHLC.value.c += roundToTicksize(
-    upDown ? h2l10p * random : -h2l10p * random,
-    DATA_TICKSIZE
-  );
-}, 1_000);
-
-watch(
-  currentCandleOHLC,
-  () => {
-    if (!currentCandleOHLC.value) {
-      return;
-    }
-    if (currentCandleOHLC.value.c > currentCandleOHLC.value.h) {
-      currentCandleOHLC.value.h = currentCandleOHLC.value.c;
-      if (currentCandleOHLC.value.h > chartHigh.value) {
-        if (offset.value === 0) {
-          chartHigh.value = currentCandleOHLC.value.c;
-        }
-        currentCandleOHLC.value.h = currentCandleOHLC.value.c;
-      }
-    }
-    if (currentCandleOHLC.value.c < currentCandleOHLC.value.l) {
-      currentCandleOHLC.value.l = currentCandleOHLC.value.c;
-      if (currentCandleOHLC.value.l < chartLow.value) {
-        if (offset.value === 0) {
-          chartLow.value = currentCandleOHLC.value.c;
-        }
-        currentCandleOHLC.value.l = currentCandleOHLC.value.c;
-      }
-    }
-  },
-  { deep: true }
-);
-
 // @setTimeFrame emit (.header-bar)
 async function setTimeFrame(tf: TimeFrame) {
   if (timeFrame.value === tf) {
@@ -857,13 +842,13 @@ async function setLookbackPeriod(period: LookbackPeriodString) {
 function calculateAdditionalCandles(candlesDiffInMs: number) {
   const lookBackTimeInMs = lookbackPeriodEnum[lookbackPeriod.value];
   const additionalTimeNeeded = lookBackTimeInMs - candlesDiffInMs;
-  if (timeMode.value === 'M') {
+  if (timeFrameMode.value === 'M') {
     return additionalTimeNeeded / MIN / timeModeCount.value;
-  } else if (timeMode.value === 'H') {
+  } else if (timeFrameMode.value === 'H') {
     return additionalTimeNeeded / HOUR / timeModeCount.value;
-  } else if (timeMode.value === 'D') {
+  } else if (timeFrameMode.value === 'D') {
     return additionalTimeNeeded / DAY / timeModeCount.value;
-  } else if (timeMode.value === 'W') {
+  } else if (timeFrameMode.value === 'W') {
     return additionalTimeNeeded / WEEK / timeModeCount.value;
   }
 }
@@ -915,45 +900,7 @@ function calculateAppropriateCandlesBasedOnChartWidth(_chartWidth: number) {
 }
 
 function startCurrentCandleStream() {
-  if (
-    !timeFrame.value ||
-    !lookbackPeriod.value ||
-    !timeMode.value ||
-    !timeModeCount.value ||
-    !data.value
-  ) {
-    return;
-  }
-  // data.value = generateData(timeMode.value, timeModeCount.value); // use Fake Data for testing purposes
-  if (data.value.length <= 0) {
-    return;
-  }
-  const lastCandleOHLC = data.value.slice(-1)[0];
-
-  // TODO: last Date has t o come from current candle + TimeFrame Minute/Hour etc.
-  const lastDate = new Date(lastCandleOHLC.d);
-  if (timeMode.value === 'M') {
-    lastDate.setMinutes(lastDate.getMinutes() + timeModeCount.value);
-  } else if (timeMode.value === 'H') {
-    lastDate.setHours(lastDate.getHours() + timeModeCount.value);
-  } else if (timeMode.value === 'D') {
-    lastDate.setDate(lastDate.getDate() + timeModeCount.value);
-  } else if (timeMode.value === 'W') {
-    lastDate.setDate(lastDate.getDate() + timeModeCount.value * 7);
-  }
-
-  // TODO: this first mockdata has to be replaced with the current candle stream,
-  // both have to be loaded first / then the chart can be displayed
-  const lastCandleRawMock = {
-    o: lastCandleOHLC.c,
-    h: lastCandleOHLC.c,
-    l: lastCandleOHLC.c,
-    c: lastCandleOHLC.c,
-    d: new Date(lastDate),
-    v: 0,
-  };
-  currentCandleOHLC.value = lastCandleRawMock;
-  data.value.push(currentCandleOHLC.value);
+  // TODO: current candle stream start graphql subscription
 }
 
 function calculateAndSetlookbackNumber() {
