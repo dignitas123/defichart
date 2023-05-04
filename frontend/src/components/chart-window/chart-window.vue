@@ -830,7 +830,9 @@ async function setTimeFrame(tf: TimeFrame) {
     return;
   }
   timeFrame.value = tf;
-  calculateAndSetlookbackNumber();
+  setTimeout(() => {
+    calculateAndSetlookbackNumber();
+  }, 500);
 }
 
 // @setLookbackPeriod emit (.header-bar)
