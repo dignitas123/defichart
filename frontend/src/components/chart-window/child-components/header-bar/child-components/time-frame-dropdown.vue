@@ -1,128 +1,127 @@
 <template>
-  <q-btn
+  <q-btn-dropdown
+    v-model="timeFrameMenuShowing"
     dense
     flat
+    menuAnchor="bottom left"
+    menuSelf="top left"
     square
     size="sm"
     :ripple="false"
     color="primary"
     :label="selectedTimeFrame"
+    @hide="resetCustomTimeFrameInputText"
+    bordered
     class="time-frame-dropdown-button header-button q-px-xs"
     :class="{ blink: isBlinking && !blinkingBlock }"
   >
-    <q-menu
-      v-model="timeFrameMenuShowing"
-      bordered
-      @hide="resetCustomTimeFrameInputText"
-    >
-      <q-list dense v-if="showTimeFrameMenuList">
-        <q-item
-          :active="selectedTimeFrame === 'M1'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('M1')"
+    <q-list dense v-if="showTimeFrameMenuList">
+      <q-item
+        :active="selectedTimeFrame === 'M1'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('M1')"
+      >
+        <q-item-section>M1</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'M1' ? 'white' : 'primary'"
+          >⇧1</InfoBadge
         >
-          <q-item-section>M1</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'M1' ? 'white' : 'primary'"
-            >⇧1</InfoBadge
-          >
-        </q-item>
-        <q-item
-          :active="selectedTimeFrame === 'M5'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('M5')"
+      </q-item>
+      <q-item
+        :active="selectedTimeFrame === 'M5'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('M5')"
+      >
+        <q-item-section>M5</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'M5' ? 'white' : 'primary'"
+          >⇧2</InfoBadge
         >
-          <q-item-section>M5</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'M5' ? 'white' : 'primary'"
-            >⇧2</InfoBadge
-          >
-        </q-item>
-        <q-item
-          :active="selectedTimeFrame === 'M30'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('M30')"
+      </q-item>
+      <q-item
+        :active="selectedTimeFrame === 'M30'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('M30')"
+      >
+        <q-item-section>M30</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'M30' ? 'white' : 'primary'"
+          >⇧3</InfoBadge
         >
-          <q-item-section>M30</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'M30' ? 'white' : 'primary'"
-            >⇧3</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedTimeFrame === 'H4'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('H4')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedTimeFrame === 'H4'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('H4')"
+      >
+        <q-item-section>H4</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'H4' ? 'white' : 'primary'"
+          >⇧4</InfoBadge
         >
-          <q-item-section>H4</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'H4' ? 'white' : 'primary'"
-            >⇧4</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedTimeFrame === 'D1'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('D1')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedTimeFrame === 'D1'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('D1')"
+      >
+        <q-item-section>D1</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'D1' ? 'white' : 'primary'"
+          >⇧5</InfoBadge
         >
-          <q-item-section>D1</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'D1' ? 'white' : 'primary'"
-            >⇧5</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedTimeFrame === 'W1'"
-          active-class="selected-item"
-          clickable
-          @click="onCustomTFInputClick('W1')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedTimeFrame === 'W1'"
+        active-class="selected-item"
+        clickable
+        @click="onCustomTFInputClick('W1')"
+      >
+        <q-item-section>W1</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedTimeFrame === 'W1' ? 'white' : 'primary'"
+          >⇧6</InfoBadge
         >
-          <q-item-section>W1</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedTimeFrame === 'W1' ? 'white' : 'primary'"
-            >⇧6</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item class="time-frame-custom-input-item">
-          <q-item-section>
-            <q-input
-              outlined
-              dense
-              v-model="customTimeFrameInputText"
-              mask="A##"
-              ref="customTimeFrameInputRef"
-              :placeholder="customTimeFramePlaceHolder"
-              @focus="focusCustomTimeFrame"
-              @blur="resetCustomTimeFrameInputText"
-              @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
-              :style="`width: ${$q.platform.is.mobile ? 54 : 93}px`"
-            />
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-menu>
-  </q-btn>
+      </q-item>
+      <q-separator />
+      <q-item class="time-frame-custom-input-item">
+        <q-item-section>
+          <q-input
+            outlined
+            dense
+            v-model="customTimeFrameInputText"
+            mask="A##"
+            ref="customTimeFrameInputRef"
+            :placeholder="customTimeFramePlaceHolder"
+            @focus="focusCustomTimeFrame"
+            @blur="resetCustomTimeFrameInputText"
+            @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
+            :style="`width: ${$q.platform.is.mobile ? 54 : 93}px`"
+          />
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </q-btn-dropdown>
 </template>
 
 <script setup lang="ts">

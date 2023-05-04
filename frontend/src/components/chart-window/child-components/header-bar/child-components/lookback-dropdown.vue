@@ -1,5 +1,9 @@
 <template>
-  <q-btn
+  <q-btn-dropdown
+    v-model="lookbackMenuShowing"
+    bordered
+    menuAnchor="bottom left"
+    menuSelf="top left"
     no-caps
     dense
     flat
@@ -11,98 +15,96 @@
     class="lookback-dropdown-button header-button q-px-xs"
     :class="{ blink: isBlinking && !blinkingBlock }"
   >
-    <q-menu v-model="lookbackMenuShowing" bordered>
-      <q-list dense v-if="showLookbackMenuList">
-        <q-item
-          :active="selectedLookback === '1day'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('1day')"
+    <q-list dense v-if="showLookbackMenuList">
+      <q-item
+        :active="selectedLookback === '1day'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('1day')"
+      >
+        <q-item-section>1day</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '1day' ? 'white' : 'primary'"
+          >1</InfoBadge
         >
-          <q-item-section>1day</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '1day' ? 'white' : 'primary'"
-            >1</InfoBadge
-          >
-        </q-item>
-        <q-item
-          :active="selectedLookback === '1week'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('1week')"
+      </q-item>
+      <q-item
+        :active="selectedLookback === '1week'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('1week')"
+      >
+        <q-item-section>1week</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '1week' ? 'white' : 'primary'"
+          >2</InfoBadge
         >
-          <q-item-section>1week</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '1week' ? 'white' : 'primary'"
-            >2</InfoBadge
-          >
-        </q-item>
-        <q-item
-          :active="selectedLookback === '1month'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('1month')"
+      </q-item>
+      <q-item
+        :active="selectedLookback === '1month'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('1month')"
+      >
+        <q-item-section>1month</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '1month' ? 'white' : 'primary'"
+          >3</InfoBadge
         >
-          <q-item-section>1month</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '1month' ? 'white' : 'primary'"
-            >3</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedLookback === '1quarter'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('1quarter')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedLookback === '1quarter'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('1quarter')"
+      >
+        <q-item-section>1quarter</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '1quarter' ? 'white' : 'primary'"
+          >4</InfoBadge
         >
-          <q-item-section>1quarter</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '1quarter' ? 'white' : 'primary'"
-            >4</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedLookback === '1year'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('1year')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedLookback === '1year'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('1year')"
+      >
+        <q-item-section>1year</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '1year' ? 'white' : 'primary'"
+          >5</InfoBadge
         >
-          <q-item-section>1year</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '1year' ? 'white' : 'primary'"
-            >5</InfoBadge
-          >
-        </q-item>
-        <q-separator />
-        <q-item
-          :active="selectedLookback === '5year'"
-          active-class="selected-item"
-          clickable
-          @click="onLookbackClick('5year')"
+      </q-item>
+      <q-separator />
+      <q-item
+        :active="selectedLookback === '5year'"
+        active-class="selected-item"
+        clickable
+        @click="onLookbackClick('5year')"
+      >
+        <q-item-section>5year</q-item-section>
+        <InfoBadge
+          v-if="!$q.platform.is.mobile"
+          class="q-ml-xs"
+          :color="selectedLookback === '5year' ? 'white' : 'primary'"
+          >6</InfoBadge
         >
-          <q-item-section>5year</q-item-section>
-          <InfoBadge
-            v-if="!$q.platform.is.mobile"
-            class="q-ml-xs"
-            :color="selectedLookback === '5year' ? 'white' : 'primary'"
-            >6</InfoBadge
-          >
-        </q-item>
-      </q-list>
-    </q-menu>
-  </q-btn>
+      </q-item>
+    </q-list>
+  </q-btn-dropdown>
 </template>
 
 <script setup lang="ts">
