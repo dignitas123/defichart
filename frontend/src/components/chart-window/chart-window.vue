@@ -40,7 +40,7 @@
         />
       </div>
       <div
-        v-if="ohlcvLoading || !data"
+        v-if="ohlcvLoading"
         class="price-row flex items-center justify-center"
         ref="chartRef"
       >
@@ -49,13 +49,10 @@
       <div
         class="price-row flex items-center justify-center"
         ref="chartRef"
-        v-else-if="ohlcvError"
+        v-else-if="ohlcvError || !data"
       >
         <div class="column items-center q-px-lg">
           <div class="col">Backend not reachable. Try again later.</div>
-          <div class="col">
-            <code>{{ ohlcvError }}</code>
-          </div>
         </div>
       </div>
       <div v-else class="price-row">
