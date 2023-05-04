@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHr LpR fFr" container style="height: 100vh">
+  <q-layout view="hHr LpR fFr" container style="height: 100vh" class="secondary-gradient-light">
     <q-header elevated>
       <q-bar style="padding-right: 0">
         <q-icon name="img:deficharts.svg" />

@@ -82,6 +82,9 @@ html.ns-resize * {
 .secondary-gradient {
   background: linear-gradient(to right, white, var(--q-secondary)) !important;
 }
+.secondary-gradient-light {
+  background: radial-gradient(white, rgb($secondary, 0.3)) !important;
+}
 .transparent-primary-background {
   background: rgba($primary, 0.4) !important;
 }
