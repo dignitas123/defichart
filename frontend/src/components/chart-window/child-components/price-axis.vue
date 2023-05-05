@@ -53,7 +53,7 @@ const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
-const MIN_ROW_DISTANCE_PX = 60;
+const MIN_ROW_DISTANCE_PX = 50;
 
 const crosshairBadgeRef = ref<HTMLElement>();
 const priceHairBadgeRef = ref<HTMLElement>();
@@ -157,7 +157,10 @@ watchEffect(() => {
 
   rowDistanceInPx = (priceSteps * onePriceInPixel) / DATA_TICKSIZE;
   const startPrice = props.high - (props.high % priceSteps);
-  marginTop = (props.high % priceSteps) * (onePriceInPixel / DATA_TICKSIZE);
+
+  marginTop =
+    (props.high - startPrice) * (onePriceInPixel / DATA_TICKSIZE) -
+    rowDistanceInPx / 2;
 
   for (let price = startPrice; price > props.low; price -= priceSteps) {
     priceArray.push(price.toFixed(digits));

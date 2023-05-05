@@ -74,16 +74,16 @@ html.ns-resize * {
   float: right;
 }
 .bg-shadow-primary {
-  box-shadow: 0 0 2px var(--q-primary);
+  box-shadow: 0 0 2px $primary;
 }
 .bg-shadow-secondary {
-  box-shadow: 0 0 2px var(--q-secondary);
+  box-shadow: 0 0 2px $secondary;
 }
 .secondary-gradient {
-  background: linear-gradient(to right, white, var(--q-secondary)) !important;
+  background: linear-gradient(to right, white, $secondary) !important;
 }
-.secondary-gradient-light {
-  background: radial-gradient(white, rgb($secondary, 0.3)) !important;
+.secondary-radial-gradient-light {
+  background: radial-gradient(rgb($secondary, 0.3), white) !important;
 }
 .transparent-primary-background {
   background: rgba($primary, 0.4) !important;
