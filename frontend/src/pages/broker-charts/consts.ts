@@ -1,7 +1,7 @@
 import { LookbackPeriod } from 'src/components/chart-window/child-components/header-bar/child-components/lookback-dropdown.if';
 import { TimeFrame } from 'src/components/chart-window/child-components/header-bar/child-components/time-frame-dropdown.if';
 
-export const DATA_TICKSIZE = 0.5;
+export const DATA_TICKSIZE = 0.1;
 export const GRID_LINES_TRANSPARENCY = 0.06;
 export const DATE_BOX_WIDTH = 80;
 export const HEADER_HEIGHT = 32;

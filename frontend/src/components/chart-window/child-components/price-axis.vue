@@ -7,7 +7,7 @@
       class="price items-center"
       v-for="(price, i) in priceArray"
       :key="i"
-      :style="`height: ${rowDistance}px`"
+      :style="`height: ${rowDistanceInPx}px`"
     >
       <span>{{ String(price) }}</span>
     </div>
@@ -53,7 +53,7 @@ const emit = defineEmits<{
   (event: 'horizontalLine', price: number): void;
 }>();
 
-const MIN_ROW_DISTANCE = 40; // in px
+const MIN_ROW_DISTANCE_PX = 60;
 
 const crosshairBadgeRef = ref<HTMLElement>();
 const priceHairBadgeRef = ref<HTMLElement>();
@@ -120,7 +120,26 @@ watchEffect(() => {
   }
 });
 
-let rowDistance = 0;
+function getNiceRoundNumber(num: number) {
+  const orderOfMagnitude = Math.round(Math.log10(Math.abs(num)));
+  const baseValue = Math.pow(10, orderOfMagnitude);
+
+  if (num <= baseValue * 0.5) {
+    return baseValue * 0.5;
+  } else if (num <= baseValue * 1.5) {
+    return baseValue;
+  } else if (num <= baseValue * 2.5) {
+    return baseValue * 2;
+  } else if (num <= baseValue * 3.5) {
+    return baseValue * 3;
+  } else if (num <= baseValue * 4.5) {
+    return baseValue * 4;
+  } else {
+    return baseValue * 5;
+  }
+}
+
+let rowDistanceInPx = 0;
 let priceArray: string[] = [];
 let marginTop = 0;
 watchEffect(() => {
@@ -132,34 +151,15 @@ watchEffect(() => {
 
   const numberOfPrices = props.h2l / DATA_TICKSIZE;
   const onePriceInPixel = props.height / numberOfPrices;
+  const priceSteps = getNiceRoundNumber(
+    props.h2l / (props.height / MIN_ROW_DISTANCE_PX)
+  );
 
-  let row = onePriceInPixel;
-  while (row < MIN_ROW_DISTANCE) {
-    row += onePriceInPixel;
-  }
+  rowDistanceInPx = (priceSteps * onePriceInPixel) / DATA_TICKSIZE;
+  const startPrice = props.high - (props.high % priceSteps);
+  marginTop = (props.high % priceSteps) * (onePriceInPixel / DATA_TICKSIZE);
 
-  rowDistance = row;
-  const rowDistanceInPrice = (rowDistance / onePriceInPixel) * DATA_TICKSIZE;
-
-  let priceBeginningDistance = rowDistanceInPrice / 2;
-  const priceStartRest = priceBeginningDistance % DATA_TICKSIZE;
-
-  if (priceStartRest !== 0) {
-    let newPriceStart = priceBeginningDistance + priceStartRest;
-    const ticksizeMult = 1 / DATA_TICKSIZE;
-    if (newPriceStart < props.high) {
-      priceBeginningDistance = newPriceStart;
-      marginTop = priceStartRest * onePriceInPixel * ticksizeMult;
-    } else {
-      priceBeginningDistance = DATA_TICKSIZE * onePriceInPixel * ticksizeMult;
-    }
-  }
-
-  for (
-    let price = props.high - priceBeginningDistance;
-    price > props.low;
-    price -= rowDistanceInPrice
-  ) {
+  for (let price = startPrice; price > props.low; price -= priceSteps) {
     priceArray.push(price.toFixed(digits));
   }
 
@@ -167,19 +167,19 @@ watchEffect(() => {
 });
 
 function drawHorizontalPriceLines() {
-  if (rowDistance) {
-    let pricePoint = rowDistance / 2 + marginTop;
-    if (priceArray && rowDistance) {
+  if (rowDistanceInPx) {
+    let pricePoint = rowDistanceInPx / 2 + marginTop;
+    if (priceArray && rowDistanceInPx) {
       for (let i = 0; i < priceArray.length; i++) {
         emit('horizontalLine', pricePoint);
-        pricePoint += rowDistance;
+        pricePoint += rowDistanceInPx;
       }
     }
   }
 }
 
 onUnmounted(() => {
-  rowDistance = 0;
+  rowDistanceInPx = 0;
   priceArray = [];
   marginTop = 0;
 });
