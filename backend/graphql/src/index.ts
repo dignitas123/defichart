@@ -15,7 +15,7 @@ import { useServer } from "graphql-ws/lib/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
-import { getCurrentCandleDataForTF, getObjectOnS3 } from "./aws-module/s3-fns";
+import { getBeginningForTimeFrame, getCurrentCandleDataForTF, getObjectOnS3 } from "./aws-module/s3-fns";
 import { allowedOrigins } from "./allowed";
 
 // Define your resolver functions
@@ -45,7 +45,7 @@ const resolvers: Resolvers = {
       const timestreamRecords = await getTimestreamRecords(
         timeFrameQuery(timeFrame, symbol, binAmount, startShift ?? 0)
       );
-      if (!timestreamRecords) {
+      if (!timestreamRecords || !timestreamRecords.length) {
         throw new GraphQLError(
           "Not able to query timesteam records from database. Try again later."
         );
@@ -55,8 +55,19 @@ const resolvers: Resolvers = {
         currentCandleData,
         timeFrame
       );
-      if (startShift || !currentCandle) {
+      if (startShift) {
         return timestreamRecords;
+      }
+      if(!currentCandle) {
+        const newestNoVolumeCandle = [{
+          timestamp: getBeginningForTimeFrame(timeFrame),
+          open: timestreamRecords[0].close,
+          high: timestreamRecords[0].close,
+          low: timestreamRecords[0].close,
+          close: timestreamRecords[0].close,
+          volume: 0,
+        }]
+        return [...newestNoVolumeCandle, ...timestreamRecords];
       }
       const currentRecord = [
         {

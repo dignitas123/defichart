@@ -153,3 +153,18 @@ export function getCurrentCandleDataForTF(
         : undefined;
   }
 }
+
+export function getBeginningForTimeFrame(timeFrame: TimeFrame) {
+  switch (timeFrame) {
+    case "M1":
+      return getBeginningOfCurrentMinute()
+    case "M5":
+      return getBeginningOfCurrentFiveMinuteInterval()
+    case "H1":
+      return getBeginningOfCurrentHour();
+    case "D1":
+      return getBeginningOfCurrentDay();
+    case "W1":
+      return getBeginningOfCurrentWeek();
+  }
+}

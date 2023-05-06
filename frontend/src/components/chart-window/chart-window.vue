@@ -253,7 +253,7 @@ const {
 const previousTimeFrame = ref<TimeFrame>();
 async function executeTimeFrameQuery() {
   let timeFrameForQuery = timeFrame.value;
-  if (timeModeCount.value > 1) {
+  if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
     timeFrameForQuery = `${timeFrameMode.value}1`;
   }
   const ohlcvQueryVariables = {
@@ -295,7 +295,7 @@ async function setCandleDataValues() {
     ? [...ohlcvResult.value.timeFrameRecords]
     : undefined;
   const reversedResult = timeFrameRecords?.reverse();
-  if (timeModeCount.value > 1) {
+  if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
     data.value = timeFrameAggregate(
       reversedResult,
       timeFrameMode.value,
