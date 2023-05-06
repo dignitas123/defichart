@@ -170,7 +170,7 @@ import {
   Broker,
 } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
-import { useChartData } from './chart-window.cp';
+import { useChartData, useTimeFrame } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -287,6 +287,8 @@ watch(ohlcvResult, async () => {
   await setCandleDataValues();
 });
 
+const { getTimeFrameInMs } = useTimeFrame();
+
 async function setCandleDataValues() {
   if (!ohlcvResult.value) {
     return;
@@ -302,16 +304,48 @@ async function setCandleDataValues() {
       timeModeCount.value
     );
   } else {
-    data.value = reversedResult?.map((record) => {
-      return {
-        o: record?.open ?? 0,
-        h: record?.high ?? 0,
-        l: record?.low ?? 0,
-        c: record?.close ?? 0,
-        v: record?.volume ?? 0,
-        d: new Date(record?.timestamp ?? 0),
-      };
-    });
+    let ohlcData: OHLC[] | undefined = undefined;
+    const stepSize = getTimeFrameInMs(timeFrame.value);
+    if (reversedResult && stepSize) {
+      const lastReversedRecord = reversedResult[reversedResult.length - 1];
+      ohlcData = [
+        {
+          o: lastReversedRecord?.open ?? 0,
+          h: lastReversedRecord?.high ?? 0,
+          l: lastReversedRecord?.low ?? 0,
+          c: lastReversedRecord?.close ?? 0,
+          v: lastReversedRecord?.volume ?? 0,
+          d: new Date(lastReversedRecord?.timestamp ?? 0),
+        },
+      ];
+      let candleTimeStamp = ohlcData[0].d.getTime() - stepSize;
+      let j = reversedResult.length - 2;
+      for (let i = MAX_CANDLES_LOAD - 2; i >= 1; i--) {
+        if (reversedResult[j]?.timestamp === candleTimeStamp) {
+          ohlcData.unshift({
+            o: reversedResult[j]?.open ?? 0,
+            h: reversedResult[j]?.high ?? 0,
+            l: reversedResult[j]?.low ?? 0,
+            c: reversedResult[j]?.close ?? 0,
+            v: reversedResult[j]?.volume ?? 0,
+            d: new Date(reversedResult[j]?.timestamp ?? 0),
+          });
+          j--;
+        } else {
+          const previousCandle = ohlcData[0];
+          ohlcData.unshift({
+            o: previousCandle.o,
+            h: previousCandle.o,
+            l: previousCandle.o,
+            c: previousCandle.o,
+            v: 0,
+            d: new Date(candleTimeStamp),
+          });
+        }
+        candleTimeStamp -= stepSize;
+      }
+    }
+    data.value = ohlcData;
   }
   // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
   await nextTick();
