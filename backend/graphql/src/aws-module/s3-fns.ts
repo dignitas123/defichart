@@ -129,17 +129,27 @@ export function getCurrentCandleDataForTF(
 ) {
   switch (timeFrame) {
     case "M1":
-      return { ...data.m1, ...{ timestamp: getBeginningOfCurrentMinute() } };
+      return data.m1
+        ? { ...data.m1, ...{ timestamp: getBeginningOfCurrentMinute() } }
+        : undefined;
     case "M5":
-      return {
-        ...data.m5,
-        ...{ timestamp: getBeginningOfCurrentFiveMinuteInterval() },
-      };
+      return data.m5
+        ? {
+            ...data.m5,
+            ...{ timestamp: getBeginningOfCurrentFiveMinuteInterval() },
+          }
+        : undefined;
     case "H1":
-      return { ...data.h1, ...{ timestamp: getBeginningOfCurrentHour() } };
+      return data.h1
+        ? { ...data.h1, ...{ timestamp: getBeginningOfCurrentHour() } }
+        : undefined;
     case "D1":
-      return { ...data.d1, ...{ timestamp: getBeginningOfCurrentDay() } };
+      return data.d1
+        ? { ...data.d1, ...{ timestamp: getBeginningOfCurrentDay() } }
+        : undefined;
     case "W1":
-      return { ...data.w1, ...{ timestamp: getBeginningOfCurrentWeek() } };
+      return data.w1
+        ? { ...data.w1, ...{ timestamp: getBeginningOfCurrentWeek() } }
+        : undefined;
   }
 }
