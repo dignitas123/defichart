@@ -107,7 +107,7 @@
         >
           <PriceAxis
             v-if="dataAvailable"
-            :currentCandleClose="data[data.length - 1].c"
+            :currentCandleClose="currentCandleClose"
             :h2l="chartH2L"
             :high="chartHigh"
             :low="chartLow"
@@ -287,6 +287,10 @@ watch(ohlcvResult, async () => {
   await setCandleDataValues();
 });
 
+const currentCandleClose = computed(() => {
+  return data.value?.length ? data.value[data.value.length - 1].c : 0;
+});
+
 const { getTimeFrameInMs } = useTimeFrame();
 
 async function setCandleDataValues() {
@@ -304,25 +308,17 @@ async function setCandleDataValues() {
       timeModeCount.value
     );
   } else {
-    let ohlcData: OHLC[] | undefined = undefined;
+    const ohlcData: OHLC[] = [];
     const stepSize = getTimeFrameInMs(timeFrame.value);
     if (reversedResult && stepSize) {
       const lastReversedRecord = reversedResult[reversedResult.length - 1];
-      ohlcData = [
-        {
-          o: lastReversedRecord?.open ?? 0,
-          h: lastReversedRecord?.high ?? 0,
-          l: lastReversedRecord?.low ?? 0,
-          c: lastReversedRecord?.close ?? 0,
-          v: lastReversedRecord?.volume ?? 0,
-          d: new Date(lastReversedRecord?.timestamp ?? 0),
-        },
-      ];
-      let candleTimeStamp = ohlcData[0].d.getTime() - stepSize;
-      let j = reversedResult.length - 2;
-      for (let i = MAX_CANDLES_LOAD - 2; i >= 1; i--) {
+      let candleTimeStamp =
+        new Date(lastReversedRecord?.timestamp ?? 0).getTime() -
+        stepSize * (MAX_CANDLES_LOAD - 3);
+      let j = 2;
+      for (let i = 1; i < MAX_CANDLES_LOAD - 1; i++) {
         if (reversedResult[j]?.timestamp === candleTimeStamp) {
-          ohlcData.unshift({
+          ohlcData.push({
             o: reversedResult[j]?.open ?? 0,
             h: reversedResult[j]?.high ?? 0,
             l: reversedResult[j]?.low ?? 0,
@@ -330,19 +326,19 @@ async function setCandleDataValues() {
             v: reversedResult[j]?.volume ?? 0,
             d: new Date(reversedResult[j]?.timestamp ?? 0),
           });
-          j--;
-        } else {
-          const previousCandle = ohlcData[0];
-          ohlcData.unshift({
-            o: previousCandle.o,
-            h: previousCandle.o,
-            l: previousCandle.o,
-            c: previousCandle.o,
+          j++;
+        } else if (ohlcData.length > 0) {
+          const previousCandle = ohlcData[ohlcData.length - 1];
+          ohlcData.push({
+            o: previousCandle.c,
+            h: previousCandle.c,
+            l: previousCandle.c,
+            c: previousCandle.c,
             v: 0,
             d: new Date(candleTimeStamp),
           });
         }
-        candleTimeStamp -= stepSize;
+        candleTimeStamp += stepSize;
       }
     }
     data.value = ohlcData;
