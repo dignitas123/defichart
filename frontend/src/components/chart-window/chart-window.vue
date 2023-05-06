@@ -871,6 +871,7 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   if (!data.value) {
     return;
   }
+
   const additionalCandles = calculateAdditionalCandles(
     data.value[data.value.length - 1].d.getTime() -
       data.value[data.value.length - candlesShow.value].d.getTime()

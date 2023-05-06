@@ -183,7 +183,7 @@ export function useDateFunctions(
           }
         } else if (hours % 2 === 0 && minutes === 0) {
           showEntryDateFormat = 'HH:mm';
-          if(hours % 4 === 0) {
+          if (hours % 4 === 0) {
             bold = true;
           }
         }
@@ -264,11 +264,20 @@ export function useDateFunctions(
             }
           }
         } else if (timeFrameModeChar.value === 'W') {
-          if (monthTransition) {
-            showEntryDateFormat = 'MMM';
-          } else if (yearTransition) {
-            bold = true;
-            showEntryDateFormat = 'YYY';
+          if (['W2', 'W3', 'W4'].includes(timeFrame.value)) {
+            if (monthTransition && month === 6) {
+              showEntryDateFormat = 'MMM';
+            }
+            if (yearTransition) {
+              showEntryDateFormat = 'YYY';
+            }
+          } else {
+            if (monthTransition) {
+              showEntryDateFormat = 'MMM';
+            } else if (yearTransition) {
+              bold = true;
+              showEntryDateFormat = 'YYY';
+            }
           }
         } else {
           if (monthTransition) {
@@ -292,17 +301,28 @@ export function useDateFunctions(
         }
       } else if (timeDisplayProps.value.period === TimeModePeriod.Month) {
         if (yearTransition) {
-          bold = true;
+          if (timeFrame.value.includes('W')) {
+            if (date.getFullYear() % 10 === 0) {
+              bold = true;
+            }
+          } else {
+            bold = true;
+          }
           showEntryDateFormat = 'YYY';
-        } else {
-          if (monthTransition) {
-            if (timeFrame.value !== 'D1') {
-              if ([3, 6, 9].includes(month)) {
+        } else if (monthTransition) {
+          if (!timeFrame.value.includes('D')) {
+            if (timeFrame.value.includes('W')) {
+              if (
+                (timeFrame.value === 'W2' || timeFrame.value === 'W1') &&
+                month === 6
+              ) {
                 showEntryDateFormat = 'MMM';
               }
-            } else {
+            } else if ([3, 6, 9].includes(month)) {
               showEntryDateFormat = 'MMM';
             }
+          } else {
+            showEntryDateFormat = 'MMM';
           }
         }
       } else if (timeDisplayProps.value.period === TimeModePeriod.Year) {
@@ -312,11 +332,27 @@ export function useDateFunctions(
             bold = true;
           }
         }
-        if (
-          timeDisplayProps.value.mode !== TimeMode.Y1 &&
-          timeDisplayProps.value.mode !== TimeMode.Y3
-        ) {
-          if (month === 6 && monthTransition) {
+        if (timeDisplayProps.value.mode === TimeMode.Y3) {
+          if (monthTransition && [3, 6, 9].includes(month)) {
+            showEntryDateFormat = 'MMM';
+          }
+        }
+        if (timeDisplayProps.value.mode === TimeMode.Y2) {
+          if (timeFrame.value.includes('D')) {
+            if (monthTransition && month % 2 === 0) {
+              showEntryDateFormat = 'MMM';
+            }
+          } else if (
+            !timeFrame.value.includes('W') &&
+            month === 6 &&
+            monthTransition
+          ) {
+            showEntryDateFormat = 'MMM';
+          } else if (
+            monthTransition &&
+            month === 6 &&
+            !['W3', 'W4'].includes(timeFrame.value)
+          ) {
             showEntryDateFormat = 'MMM';
           }
         }
@@ -427,9 +463,7 @@ export function useDateFunctions(
     if (!timeDisplayProps.value) {
       return fallBackFormat;
     }
-    if (timeFrameModeChar.value === 'D') {
-      return 'd EEE, YYY';
-    } else if (timeFrameModeChar.value === 'W') {
+    if (timeFrameModeChar.value === 'D' || timeFrameModeChar.value === 'W') {
       return 'MMM d EEE, YYY';
     } else if (
       timeDisplayProps.value.period === TimeModePeriod.Minute ||
