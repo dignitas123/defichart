@@ -579,15 +579,12 @@ function onKeyDown(event: KeyboardEvent) {
       setTimeFrame('M5');
       timeFrameSetByUser.value = 'M5';
     } else if (event.code === 'Digit3') {
-      setTimeFrame('M30');
-      timeFrameSetByUser.value = 'M30';
+      setTimeFrame('H1');
+      timeFrameSetByUser.value = 'H1';
     } else if (event.code === 'Digit4') {
-      setTimeFrame('H4');
-      timeFrameSetByUser.value = 'H4';
-    } else if (event.code === 'Digit5') {
       setTimeFrame('D1');
       timeFrameSetByUser.value = 'D1';
-    } else if (event.code === 'Digit6') {
+    } else if (event.code === 'Digit5') {
       setTimeFrame('W1');
       timeFrameSetByUser.value = 'W1';
     }

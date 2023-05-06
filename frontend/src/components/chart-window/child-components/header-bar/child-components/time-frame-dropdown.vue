@@ -44,33 +44,19 @@
           >⇧2</InfoBadge
         >
       </q-item>
-      <q-item
-        :active="selectedTimeFrame === 'M30'"
-        active-class="selected-item"
-        clickable
-        @click="onCustomTFInputClick('M30')"
-      >
-        <q-item-section>M30</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedTimeFrame === 'M30' ? 'white' : 'primary'"
-          >⇧3</InfoBadge
-        >
-      </q-item>
       <q-separator />
       <q-item
-        :active="selectedTimeFrame === 'H4'"
+        :active="selectedTimeFrame === 'H1'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('H4')"
+        @click="onCustomTFInputClick('H1')"
       >
-        <q-item-section>H4</q-item-section>
+        <q-item-section>H1</q-item-section>
         <InfoBadge
           v-if="!$q.platform.is.mobile"
           class="q-ml-xs"
-          :color="selectedTimeFrame === 'H4' ? 'white' : 'primary'"
-          >⇧4</InfoBadge
+          :color="selectedTimeFrame === 'H1' ? 'white' : 'primary'"
+          >⇧3</InfoBadge
         >
       </q-item>
       <q-separator />
@@ -85,7 +71,7 @@
           v-if="!$q.platform.is.mobile"
           class="q-ml-xs"
           :color="selectedTimeFrame === 'D1' ? 'white' : 'primary'"
-          >⇧5</InfoBadge
+          >⇧4</InfoBadge
         >
       </q-item>
       <q-separator />
@@ -100,7 +86,7 @@
           v-if="!$q.platform.is.mobile"
           class="q-ml-xs"
           :color="selectedTimeFrame === 'W1' ? 'white' : 'primary'"
-          >⇧6</InfoBadge
+          >⇧5</InfoBadge
         >
       </q-item>
       <q-separator />
