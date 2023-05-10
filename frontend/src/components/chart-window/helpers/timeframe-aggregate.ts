@@ -2,13 +2,13 @@ import { TimeStreamRecord, Query, Maybe } from 'src/generated/graphql';
 import { TimeFrameMode } from '../chart-window.if';
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { getDayOfYear, getISOWeek } from 'date-fns';
+import { DAY, HOUR, MIN, WEEK } from 'src/pages/broker-charts/consts';
 
 const res: OHLC[] = [];
 
 let aggregateVolume = 0;
 let aggregateHigh = 0;
 let aggregateLow = Infinity;
-let first = false;
 let open = 0;
 let openDate = 0;
 let previousClose = 0;
@@ -46,43 +46,84 @@ function pushCandle() {
 function resetAllTemporaryCandleVariables() {
   previousClose = 0;
   res.length = 0;
-  first = false;
   resetAggregateCandlestick();
+}
+
+function roundDownMinute(date: Date, amount: number) {
+  const currentMinute = date.getMinutes();
+  const roundDownMinute = Math.floor(currentMinute / amount) * amount;
+  return date.getTime() - (currentMinute - roundDownMinute) * MIN;
 }
 
 function intervalCalculation(
   records: Query['timeFrameRecords'],
   amount: number,
-  callback: (date: number | Date) => number
+  timeStep: number,
+  dividableTimeCallback: (date: Date) => number,
+  roundStartTimeCallback: (date: Date, amount: number) => number
 ) {
+  console.log('jojojojo');
   resetAllTemporaryCandleVariables();
-  records?.forEach((tsRecord, index, array) => {
-    if (!tsRecord) {
-      return;
-    }
-    if (!first) {
-      if (callback(new Date(tsRecord.timestamp)) % amount === 0) {
-        first = true;
-        open = tsRecord?.open ?? 0;
-        openDate = tsRecord?.timestamp ?? 0;
-        aggregateCandlestickHighLowVolume(tsRecord);
+
+  // take first date, get rounded date
+  if (records) {
+    const oldestRecord = records[0];
+    const oldestRecordTime = new Date(oldestRecord?.timestamp ?? 0).getTime();
+    openDate = roundStartTimeCallback(new Date(oldestRecordTime), amount);
+    const newestRecordTimestamp = records[records.length - 1]?.timestamp ?? 0;
+    // first entry
+    res.push({
+      o: records[0]?.open ?? 0,
+      h: records[0]?.high ?? 0,
+      l: records[0]?.low ?? 0,
+      c: records[0]?.close ?? 0,
+      v: records[0]?.volume ?? 0,
+      d: new Date(openDate),
+    });
+    resetAggregateCandlestick();
+    open = res[0].o;
+    previousClose = res[0].c;
+    aggregateCandlestickHighLowVolume({
+      open: previousClose,
+      high: previousClose,
+      low: previousClose,
+      close: previousClose,
+      volume: 0,
+      timestamp: openDate,
+    });
+    let candleTimeStamp = openDate + timeStep;
+
+    let j = 1;
+    while (candleTimeStamp <= newestRecordTimestamp) {
+      if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
+        if (records[j]?.timestamp === candleTimeStamp) {
+          openDate = records[j]?.timestamp as number;
+          pushCandle();
+          open = records[j]?.open as number;
+        } else if (previousClose) {
+          open = previousClose;
+          openDate = candleTimeStamp;
+          pushCandle();
+        }
+        resetAggregateCandlestick();
       }
-      return;
-    }
-    if (callback(new Date(tsRecord.timestamp)) % amount === 0) {
-      if (previousClose) {
-        pushCandle();
+      if (records[j]?.timestamp === candleTimeStamp) {
+        aggregateCandlestickHighLowVolume(records[j]);
+        previousClose = records[j]?.close as number;
+        j++;
+      } else {
+        aggregateCandlestickHighLowVolume({
+          open: previousClose,
+          high: previousClose,
+          low: previousClose,
+          close: previousClose,
+          volume: 0,
+          timestamp: candleTimeStamp,
+        });
       }
-      open = tsRecord.open;
-      openDate = tsRecord.timestamp;
-      resetAggregateCandlestick();
+      candleTimeStamp += timeStep;
     }
-    aggregateCandlestickHighLowVolume(tsRecord);
-    previousClose = tsRecord.close;
-    if (index === array.length - 1) {
-      pushCandle();
-    }
-  });
+  }
   return res;
 }
 
@@ -95,9 +136,38 @@ export function timeFrameAggregate(
     return undefined;
   }
   switch (timeFrameMode) {
+    case 'M':
+      const amount = timeModeCount === 5 ? timeModeCount / 5 : timeModeCount;
+      return intervalCalculation(
+        tsRecords,
+        amount,
+        timeModeCount === 5 ? MIN * 5 : MIN,
+        (date: Date) => date.getMinutes(),
+        roundDownMinute
+      );
+    case 'H':
+      return intervalCalculation(
+        tsRecords,
+        timeModeCount,
+        HOUR,
+        (date: Date) => date.getHours(),
+        roundDownMinute
+      );
     case 'D':
-      return intervalCalculation(tsRecords, timeModeCount, getDayOfYear);
+      return intervalCalculation(
+        tsRecords,
+        timeModeCount,
+        DAY,
+        getDayOfYear,
+        roundDownMinute
+      );
     case 'W':
-      return intervalCalculation(tsRecords, timeModeCount, getISOWeek);
+      return intervalCalculation(
+        tsRecords,
+        timeModeCount,
+        WEEK,
+        getISOWeek,
+        roundDownMinute
+      );
   }
 }

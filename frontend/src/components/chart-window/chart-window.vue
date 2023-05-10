@@ -170,7 +170,7 @@ import {
   Broker,
 } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
-import { useChartData, useTimeFrame } from './chart-window.cp';
+import { useChartData } from './chart-window.cp';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -201,6 +201,7 @@ import { useLazyQuery } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import { GetTimeFrameQuery } from 'src/generated/graphql';
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
+import { getTimeFrameInMs } from './time-frame-fns';
 
 const props = defineProps<{
   id: string;
@@ -253,8 +254,11 @@ const {
 const previousTimeFrame = ref<TimeFrame>();
 async function executeTimeFrameQuery() {
   let timeFrameForQuery = timeFrame.value;
-  if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
+  if (timeFrame.value !== 'M5') {
     timeFrameForQuery = `${timeFrameMode.value}1`;
+  }
+  if (timeFrameMode.value === 'M' && timeModeCount.value > 5) {
+    timeFrameForQuery = 'M5';
   }
   const ohlcvQueryVariables = {
     symbol: `${props.symbol}-${props.broker}`,
@@ -291,8 +295,6 @@ const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
 });
 
-const { getTimeFrameInMs } = useTimeFrame();
-
 async function setCandleDataValues() {
   if (!ohlcvResult.value) {
     return;
@@ -300,31 +302,31 @@ async function setCandleDataValues() {
   const timeFrameRecords = ohlcvResult.value.timeFrameRecords
     ? [...ohlcvResult.value.timeFrameRecords]
     : undefined;
-  const reversedResult = timeFrameRecords?.reverse();
+  const reversedRecords = timeFrameRecords?.reverse();
   if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
     data.value = timeFrameAggregate(
-      reversedResult,
+      reversedRecords,
       timeFrameMode.value,
       timeModeCount.value
     );
   } else {
     const ohlcData: OHLC[] = [];
     const stepSize = getTimeFrameInMs(timeFrame.value);
-    if (reversedResult && stepSize) {
-      const lastReversedRecord = reversedResult[reversedResult.length - 1];
+    if (reversedRecords && stepSize) {
+      const lastReversedRecord = reversedRecords[reversedRecords.length - 1];
       let candleTimeStamp =
         new Date(lastReversedRecord?.timestamp ?? 0).getTime() -
-        stepSize * (MAX_CANDLES_LOAD - 3);
-      let j = 2;
-      for (let i = 1; i < MAX_CANDLES_LOAD - 1; i++) {
-        if (reversedResult[j]?.timestamp === candleTimeStamp) {
+        stepSize * MAX_CANDLES_LOAD;
+      let j = 0;
+      for (let i = 0; i <= MAX_CANDLES_LOAD; i++) {
+        if (reversedRecords[j]?.timestamp === candleTimeStamp) {
           ohlcData.push({
-            o: reversedResult[j]?.open ?? 0,
-            h: reversedResult[j]?.high ?? 0,
-            l: reversedResult[j]?.low ?? 0,
-            c: reversedResult[j]?.close ?? 0,
-            v: reversedResult[j]?.volume ?? 0,
-            d: new Date(reversedResult[j]?.timestamp ?? 0),
+            o: reversedRecords[j]?.open ?? 0,
+            h: reversedRecords[j]?.high ?? 0,
+            l: reversedRecords[j]?.low ?? 0,
+            c: reversedRecords[j]?.close ?? 0,
+            v: reversedRecords[j]?.volume ?? 0,
+            d: new Date(reversedRecords[j]?.timestamp ?? 0),
           });
           j++;
         } else if (ohlcData.length > 0) {
