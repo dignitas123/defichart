@@ -62,7 +62,6 @@ function intervalCalculation(
   dividableTimeCallback: (date: Date) => number,
   roundStartTimeCallback: (date: Date, amount: number) => number
 ) {
-  console.log('jojojojo');
   resetAllTemporaryCandleVariables();
 
   // take first date, get rounded date

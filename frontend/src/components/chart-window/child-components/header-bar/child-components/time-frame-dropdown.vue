@@ -20,7 +20,10 @@
         :active="selectedTimeFrame === 'M1'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('M1')"
+        @click="
+          onCustomTFInputClick('M1');
+          selectedTimeFrame = 'M1';
+        "
       >
         <q-item-section>M1</q-item-section>
         <InfoBadge
@@ -34,7 +37,10 @@
         :active="selectedTimeFrame === 'M5'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('M5')"
+        @click="
+          onCustomTFInputClick('M5');
+          selectedTimeFrame = 'M5';
+        "
       >
         <q-item-section>M5</q-item-section>
         <InfoBadge
@@ -49,7 +55,10 @@
         :active="selectedTimeFrame === 'H1'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('H1')"
+        @click="
+          onCustomTFInputClick('H1');
+          selectedTimeFrame = 'H1';
+        "
       >
         <q-item-section>H1</q-item-section>
         <InfoBadge
@@ -64,7 +73,10 @@
         :active="selectedTimeFrame === 'D1'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('D1')"
+        @click="
+          onCustomTFInputClick('D1');
+          selectedTimeFrame = 'D1';
+        "
       >
         <q-item-section>D1</q-item-section>
         <InfoBadge
@@ -79,7 +91,10 @@
         :active="selectedTimeFrame === 'W1'"
         active-class="selected-item"
         clickable
-        @click="onCustomTFInputClick('W1')"
+        @click="
+          onCustomTFInputClick('W1');
+          selectedTimeFrame = 'W1';
+        "
       >
         <q-item-section>W1</q-item-section>
         <InfoBadge
@@ -97,12 +112,11 @@
             dense
             v-model="customTimeFrameInputText"
             mask="A##"
-            ref="customTimeFrameInputRef"
             :placeholder="customTimeFramePlaceHolder"
             @focus="focusCustomTimeFrame"
             @blur="resetCustomTimeFrameInputText"
             @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
-            :style="`width: ${$q.platform.is.mobile ? 54 : 83}px`"
+            :style="`width: ${$q.platform.is.mobile ? 54 : 84}px`"
           />
         </q-item-section>
       </q-item>
@@ -179,31 +193,33 @@ function timeFrameBlink() {
 }
 
 function onCustomTFInputClick(input: string) {
-  blinkingBlock.value = true;
   setTimeout(() => {
-    blinkingBlock.value = false;
-  }, 400);
-  if (!Object.keys(allowedTimeFramesEnum).includes(input)) {
-    $q.notify({
-      message: `The Input <b>'${input}'</b> is not a valid timeframe. Available timeframes are <i>${allowedTimeFrames.join(
-        ', '
-      )}</i>. <br />More timeframes are a work in progress.`,
-      actions: [{ icon: 'close', color: 'white' }],
-      html: true,
-      timeout: 7000,
-    });
-  } else {
-    emit('timeFrameChanged', input as TimeFrame);
-    selectedTimeFrame.value = input as TimeFrame;
-  }
-  showTimeFrameMenuList.value = false;
-  setTimeout(() => {
+    blinkingBlock.value = true;
+    setTimeout(() => {
+      blinkingBlock.value = false;
+    }, 400);
+    if (!Object.keys(allowedTimeFramesEnum).includes(input)) {
+      $q.notify({
+        message: `The Input <b>'${input}'</b> is not a valid timeframe. Available timeframes are <i>${allowedTimeFrames.join(
+          ', '
+        )}</i>. <br />More timeframes are a work in progress.`,
+        actions: [{ icon: 'close', color: 'white' }],
+        html: true,
+        timeout: 7000,
+      });
+    } else {
+      emit('timeFrameChanged', input as TimeFrame);
+      selectedTimeFrame.value = input as TimeFrame;
+    }
+    showTimeFrameMenuList.value = false;
+    setTimeout(() => {
+      timeFrameMenuShowing.value = false;
+      showTimeFrameMenuList.value = true;
+    }, 500);
     timeFrameMenuShowing.value = false;
-    showTimeFrameMenuList.value = true;
-  }, 500);
-  timeFrameMenuShowing.value = false;
 
-  resetCustomTimeFrameInputText();
+    resetCustomTimeFrameInputText();
+  }, 300);
 }
 
 function focusCustomTimeFrame() {
@@ -213,6 +229,8 @@ function focusCustomTimeFrame() {
 function resetCustomTimeFrameInputText() {
   customTimeFramePlaceHolder.value = exampleTextForTimeFrame.value;
   customTimeFrameInputText.value = '';
+  firstTimeBlink.value = false;
+  timeFrameMenuShowing.value = false;
 }
 
 onMounted(() => {
