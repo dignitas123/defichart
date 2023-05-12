@@ -471,7 +471,7 @@ export function useDateFunctions(
     ) {
       return 'HH:mm';
     } else if (timeDisplayProps.value.period === TimeModePeriod.Day) {
-      return 'd EEE, HH:mm';
+      return 'MMM d EEE, HH:mm';
     }
     return fallBackFormat;
   });
