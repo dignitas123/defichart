@@ -69,7 +69,7 @@
           <CandlestickChart
             v-if="dataAvailable"
             :data="candlesInChartData"
-            :dates="dataDates"
+            :dates="dataDatesCandlesInChart"
             :candleCount="candlesShow"
             :h2l="chartH2L"
             :high="chartHigh"
@@ -633,7 +633,7 @@ const {
   chartH2L,
   chartHigh,
   chartLow,
-  dataDates,
+  dataDatesCandlesInChart,
   startingDistanceDifference,
 } = useChartData(
   data,

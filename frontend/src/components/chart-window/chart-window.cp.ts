@@ -62,13 +62,6 @@ export function useChartData(
     return candlesInChartData.value.map((ohlc) => ohlc.d);
   });
 
-  const dataDates = computed(() => {
-    if (!data.value || !data.value.length) {
-      return undefined;
-    }
-    return data.value.map((ohlc) => ohlc.d);
-  });
-
   const high = computed(() => {
     if (!candlesInChartData.value) {
       return undefined;
@@ -141,7 +134,6 @@ export function useChartData(
     chartH2L,
     decreaseCandlesShow,
     increaseCandlesShow,
-    dataDates,
     dataDatesCandlesInChart,
     startingDistanceDifference,
   };

@@ -101,6 +101,7 @@ function intervalCalculation(
           pushCandle();
           open = records[j]?.open as number;
         } else if (previousClose) {
+          // 0 volume candle has open === previousClose and openDate candleTimeStamp iteration
           open = previousClose;
           openDate = candleTimeStamp;
           pushCandle();
