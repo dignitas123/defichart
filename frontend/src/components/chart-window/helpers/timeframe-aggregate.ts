@@ -80,7 +80,7 @@ function intervalCalculation(
       d: new Date(openDate),
     });
     resetAggregateCandlestick();
-    open = res[0].o;
+    open = res[0].c;
     previousClose = res[0].c;
     aggregateCandlestickHighLowVolume({
       open: previousClose,
@@ -96,6 +96,7 @@ function intervalCalculation(
     while (candleTimeStamp <= newestRecordTimestamp) {
       if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
         if (records[j]?.timestamp === candleTimeStamp) {
+          aggregateCandlestickHighLowVolume(records[j]);
           openDate = records[j]?.timestamp as number;
           pushCandle();
           open = records[j]?.open as number;

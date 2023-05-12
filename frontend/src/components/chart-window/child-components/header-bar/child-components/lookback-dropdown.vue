@@ -30,6 +30,7 @@
           >1</InfoBadge
         >
       </q-item>
+      <q-separator />
       <q-item
         :active="selectedLookback === '1week'"
         active-class="selected-item"
@@ -44,6 +45,7 @@
           >2</InfoBadge
         >
       </q-item>
+      <q-separator />
       <q-item
         :active="selectedLookback === '1month'"
         active-class="selected-item"
