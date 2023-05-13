@@ -252,7 +252,7 @@ const {
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
 const previousTimeFrame = ref<TimeFrame>();
-async function executeTimeFrameQuery() {
+async function executeTimeFrameQuery(startShift = 0) {
   let timeFrameForQuery = timeFrame.value;
   if (timeFrame.value !== 'M5') {
     timeFrameForQuery = `${timeFrameMode.value}1`;
@@ -264,6 +264,8 @@ async function executeTimeFrameQuery() {
     symbol: `${props.symbol}-${props.broker}`,
     timeFrame: timeFrameForQuery,
     binAmount: MAX_CANDLES_LOAD,
+    // startShift: 1,
+    // ...(startShift && {startShift: startShift})
   };
   loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
   if (
@@ -643,6 +645,15 @@ const {
   chartLowScale,
   chartUpdateKey
 );
+
+watch(startingDistanceDifference, () => {
+  if (
+    startingDistanceDifference.value &&
+    startingDistanceDifference.value > 0
+  ) {
+    executeTimeFrameQuery(candlesShow.value);
+  }
+});
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 

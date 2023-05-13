@@ -5,11 +5,13 @@ export const getTimeFrameQuery = gql`
     $symbol: String!
     $timeFrame: TimeFrame!
     $binAmount: Int!
+    $startShift: Int
   ) {
     timeFrameRecords(
       symbol: $symbol
       timeFrame: $timeFrame
       binAmount: $binAmount
+      startShift: $startShift
     ) {
       timestamp
       open
