@@ -276,9 +276,10 @@ function drawCandle(
     if (candle_border) {
       candle.fillColor = candle_border_color;
     }
-    if (ohlc.v === 0) {
-      candle.fillColor = 'transparent';
-    }
+    // TODO: should be an option to make it transparent
+    // if (ohlc.v === 0) {
+    //   candle.fillColor = 'transparent';
+    // }
   }
   return candle;
 }
