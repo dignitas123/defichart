@@ -2,6 +2,16 @@ import { getReceipt } from "./get-receipt.js";
 import { decodeReceiptSignature, getSwapResultData } from "./log-data-fns.js";
 
 /**
+ * 
+ * @param { number } price 
+ */
+function getPriceFromX96Sqrt(price) {
+  const sqrtPriceX96 = BigInt(price);
+  const sqrtPrice = Number(sqrtPriceX96) / 2 ** 96;
+  return sqrtPrice ** 2;
+  }
+
+/**
  * Default values are for BTC.
  * The function can return the same timestamp multile times. It should be checked if it's the same as
  * before, because volume should be added in this case
@@ -50,7 +60,7 @@ export async function getPriceData(
     return Number(result) / 10 ** decimals;
   };
 
-  let swapPrice = abs(swapResultData[1]) / abs(swapResultData[0]);
+  let swapPrice = getPriceFromX96Sqrt(swapResultData[2]);
 
   const countDecimals = (number) => {
     const decimalString = number.toString().split(".")[1];
