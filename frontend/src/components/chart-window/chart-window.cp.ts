@@ -1,9 +1,6 @@
 import { computed, ref, Ref, watch } from 'vue';
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
-import {
-  DATA_TICKSIZE,
-  MAX_CANDLES_LOAD,
-} from 'src/pages/broker-charts/consts';
+import { DATA_TICKSIZE } from 'src/pages/broker-charts/consts';
 import { roundToTicksize } from './helpers/digits';
 
 export function useChartData(
@@ -32,7 +29,7 @@ export function useChartData(
     if (!data.value) {
       return undefined;
     }
-    maxData.value = data.value.slice(-MAX_CANDLES_LOAD);
+    maxData.value = data.value;
   });
 
   const candlesInChartData = computed(() => {

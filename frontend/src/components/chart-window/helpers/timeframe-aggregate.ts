@@ -60,16 +60,18 @@ function intervalCalculation(
   amount: number,
   timeStep: number,
   dividableTimeCallback: (date: Date) => number,
-  roundStartTimeCallback: (date: Date, amount: number) => number
+  roundStartTimeCallback: (date: Date, amount: number) => number,
+  oldestRecord: OHLC | undefined = undefined
 ) {
   resetAllTemporaryCandleVariables();
-
   // take first date, get rounded date
   if (records) {
-    const oldestRecord = records[0];
-    const oldestRecordTime = new Date(oldestRecord?.timestamp ?? 0).getTime();
-    openDate = roundStartTimeCallback(new Date(oldestRecordTime), amount);
-    const newestRecordTimestamp = records[records.length - 1]?.timestamp ?? 0;
+    const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
+    openDate = roundStartTimeCallback(new Date(oldestRecordDate), amount);
+    const newestRecordTimestamp = oldestRecord
+      ? oldestRecord.d.getTime()
+      : records[records.length - 1]?.timestamp ?? 0;
+
     // first entry
     res.push({
       o: records[0]?.open ?? 0,
@@ -131,7 +133,8 @@ function intervalCalculation(
 export function timeFrameAggregate(
   tsRecords: Query['timeFrameRecords'],
   timeFrameMode: TimeFrameMode,
-  timeModeCount: number
+  timeModeCount: number,
+  oldestRecord: OHLC | undefined = undefined
 ) {
   if (!tsRecords) {
     return undefined;
@@ -144,7 +147,8 @@ export function timeFrameAggregate(
         amount,
         timeModeCount === 5 ? MIN * 5 : MIN,
         (date: Date) => date.getMinutes(),
-        roundDownMinute
+        roundDownMinute,
+        oldestRecord
       );
     case 'H':
       return intervalCalculation(
@@ -152,7 +156,8 @@ export function timeFrameAggregate(
         timeModeCount,
         HOUR,
         (date: Date) => date.getHours(),
-        roundDownMinute
+        roundDownMinute,
+        oldestRecord
       );
     case 'D':
       return intervalCalculation(
@@ -160,7 +165,8 @@ export function timeFrameAggregate(
         timeModeCount,
         DAY,
         getDayOfYear,
-        roundDownMinute
+        roundDownMinute,
+        oldestRecord
       );
     case 'W':
       return intervalCalculation(
@@ -168,7 +174,8 @@ export function timeFrameAggregate(
         timeModeCount,
         WEEK,
         getISOWeek,
-        roundDownMinute
+        roundDownMinute,
+        oldestRecord
       );
   }
 }

@@ -40,7 +40,7 @@
         />
       </div>
       <div
-        v-if="ohlcvLoading"
+        v-if="!data && ohlcvLoading"
         class="price-row flex items-center justify-center"
         ref="chartRef"
       >
@@ -119,7 +119,7 @@
           <q-resize-observer :debounce="0" @resize="onPriceAxisResize" />
         </div>
       </div>
-      <div v-if="!ohlcvError && !ohlcvLoading && data" class="date-row">
+      <div v-if="!ohlcvError && data" class="date-row">
         <div
           class="timestamps"
           @mousedown="startXDrag"
@@ -139,6 +139,11 @@
         </div>
         <div :style="`width: ${priceAxisWidth}px`">
           <ConfigBottomRight />
+        </div>
+      </div>
+      <div v-else class="date-row">
+        <div class="timestamps">
+          <span style="width: 80px" />
         </div>
       </div>
     </div>
@@ -162,7 +167,7 @@ import HeaderBar from './child-components/header-bar/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
 import DateAxis from './child-components/date-axis.vue';
-import { generateData } from './helpers/fake-data-generator';
+// import { generateData } from './helpers/fake-data-generator'; TODO: use in playground to test chart related things
 import {
   DatePosition,
   OHLC,
@@ -239,6 +244,8 @@ const HEADER_BAR_HEIGHT = 23;
 const chartUpdateKey = ref(0);
 
 const data = ref<OHLC[] | undefined>();
+const dataRecordsAmount = ref(0);
+
 const datePosition = ref<DatePosition>({
   standardDateFormat: 'HH:mm',
   entries: [],
@@ -252,29 +259,27 @@ const {
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
 const previousTimeFrame = ref<TimeFrame>();
-async function executeTimeFrameQuery(startShift = 0) {
+const startShift = ref(0);
+function executeTimeFrameQuery(_startShift = 0) {
+  startShift.value = _startShift;
   let timeFrameForQuery = timeFrame.value;
   if (timeFrame.value !== 'M5') {
     timeFrameForQuery = `${timeFrameMode.value}1`;
   }
   if (timeFrameMode.value === 'M' && timeModeCount.value > 5) {
     timeFrameForQuery = 'M5';
+    if(previousTimeFrame.value === 'M5') {
+      setCandleDataValuesAndMergeWithOldDate();
+    }
   }
   const ohlcvQueryVariables = {
     symbol: `${props.symbol}-${props.broker}`,
     timeFrame: timeFrameForQuery,
     binAmount: MAX_CANDLES_LOAD,
-    // startShift: 1,
-    // ...(startShift && {startShift: startShift})
+    ...(_startShift && { startShift: startShift }),
   };
   loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-  if (
-    ohlcvResult.value &&
-    previousTimeFrame.value &&
-    previousTimeFrame.value !== timeFrame.value
-  ) {
-    await setCandleDataValues();
-  }
+
   previousTimeFrame.value = timeFrame.value;
 }
 
@@ -285,19 +290,28 @@ onMounted(async () => {
       chartWidth.value
     );
   }
-  await executeTimeFrameQuery();
+  executeTimeFrameQuery();
 });
 
 const dataAvailable = ref(false);
 watch(ohlcvResult, async () => {
-  await setCandleDataValues();
+  setCandleDataValuesAndMergeWithOldDate();
 });
+
+function setCandleDataValuesAndMergeWithOldDate() {
+  if (ohlcvResult.value) {
+    setCandleDataValues(startShift.value, data.value && [...data.value]);
+  }
+}
 
 const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
 });
 
-async function setCandleDataValues() {
+async function setCandleDataValues(
+  startShift = 0,
+  oldOHLCData: OHLC[] | undefined
+) {
   if (!ohlcvResult.value) {
     return;
   }
@@ -305,22 +319,54 @@ async function setCandleDataValues() {
     ? [...ohlcvResult.value.timeFrameRecords]
     : undefined;
   const reversedRecords = timeFrameRecords?.reverse();
+  const oldOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
   if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
-    data.value = timeFrameAggregate(
-      reversedRecords,
-      timeFrameMode.value,
-      timeModeCount.value
-    );
+    if (startShift > 0) {
+      const newAggregatedRecords = timeFrameAggregate(
+        reversedRecords,
+        timeFrameMode.value,
+        timeModeCount.value,
+        oldOHLCDataOldestRecord
+      );
+      if (!oldOHLCData || !newAggregatedRecords) {
+        return;
+      }
+      data.value = [...newAggregatedRecords, ...oldOHLCData];
+      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+    } else {
+      const timeFrameAggregateRecords = timeFrameAggregate(
+        reversedRecords,
+        timeFrameMode.value,
+        timeModeCount.value,
+        oldOHLCDataOldestRecord
+      );
+      data.value = timeFrameAggregateRecords;
+      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+    }
   } else {
     const ohlcData: OHLC[] = [];
-    const stepSize = getTimeFrameInMs(timeFrame.value);
-    if (reversedRecords && stepSize) {
-      const lastReversedRecord = reversedRecords[reversedRecords.length - 1];
-      let candleTimeStamp =
-        new Date(lastReversedRecord?.timestamp ?? 0).getTime() -
-        stepSize * MAX_CANDLES_LOAD;
-      let j = 0;
-      for (let i = 0; i <= MAX_CANDLES_LOAD; i++) {
+    if (reversedRecords) {
+      const oldestRecord =
+        reversedRecords[reversedRecords.length - 1]?.timestamp ?? 0;
+      const newestRecord = reversedRecords[0]?.timestamp ?? 0;
+      const timeStep = getTimeFrameInMs(timeFrame.value) ?? MIN;
+      let candleTimeStamp = newestRecord + timeStep;
+
+      const newestRecordTimestamp = oldOHLCDataOldestRecord
+        ? oldOHLCDataOldestRecord.d.getTime()
+        : oldestRecord;
+
+      ohlcData.push({
+        o: reversedRecords[0]?.open ?? 0,
+        h: reversedRecords[0]?.high ?? 0,
+        l: reversedRecords[0]?.low ?? 0,
+        c: reversedRecords[0]?.close ?? 0,
+        v: reversedRecords[0]?.volume ?? 0,
+        d: new Date(reversedRecords[0]?.timestamp ?? 0),
+      });
+
+      let j = 1;
+      while (candleTimeStamp <= newestRecordTimestamp) {
         if (reversedRecords[j]?.timestamp === candleTimeStamp) {
           ohlcData.push({
             o: reversedRecords[j]?.open ?? 0,
@@ -342,10 +388,19 @@ async function setCandleDataValues() {
             d: new Date(candleTimeStamp),
           });
         }
-        candleTimeStamp += stepSize;
+        candleTimeStamp += timeStep;
       }
     }
-    data.value = ohlcData;
+    if (startShift > 0) {
+      if (!oldOHLCData) {
+        return;
+      }
+      data.value = [...ohlcData, ...oldOHLCData];
+      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+    } else {
+      data.value = ohlcData;
+      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+    }
   }
   // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
   await nextTick();
@@ -543,7 +598,8 @@ watch(
 );
 watch(timeFrame, async () => {
   emit('update:timeFrame', timeFrame.value);
-  await executeTimeFrameQuery();
+  dataRecordsAmount.value = 0;
+  executeTimeFrameQuery();
 });
 watch(
   () => props.timeFrame,
@@ -651,7 +707,7 @@ watch(startingDistanceDifference, () => {
     startingDistanceDifference.value &&
     startingDistanceDifference.value > 0
   ) {
-    executeTimeFrameQuery(candlesShow.value);
+    executeTimeFrameQuery(dataRecordsAmount.value);
   }
 });
 
@@ -802,15 +858,15 @@ function updateChartHeightAndWidth() {
 
 function candlesChangeDependantOnCandlesShow() {
   if (candlesShow.value < 15) {
-    return 1;
-  } else if (candlesShow.value > 70) {
-    return 5;
-  } else if (candlesShow.value > 100) {
-    return 10;
-  } else if (candlesShow.value > 150) {
-    return 20;
-  } else {
     return 2;
+  } else if (candlesShow.value > 70) {
+    return 10;
+  } else if (candlesShow.value > 100) {
+    return 20;
+  } else if (candlesShow.value > 150) {
+    return 40;
+  } else {
+    return 4;
   }
 }
 
