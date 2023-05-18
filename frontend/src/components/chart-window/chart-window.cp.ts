@@ -8,8 +8,7 @@ export function useChartData(
   candlesShow: Ref<number>,
   offset: Ref<number>,
   chartHighScale: Ref<number>,
-  chartLowScale: Ref<number>,
-  chartUpdateKey: Ref<number>
+  chartLowScale: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -23,32 +22,23 @@ export function useChartData(
     candlesShow.value += n;
   }
 
-  const maxData = ref<OHLC[]>();
-
-  watch([data, chartUpdateKey], () => {
+  const candlesInChartData = computed(() => {
     if (!data.value) {
       return undefined;
     }
-    maxData.value = data.value;
-  });
-
-  const candlesInChartData = computed(() => {
-    if (!maxData.value) {
-      return undefined;
-    }
-    const dataLength = maxData.value.length;
+    const dataLength = data.value.length;
     let startSlice = dataLength - candlesShow.value + offset.value;
     if (startSlice < 0) {
       startSlice = 0;
     }
-    return maxData.value.slice(startSlice, dataLength + offset.value);
+    return data.value.slice(startSlice, dataLength + offset.value);
   });
 
   const startingDistanceDifference = computed(() => {
-    if (!maxData.value) {
+    if (!data.value) {
       return undefined;
     }
-    const showDifference = candlesShow.value - maxData.value.length;
+    const showDifference = candlesShow.value - data.value.length;
     return showDifference - offset.value;
   });
 

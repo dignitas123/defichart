@@ -67,7 +67,6 @@
           @mouseleave="onChartLeave"
         >
           <CandlestickChart
-            v-if="dataAvailable"
             :data="candlesInChartData"
             :dates="dataDatesCandlesInChart"
             :candleCount="candlesShow"
@@ -81,7 +80,6 @@
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             :timeFrame="timeFrame ?? INITIAL_TIME_FRAME as StandardTimeFrames"
-            :chartUpdateKey="chartUpdateKey"
             v-model:datePosition="datePosition"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -106,7 +104,6 @@
           @click="registerClickOnPriceAxis"
         >
           <PriceAxis
-            v-if="dataAvailable"
             :currentCandleClose="currentCandleClose"
             :h2l="chartH2L"
             :high="chartHigh"
@@ -241,8 +238,6 @@ const emit = defineEmits<{
 const DATEROW_HEIGHT = 22;
 const HEADER_BAR_HEIGHT = 23;
 
-const chartUpdateKey = ref(0);
-
 const data = ref<OHLC[] | undefined>();
 const dataRecordsAmount = ref(0);
 
@@ -268,7 +263,7 @@ function executeTimeFrameQuery(_startShift = 0) {
   }
   if (timeFrameMode.value === 'M' && timeModeCount.value > 5) {
     timeFrameForQuery = 'M5';
-    if(previousTimeFrame.value === 'M5') {
+    if (previousTimeFrame.value === 'M5') {
       setCandleDataValuesAndMergeWithOldDate();
     }
   }
@@ -293,7 +288,6 @@ onMounted(async () => {
   executeTimeFrameQuery();
 });
 
-const dataAvailable = ref(false);
 watch(ohlcvResult, async () => {
   setCandleDataValuesAndMergeWithOldDate();
 });
@@ -352,9 +346,10 @@ async function setCandleDataValues(
       const timeStep = getTimeFrameInMs(timeFrame.value) ?? MIN;
       let candleTimeStamp = newestRecord + timeStep;
 
-      const newestRecordTimestamp = oldOHLCDataOldestRecord
-        ? oldOHLCDataOldestRecord.d.getTime()
-        : oldestRecord;
+      const newestRecordTimestamp =
+        oldOHLCDataOldestRecord && dataRecordsAmount.value
+          ? oldOHLCDataOldestRecord.d.getTime()
+          : oldestRecord;
 
       ohlcData.push({
         o: reversedRecords[0]?.open ?? 0,
@@ -407,12 +402,10 @@ async function setCandleDataValues(
   if (!data.value || !data.value.length) {
     return;
   }
-  if (!dataAvailable.value) {
-    dataAvailable.value = true;
+  if (!data.value) {
     calculateAndSetlookbackNumber();
     startCurrentCandleStream();
   }
-  chartUpdateKey.value++;
 }
 
 const width = ref(props.width);
@@ -693,14 +686,7 @@ const {
   chartLow,
   dataDatesCandlesInChart,
   startingDistanceDifference,
-} = useChartData(
-  data,
-  candlesShow,
-  offset,
-  chartHighScale,
-  chartLowScale,
-  chartUpdateKey
-);
+} = useChartData(data, candlesShow, offset, chartHighScale, chartLowScale);
 
 watch(startingDistanceDifference, () => {
   if (
@@ -1037,6 +1023,7 @@ watch(timeFrameSetByUser, async () => {
   ) {
     return;
   }
+  dataRecordsAmount.value = 0;
   timeFrame.value = timeFrameSetByUser.value;
   calculateAndSetlookbackNumber();
 });
