@@ -13,6 +13,7 @@
       :id="id"
       :broker="chart.broker"
       :symbol="chart.symbol"
+      :symbolName="chart.symbolName"
       v-model:width="chart.width"
       v-model:height="chart.height"
       v-model:fullWidth="chart.fullWidth"

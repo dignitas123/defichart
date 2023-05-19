@@ -4,6 +4,7 @@ import { INITIAL_LOOKBACK_PERIOD, INITIAL_TIME_FRAME } from '../consts';
 
 export const defaultOptions: Chart = {
   symbol: 'btcusd',
+  symbolName: 'vBTC',
   broker: 'perp',
   network: 'optimism',
   x: 0,

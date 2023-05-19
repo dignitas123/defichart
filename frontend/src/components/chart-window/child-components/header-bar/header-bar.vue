@@ -1,8 +1,8 @@
 <template>
   <div class="header-bar">
     <q-bar dark dense>
-      <!-- TODO: BTCUSD should be coming from the broker chart chart-settings -->
-      <div class="q-mr-xs">BTCUSD</div>
+      <q-icon name="img:icons/coins/btc.svg" />
+      <div class="q-mx-xs" style="margin-left: 4px">{{ symbolName }}</div>
       <TimeFrameDropdown
         :timeFrame="timeFrame"
         @timeFrameChanged="onTimeFrameChange"
@@ -50,16 +50,16 @@
         class="header-button"
         icon="crop_square"
         :ripple="false"
-        @click="$emit('maximize')"
+        @click="$emit('close')"
       />
       <q-btn
         dense
         flat
         square
         class="header-button"
-        icon="close"
+        icon="crop_free"
         :ripple="false"
-        @click="$emit('close')"
+        @click="$emit('maximize')"
       />
     </q-bar>
   </div>
@@ -75,6 +75,7 @@ import { LookbackPeriodString } from './child-components/lookback-dropdown.if';
 
 defineProps<{
   timeFrame: TimeFrame;
+  symbolName: string;
 }>();
 
 const emit = defineEmits<{

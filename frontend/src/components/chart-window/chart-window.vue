@@ -31,6 +31,7 @@
       <div class="header-bar prevent-select">
         <HeaderBar
           :timeFrame="timeFrame"
+          :symbolName="symbolName"
           @maximize="maximize"
           @close="close"
           @zoomIn="zoomIn"
@@ -208,6 +209,7 @@ import { getTimeFrameInMs } from './time-frame-fns';
 const props = defineProps<{
   id: string;
   symbol: AssetPair;
+  symbolName: string;
   broker: Broker;
   width: number;
   height: number;
@@ -917,12 +919,21 @@ async function setTimeFrame(tf: TimeFrame) {
 // @setLookbackPeriod emit (.header-bar)
 async function setLookbackPeriod(period: LookbackPeriodString) {
   lookbackPeriod.value = period;
+  console.log('period', period);
   fitTimeFrameAndCandlesShowToLookbackPeriodString(lookbackPeriod.value);
 }
 
 function calculateAdditionalCandles(candlesDiffInMs: number) {
+  console.log('candlesDiffInMs', candlesDiffInMs);
   const lookBackTimeInMs = lookbackPeriodEnum[lookbackPeriod.value];
   const additionalTimeNeeded = lookBackTimeInMs - candlesDiffInMs;
+  console.log(
+    'timeFrameMode',
+    timeFrameMode.value,
+    'timeModeCount',
+    timeModeCount.value
+  );
+  console.log('additionalTimeNeeded', additionalTimeNeeded);
   if (timeFrameMode.value === 'M') {
     return additionalTimeNeeded / MIN / timeModeCount.value;
   } else if (timeFrameMode.value === 'H') {
@@ -937,7 +948,9 @@ function calculateAdditionalCandles(candlesDiffInMs: number) {
 function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   lookBackPeriod: LookbackPeriodString
 ) {
+  console.log('fitTimeFrameAndCandlesShowToLookbackPeriodString');
   if (!chartWidth.value || !candlesShow.value) {
+    console.log('return');
     return;
   }
   const appropriatePeriodInMs =
@@ -954,14 +967,36 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
     return;
   }
 
-  const additionalCandles = calculateAdditionalCandles(
-    data.value[data.value.length - 1].d.getTime() -
-      data.value[data.value.length - candlesShow.value].d.getTime()
-  );
-  if (!additionalCandles) {
+  let candles = 0;
+  const timeFrameInMs = getTimeFrameInMs(timeFrame.value);
+  if (!timeFrameInMs) {
     return;
   }
-  candlesShow.value = Math.round(candlesShow.value + additionalCandles);
+  console.log('lookbackperiod', lookBackPeriod);
+  switch (lookBackPeriod) {
+    case '1day':
+      console.log('day', DAY, 'timeFrameInMs', timeFrameInMs);
+      candles = (DAY + HOUR) / timeFrameInMs;
+      break;
+    case '1week':
+      candles = WEEK / timeFrameInMs;
+      break;
+    case '1month':
+      candles = MONTH / timeFrameInMs;
+      break;
+    case '1quarter':
+      candles = (MONTH * 3) / timeFrameInMs;
+      break;
+    case '1year':
+      candles = YEAR / timeFrameInMs;
+      break;
+    case '5year':
+      candles = (5 * YEAR) / timeFrameInMs;
+      break;
+  }
+
+  candlesShow.value = Math.round(candles + 1);
+  console.log('candlesShow', candlesShow.value);
   initialCandlesShow.value = candlesShow.value;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
@@ -1100,6 +1135,7 @@ function setVerticalLines(lines: number[]) {
 <style lang="scss" scoped>
 .chart-wrapper {
   border: 1px solid var(--q-primary);
+  border-radius: $button-border-radius;
 
   &.selected {
     border: 1px solid var(--q-secondary);
@@ -1126,6 +1162,7 @@ function setVerticalLines(lines: number[]) {
     flex-direction: column;
     height: 100%;
     position: relative;
+    border-radius: $button-border-radius;
 
     .resize-area {
       position: absolute;

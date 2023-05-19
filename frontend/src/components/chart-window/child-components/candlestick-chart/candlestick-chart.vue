@@ -168,14 +168,12 @@ async function drawChart() {
   }
   candles.value = [];
   previousDate.value = getFirstPreviousDateFromTimeFrame(props.data[0].d);
-
   const candleWidthWithoutCandleDistance = props.width / props.candleCount;
   candleDistance.value = calcCandleXDistance(candleWidthWithoutCandleDistance);
   candleWidth.value =
     candleWidthWithoutCandleDistance -
     candleDistance.value -
     candleDistance.value / props.candleCount;
-
   const overCandles = props.candleCount - props.dates.length;
 
   const candleSumWidthPx =

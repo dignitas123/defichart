@@ -16,6 +16,7 @@ export interface OHLC {
 
 export interface Chart {
   symbol: AssetPair;
+  symbolName: string;
   broker: Broker;
   network: Network;
   x: number;
