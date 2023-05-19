@@ -404,10 +404,8 @@ async function setCandleDataValues(
   if (!data.value || !data.value.length) {
     return;
   }
-  if (!data.value) {
-    calculateAndSetlookbackNumber();
-    startCurrentCandleStream();
-  }
+  calculateAndSetlookbackNumber();
+  startCurrentCandleStream();
 }
 
 const width = ref(props.width);
