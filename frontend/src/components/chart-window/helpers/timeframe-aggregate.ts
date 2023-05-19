@@ -61,6 +61,7 @@ function intervalCalculation(
   timeStep: number,
   dividableTimeCallback: (date: Date) => number,
   roundStartTimeCallback: (date: Date, amount: number) => number,
+  dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined
 ) {
   resetAllTemporaryCandleVariables();
@@ -68,9 +69,10 @@ function intervalCalculation(
   if (records) {
     const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
     openDate = roundStartTimeCallback(new Date(oldestRecordDate), amount);
-    const newestRecordTimestamp = oldestRecord
-      ? oldestRecord.d.getTime()
-      : records[records.length - 1]?.timestamp ?? 0;
+    const newestRecordTimestamp =
+      oldestRecord && dataRecordsAmount
+        ? oldestRecord.d.getTime()
+        : records[records.length - 1]?.timestamp ?? 0;
 
     // first entry
     res.push({
@@ -134,6 +136,7 @@ export function timeFrameAggregate(
   tsRecords: Query['timeFrameRecords'],
   timeFrameMode: TimeFrameMode,
   timeModeCount: number,
+  dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined
 ) {
   if (!tsRecords) {
@@ -148,6 +151,7 @@ export function timeFrameAggregate(
         timeModeCount === 5 ? MIN * 5 : MIN,
         (date: Date) => date.getMinutes(),
         roundDownMinute,
+        dataRecordsAmount,
         oldestRecord
       );
     case 'H':
@@ -157,6 +161,7 @@ export function timeFrameAggregate(
         HOUR,
         (date: Date) => date.getHours(),
         roundDownMinute,
+        dataRecordsAmount,
         oldestRecord
       );
     case 'D':
@@ -166,6 +171,7 @@ export function timeFrameAggregate(
         DAY,
         getDayOfYear,
         roundDownMinute,
+        dataRecordsAmount,
         oldestRecord
       );
     case 'W':
@@ -175,6 +181,7 @@ export function timeFrameAggregate(
         WEEK,
         getISOWeek,
         roundDownMinute,
+        dataRecordsAmount,
         oldestRecord
       );
   }

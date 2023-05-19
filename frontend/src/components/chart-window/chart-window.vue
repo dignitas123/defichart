@@ -320,6 +320,7 @@ async function setCandleDataValues(
         reversedRecords,
         timeFrameMode.value,
         timeModeCount.value,
+        dataRecordsAmount.value,
         oldOHLCDataOldestRecord
       );
       if (!oldOHLCData || !newAggregatedRecords) {
@@ -332,6 +333,7 @@ async function setCandleDataValues(
         reversedRecords,
         timeFrameMode.value,
         timeModeCount.value,
+        dataRecordsAmount.value,
         oldOHLCDataOldestRecord
       );
       data.value = timeFrameAggregateRecords;
