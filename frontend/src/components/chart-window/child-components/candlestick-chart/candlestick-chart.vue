@@ -3,8 +3,6 @@
     :width="width"
     :height="height"
     class="d-block absolute"
-    style="z-index: 1"
-    :key="refreshKeyTest"
   >
     <line
       v-for="(priceY, i) in priceLines"
@@ -29,8 +27,6 @@
     :width="width"
     :height="height"
     class="d-block absolute"
-    style="z-index: 2"
-    ref="candlesticksRef"
   >
     <CandleStick
       v-for="(candle, i) in candles"
@@ -91,8 +87,6 @@ const emit = defineEmits<{
   (event: 'update:candleDistance', distance: number): void;
 }>();
 
-const candlesticksRef = ref<SVGSVGElement>();
-
 const datePosition = ref(props.datePosition);
 const candleWidth = ref(props.candleWidth);
 const candleDistance = ref(props.candleDistance);
@@ -108,12 +102,6 @@ watch(
     dates.value = props.dates;
   }
 );
-
-const refreshKeyTest = ref(0);
-
-setInterval(() => {
-  refreshKeyTest.value++;
-}, 10_000);
 
 watch(
   () => props.timeFrame,
