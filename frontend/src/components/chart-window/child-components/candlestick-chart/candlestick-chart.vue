@@ -1,9 +1,5 @@
 <template>
-  <svg
-    :width="width"
-    :height="height"
-    class="d-block absolute"
-  >
+  <svg :width="width" :height="height" class="d-block absolute">
     <line
       v-for="(priceY, i) in priceLines"
       :key="i"
@@ -23,11 +19,7 @@
       :stroke="`rgb(0, 0, 0, ${GRID_LINES_TRANSPARENCY})`"
     />
   </svg>
-  <svg
-    :width="width"
-    :height="height"
-    class="d-block absolute"
-  >
+  <svg :width="width" :height="height" class="d-block absolute">
     <CandleStick
       v-for="(candle, i) in candles"
       :key="i"
@@ -197,6 +189,14 @@ async function drawChart() {
     lastXPositionCandlestick.value = xPositionCandlestick.value;
     xPositionCandlestick.value += candleWidth.value + candleDistance.value;
     previousDate.value = ohlc.d;
+  });
+
+  // Check if a no-volume candle is outside of visible area
+  const candleYMin = Math.max(...candles.value.map((candle) => candle.y));
+  candles.value.forEach((candle, i) => {
+    if (candle.y === candleYMin) {
+      candles.value[i].y -= 2;
+    }
   });
 }
 
