@@ -292,6 +292,9 @@ onMounted(async () => {
 });
 
 watch(ohlcvResult, async () => {
+  if (!ohlcvResult.value) {
+    return;
+  }
   setCandleDataValuesAndMergeWithOldDate();
 });
 
