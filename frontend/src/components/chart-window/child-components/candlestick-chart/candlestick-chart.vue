@@ -75,11 +75,13 @@ const props = withDefaults(
     candleWidth: number;
     candleDistance: number;
     offset: number;
+    chartUpdateKey?: number;
   }>(),
   {
     priceLines: () => [],
     dateLines: () => [],
     startingDistanceDifference: 0,
+    chartUpdateKey: 0,
   }
 );
 
@@ -301,6 +303,7 @@ watch(
     () => props.offset,
     () => props.high,
     () => props.low,
+    () => props.chartUpdateKey,
   ],
   () => {
     drawChart();

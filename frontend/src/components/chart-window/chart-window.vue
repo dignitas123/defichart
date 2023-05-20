@@ -81,6 +81,7 @@
             :offset="offset"
             :startingDistanceDifference="startingDistanceDifference"
             :timeFrame="timeFrame ?? INITIAL_TIME_FRAME as StandardTimeFrames"
+            :chartUpdateKey="chartUpdateKey"
             v-model:datePosition="datePosition"
             v-model:candleWidth="candleWidth"
             v-model:candleDistance="candleDistance"
@@ -691,11 +692,13 @@ const {
 } = useChartData(data, candlesShow, offset, chartHighScale, chartLowScale);
 
 watch(startingDistanceDifference, () => {
-  if (
-    startingDistanceDifference.value &&
-    startingDistanceDifference.value > 0
-  ) {
+  if (!startingDistanceDifference.value) {
+    return;
+  }
+  if (startingDistanceDifference.value > 0) {
     executeTimeFrameQuery(dataRecordsAmount.value);
+  } else {
+    chartUpdateKey.value++;
   }
 });
 
@@ -858,6 +861,8 @@ function candlesChangeDependantOnCandlesShow() {
   }
 }
 
+const chartUpdateKey = ref(0);
+
 // @wheel emit (.chart)
 function onWheel(event: WheelEvent) {
   const angle = (Math.atan2(event.deltaY, event.deltaX) * 180) / Math.PI;
@@ -919,38 +924,13 @@ async function setTimeFrame(tf: TimeFrame) {
 // @setLookbackPeriod emit (.header-bar)
 async function setLookbackPeriod(period: LookbackPeriodString) {
   lookbackPeriod.value = period;
-  console.log('period', period);
   fitTimeFrameAndCandlesShowToLookbackPeriodString(lookbackPeriod.value);
-}
-
-function calculateAdditionalCandles(candlesDiffInMs: number) {
-  console.log('candlesDiffInMs', candlesDiffInMs);
-  const lookBackTimeInMs = lookbackPeriodEnum[lookbackPeriod.value];
-  const additionalTimeNeeded = lookBackTimeInMs - candlesDiffInMs;
-  console.log(
-    'timeFrameMode',
-    timeFrameMode.value,
-    'timeModeCount',
-    timeModeCount.value
-  );
-  console.log('additionalTimeNeeded', additionalTimeNeeded);
-  if (timeFrameMode.value === 'M') {
-    return additionalTimeNeeded / MIN / timeModeCount.value;
-  } else if (timeFrameMode.value === 'H') {
-    return additionalTimeNeeded / HOUR / timeModeCount.value;
-  } else if (timeFrameMode.value === 'D') {
-    return additionalTimeNeeded / DAY / timeModeCount.value;
-  } else if (timeFrameMode.value === 'W') {
-    return additionalTimeNeeded / WEEK / timeModeCount.value;
-  }
 }
 
 function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   lookBackPeriod: LookbackPeriodString
 ) {
-  console.log('fitTimeFrameAndCandlesShowToLookbackPeriodString');
   if (!chartWidth.value || !candlesShow.value) {
-    console.log('return');
     return;
   }
   const appropriatePeriodInMs =
@@ -972,10 +952,8 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   if (!timeFrameInMs) {
     return;
   }
-  console.log('lookbackperiod', lookBackPeriod);
   switch (lookBackPeriod) {
     case '1day':
-      console.log('day', DAY, 'timeFrameInMs', timeFrameInMs);
       candles = (DAY + HOUR) / timeFrameInMs;
       break;
     case '1week':
@@ -996,7 +974,6 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   }
 
   candlesShow.value = Math.round(candles + 1);
-  console.log('candlesShow', candlesShow.value);
   initialCandlesShow.value = candlesShow.value;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
