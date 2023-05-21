@@ -929,11 +929,12 @@ async function setLookbackPeriod(period: LookbackPeriodString) {
 function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   lookBackPeriod: LookbackPeriodString
 ) {
-  if (!chartWidth.value || !candlesShow.value) {
+  if (!chartWidth.value) {
     return;
   }
   const appropriatePeriodInMs =
-    lookbackPeriodEnum[lookBackPeriod] / candlesShow.value;
+    lookbackPeriodEnum[lookBackPeriod] /
+    calculateAppropriateCandlesBasedOnChartWidth(chartWidth.value);
   const nearestAppropriatePeriodFromAllowedTimeFramesIndex = findNearestIndex(
     appropriatePeriodInMs,
     Object.values(allowedTimeFramesEnum)
