@@ -66,6 +66,7 @@ export type GetTimeFrameQueryVariables = Exact<{
   symbol: Scalars['String'];
   timeFrame: TimeFrame;
   binAmount: Scalars['Int'];
+  startShift?: InputMaybe<Scalars['Int']>;
 }>;
 
 export type GetTimeFrameQuery = {

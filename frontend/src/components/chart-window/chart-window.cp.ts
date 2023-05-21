@@ -1,4 +1,4 @@
-import { computed, ref, Ref, watch } from 'vue';
+import { computed, ref, Ref, watch, watchEffect } from 'vue';
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { DATA_TICKSIZE } from 'src/pages/broker-charts/consts';
 import { roundToTicksize } from './helpers/digits';
@@ -8,7 +8,8 @@ export function useChartData(
   candlesShow: Ref<number>,
   offset: Ref<number>,
   chartHighScale: Ref<number>,
-  chartLowScale: Ref<number>
+  chartLowScale: Ref<number>,
+  chartUpdateKey: Ref<number>
 ) {
   function decreaseCandlesShow(n = 1) {
     if (candlesShow.value - n > 1) {
@@ -22,7 +23,9 @@ export function useChartData(
     candlesShow.value += n;
   }
 
-  const candlesInChartData = computed(() => {
+  const candlesInChartData = ref<OHLC[]>();
+
+  watch(chartUpdateKey, () => {
     if (!data.value) {
       return undefined;
     }
@@ -31,7 +34,25 @@ export function useChartData(
     if (startSlice < 0) {
       startSlice = 0;
     }
-    return data.value.slice(startSlice, dataLength + offset.value);
+    candlesInChartData.value = data.value.slice(
+      startSlice,
+      dataLength + offset.value
+    );
+  });
+
+  watchEffect(() => {
+    if (!data.value) {
+      return undefined;
+    }
+    const dataLength = data.value.length;
+    let startSlice = dataLength - candlesShow.value + offset.value;
+    if (startSlice < 0) {
+      startSlice = 0;
+    }
+    candlesInChartData.value = data.value.slice(
+      startSlice,
+      dataLength + offset.value
+    );
   });
 
   const startingDistanceDifference = computed(() => {

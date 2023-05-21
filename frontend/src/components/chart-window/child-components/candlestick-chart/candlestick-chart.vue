@@ -47,7 +47,7 @@ import { TimeFrame } from '../header-bar/child-components/time-frame-dropdown.if
 
 const props = withDefaults(
   defineProps<{
-    data: OHLC[] | undefined;
+    data?: OHLC[];
     dates?: Date[];
     candleCount: number;
     h2l?: number;

@@ -22,13 +22,7 @@
         clickable
         @click="onLookbackClick('1day')"
       >
-        <q-item-section>1day</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '1day' ? 'white' : 'primary'"
-          >1</InfoBadge
-        >
+        <q-item-section>1 day</q-item-section>
       </q-item>
       <q-separator />
       <q-item
@@ -37,13 +31,7 @@
         clickable
         @click="onLookbackClick('1week')"
       >
-        <q-item-section>1week</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '1week' ? 'white' : 'primary'"
-          >2</InfoBadge
-        >
+        <q-item-section>1 week</q-item-section>
       </q-item>
       <q-separator />
       <q-item
@@ -52,13 +40,7 @@
         clickable
         @click="onLookbackClick('1month')"
       >
-        <q-item-section>1month</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '1month' ? 'white' : 'primary'"
-          >3</InfoBadge
-        >
+        <q-item-section>1 month</q-item-section>
       </q-item>
       <q-separator />
       <q-item
@@ -67,13 +49,7 @@
         clickable
         @click="onLookbackClick('1quarter')"
       >
-        <q-item-section>1quarter</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '1quarter' ? 'white' : 'primary'"
-          >4</InfoBadge
-        >
+        <q-item-section>1 quarter</q-item-section>
       </q-item>
       <q-separator />
       <q-item
@@ -82,13 +58,7 @@
         clickable
         @click="onLookbackClick('1year')"
       >
-        <q-item-section>1year</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '1year' ? 'white' : 'primary'"
-          >5</InfoBadge
-        >
+        <q-item-section>1 year</q-item-section>
       </q-item>
       <q-separator />
       <q-item
@@ -97,13 +67,7 @@
         clickable
         @click="onLookbackClick('5year')"
       >
-        <q-item-section>5year</q-item-section>
-        <InfoBadge
-          v-if="!$q.platform.is.mobile"
-          class="q-ml-xs"
-          :color="selectedLookback === '5year' ? 'white' : 'primary'"
-          >6</InfoBadge
-        >
+        <q-item-section>5 years</q-item-section>
       </q-item>
     </q-list>
   </q-btn-dropdown>
@@ -111,20 +75,16 @@
 
 <script setup lang="ts">
 import { inject, watch, Ref, ref, computed } from 'vue';
-import InfoBadge from 'src/shared/components/info-badge.vue';
 import {
   LookbackPeriod,
   LookbackPeriodString,
   lookbackPeriodStringEnum,
 } from './lookback-dropdown.if';
 import { INITIAL_LOOKBACK_PERIOD } from 'src/pages/broker-charts/consts';
-import { useQuasar } from 'quasar';
 
 const emit = defineEmits<{
   (event: 'lookBackPeriodChanged', lookBack: LookbackPeriodString): void;
 }>();
-
-const $q = useQuasar();
 
 // TODO: should come from the users saved settings
 const selectedLookback = ref<LookbackPeriodString>(INITIAL_LOOKBACK_PERIOD);
@@ -136,21 +96,17 @@ const selectedVariableLookback = computed(() => {
     lookbackVariableNumber.value === 1
       ? lookbackPeriodStringEnum[selectedLookback.value].singular
       : lookbackPeriodStringEnum[selectedLookback.value].plural;
-  return lookbackVariableNumber.value + lookbackNameString;
+  return lookbackVariableNumber.value + ' ' + lookbackNameString;
 });
 
 const showLookbackMenuList = ref(true);
 const lookbackMenuShowing = ref(false);
 
-const lookbackSetByUser = inject('lookbackSetByUser') as Ref<LookbackPeriod>;
 const lookbackNumber = inject('lookbackNumber') as Ref<number>;
 const lookbackPeriodString = inject(
   'lookbackPeriodString'
 ) as Ref<LookbackPeriodString>;
 
-watch(lookbackSetByUser, () => {
-  selectedLookback.value = lookbackSetByUser.value;
-});
 watch(lookbackNumber, () => {
   lookbackVariableNumber.value = lookbackNumber.value;
 });

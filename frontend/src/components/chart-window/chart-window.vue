@@ -50,7 +50,7 @@
       <div
         class="price-row flex items-center justify-center"
         ref="chartRef"
-        v-else-if="ohlcvError || !data"
+        v-else-if="ohlcvError && !data"
       >
         <div class="column items-center q-px-lg">
           <div class="col">Backend not reachable. Try again later.</div>
@@ -118,7 +118,7 @@
           <q-resize-observer :debounce="0" @resize="onPriceAxisResize" />
         </div>
       </div>
-      <div v-if="!ohlcvError && data" class="date-row">
+      <div v-if="data" class="date-row">
         <div
           class="timestamps"
           @mousedown="startXDrag"
@@ -189,6 +189,7 @@ import {
   MONTH,
   YEAR,
   MAX_CANDLES_LOAD,
+  M5_TIMEFRAMES,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
@@ -197,15 +198,19 @@ import {
   TimeFrame,
 } from './child-components/header-bar/child-components/time-frame-dropdown.if';
 import {
-  LookbackPeriod,
   lookbackPeriodEnum,
   LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
 import { useLazyQuery } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
-import { GetTimeFrameQuery } from 'src/generated/graphql';
+import {
+  GetTimeFrameQuery,
+  GetTimeFrameQueryVariables,
+  TimeFrame as TimeFrameEnum,
+} from 'src/generated/graphql';
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
+import { isEqual } from 'lodash';
 
 const props = defineProps<{
   id: string;
@@ -222,6 +227,16 @@ const props = defineProps<{
   timeFrame: TimeFrame;
   lookbackPeriod: LookbackPeriodString;
 }>();
+
+const width = ref(props.width);
+const height = ref(props.height);
+const fullWidth = ref(props.fullWidth);
+const fullHeight = ref(props.fullHeight);
+const candlesShow = ref(props.candlesShow);
+const selected = ref(props.selected);
+const offset = ref(props.offset);
+const timeFrame = ref(props.timeFrame);
+const lookbackPeriod = ref(props.lookbackPeriod);
 
 const emit = defineEmits<{
   (event: 'chartClick', id: string): void;
@@ -256,31 +271,6 @@ const {
   load: loadOhlcvQuery,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
-const previousTimeFrame = ref<TimeFrame>();
-const startShift = ref(0);
-function executeTimeFrameQuery(_startShift = 0) {
-  startShift.value = _startShift;
-  let timeFrameForQuery = timeFrame.value;
-  if (timeFrame.value !== 'M5') {
-    timeFrameForQuery = `${timeFrameMode.value}1`;
-  }
-  if (timeFrameMode.value === 'M' && timeModeCount.value > 5) {
-    timeFrameForQuery = 'M5';
-    if (previousTimeFrame.value === 'M5') {
-      setCandleDataValuesAndMergeWithOldDate();
-    }
-  }
-  const ohlcvQueryVariables = {
-    symbol: `${props.symbol}-${props.broker}`,
-    timeFrame: timeFrameForQuery,
-    binAmount: MAX_CANDLES_LOAD,
-    ...(_startShift && { startShift: startShift }),
-  };
-  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-
-  previousTimeFrame.value = timeFrame.value;
-}
-
 onMounted(async () => {
   // INFO: if no candlesShow in user settings
   if (candlesShow.value === 0 && chartWidth.value) {
@@ -291,26 +281,71 @@ onMounted(async () => {
   executeTimeFrameQuery();
 });
 
-watch(ohlcvResult, async () => {
-  if (!ohlcvResult.value) {
-    return;
-  }
-  setCandleDataValuesAndMergeWithOldDate();
-});
+let previousOhlcvQueryVariables: GetTimeFrameQueryVariables;
+const startShift = ref(0);
+async function executeTimeFrameQuery(_startShift = 0) {
+  startShift.value = _startShift;
 
-function setCandleDataValuesAndMergeWithOldDate() {
-  if (ohlcvResult.value) {
-    setCandleDataValues(startShift.value, data.value && [...data.value]);
+  const timeFrameForQuery = M5_TIMEFRAMES.includes(timeFrame.value)
+    ? `${timeFrameMode.value}5`
+    : `${timeFrameMode.value}1`;
+
+  const ohlcvQueryVariables: GetTimeFrameQueryVariables = {
+    symbol: `${props.symbol}-${props.broker}`,
+    timeFrame: timeFrameForQuery as TimeFrameEnum,
+    binAmount: MAX_CANDLES_LOAD,
+    ...(_startShift && { startShift: _startShift }),
+  };
+
+  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  if (isEqual(previousOhlcvQueryVariables, ohlcvQueryVariables)) {
+    await setCandleDataValuesAndMergeWithOldData();
   }
+
+  previousOhlcvQueryVariables = ohlcvQueryVariables;
 }
+
+const chartHighScale = ref(0);
+const chartLowScale = ref(0);
+
+const chartUpdateKey = ref(0);
+
+const {
+  increaseCandlesShow,
+  decreaseCandlesShow,
+  candlesInChartData,
+  chartH2L,
+  chartHigh,
+  chartLow,
+  dataDatesCandlesInChart,
+  startingDistanceDifference,
+} = useChartData(
+  data,
+  candlesShow,
+  offset,
+  chartHighScale,
+  chartLowScale,
+  chartUpdateKey
+);
 
 const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
 });
 
+watch(ohlcvResult, async () => {
+  setCandleDataValuesAndMergeWithOldData();
+});
+
+async function setCandleDataValuesAndMergeWithOldData() {
+  if (!ohlcvResult.value) {
+    return;
+  }
+  await setCandleDataValues(startShift.value, data.value && [...data.value]);
+}
+
 async function setCandleDataValues(
   startShift = 0,
-  oldOHLCData: OHLC[] | undefined
+  oldOHLCData: OHLC[] | undefined = undefined
 ) {
   if (!ohlcvResult.value) {
     return;
@@ -320,7 +355,11 @@ async function setCandleDataValues(
     : undefined;
   const reversedRecords = timeFrameRecords?.reverse();
   const oldOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
-  if (timeModeCount.value > 1 && timeFrame.value !== 'M5') {
+
+  if (
+    (timeModeCount.value > 1 && timeFrame.value !== 'M5') ||
+    timeModeCount.value > 5
+  ) {
     if (startShift > 0) {
       const newAggregatedRecords = timeFrameAggregate(
         reversedRecords,
@@ -413,16 +452,6 @@ async function setCandleDataValues(
   calculateAndSetlookbackNumber();
   startCurrentCandleStream();
 }
-
-const width = ref(props.width);
-const height = ref(props.height);
-const fullWidth = ref(props.fullWidth);
-const fullHeight = ref(props.fullHeight);
-const candlesShow = ref(props.candlesShow);
-const selected = ref(props.selected);
-const offset = ref(props.offset);
-const timeFrame = ref(props.timeFrame);
-const lookbackPeriod = ref(props.lookbackPeriod);
 
 const initialCandlesShow = ref(0);
 
@@ -597,8 +626,23 @@ watch(
 );
 watch(timeFrame, async () => {
   emit('update:timeFrame', timeFrame.value);
-  dataRecordsAmount.value = 0;
-  executeTimeFrameQuery();
+});
+watch([startingDistanceDifference, timeFrame], async (now, before) => {
+  if (!startingDistanceDifference.value) {
+    return;
+  }
+  const sameTimeFrame = now[1] === before[1];
+  if (startingDistanceDifference.value > 0 || !sameTimeFrame) {
+    if (!sameTimeFrame) {
+      dataRecordsAmount.value = 0;
+      data.value = undefined;
+    } else {
+    }
+    await executeTimeFrameQuery(dataRecordsAmount.value);
+  } else {
+    await nextTick();
+    chartUpdateKey.value++;
+  }
 });
 watch(
   () => props.timeFrame,
@@ -625,9 +669,6 @@ onUnmounted(() => {
 const timeFrameSetByUser = ref<StandardTimeFrames>();
 provide('timeFrameSetByUser', timeFrameSetByUser);
 
-const lookbackSetByUser = ref<LookbackPeriod>();
-provide('lookbackSetByUser', lookbackSetByUser);
-
 const lookbackNumber = ref(1);
 provide('lookbackNumber', lookbackNumber);
 const lookbackPeriodString = ref<LookbackPeriodString>(INITIAL_LOOKBACK_PERIOD);
@@ -642,24 +683,6 @@ function onKeyDown(event: KeyboardEvent) {
     zoomOut();
   } else if (event.key === 'c') {
     zoomIn();
-  } else if (event.key === '1') {
-    lookbackSetByUser.value = '1day';
-    setLookbackPeriod('1day');
-  } else if (event.key === '2') {
-    lookbackSetByUser.value = '1week';
-    setLookbackPeriod('1week');
-  } else if (event.key === '3') {
-    lookbackSetByUser.value = '1month';
-    setLookbackPeriod('1month');
-  } else if (event.key === '4') {
-    lookbackSetByUser.value = '1quarter';
-    setLookbackPeriod('1quarter');
-  } else if (event.key === '5') {
-    lookbackSetByUser.value = '1year';
-    setLookbackPeriod('1year');
-  } else if (event.key === '6') {
-    lookbackSetByUser.value = '5year';
-    setLookbackPeriod('5year');
   } else if (event.shiftKey) {
     if (event.code === 'Digit1') {
       setTimeFrame('M1');
@@ -679,31 +702,6 @@ function onKeyDown(event: KeyboardEvent) {
     }
   }
 }
-
-const chartHighScale = ref(0);
-const chartLowScale = ref(0);
-
-const {
-  increaseCandlesShow,
-  decreaseCandlesShow,
-  candlesInChartData,
-  chartH2L,
-  chartHigh,
-  chartLow,
-  dataDatesCandlesInChart,
-  startingDistanceDifference,
-} = useChartData(data, candlesShow, offset, chartHighScale, chartLowScale);
-
-watch(startingDistanceDifference, () => {
-  if (!startingDistanceDifference.value) {
-    return;
-  }
-  if (startingDistanceDifference.value > 0) {
-    executeTimeFrameQuery(dataRecordsAmount.value);
-  } else {
-    chartUpdateKey.value++;
-  }
-});
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
 
@@ -854,17 +852,15 @@ function candlesChangeDependantOnCandlesShow() {
   if (candlesShow.value < 15) {
     return 2;
   } else if (candlesShow.value > 70) {
-    return 10;
+    return 7;
   } else if (candlesShow.value > 100) {
-    return 20;
+    return 16;
   } else if (candlesShow.value > 150) {
-    return 40;
+    return 30;
   } else {
-    return 4;
+    return 3;
   }
 }
-
-const chartUpdateKey = ref(0);
 
 // @wheel emit (.chart)
 function onWheel(event: WheelEvent) {
@@ -957,7 +953,7 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
   }
   switch (lookBackPeriod) {
     case '1day':
-      candles = (DAY + HOUR) / timeFrameInMs;
+      candles = DAY / timeFrameInMs + HOUR / timeFrameInMs;
       break;
     case '1week':
       candles = WEEK / timeFrameInMs;
@@ -966,17 +962,17 @@ function fitTimeFrameAndCandlesShowToLookbackPeriodString(
       candles = MONTH / timeFrameInMs;
       break;
     case '1quarter':
-      candles = (MONTH * 3) / timeFrameInMs;
+      candles = (3 * MONTH) / timeFrameInMs;
       break;
     case '1year':
-      candles = YEAR / timeFrameInMs;
+      candles = YEAR / timeFrameInMs + 1;
       break;
     case '5year':
       candles = (5 * YEAR) / timeFrameInMs;
       break;
   }
 
-  candlesShow.value = Math.round(candles + 1);
+  candlesShow.value = Math.ceil(candles + 1);
   initialCandlesShow.value = candlesShow.value;
   if (lookbackPeriod.value === '5year') {
     lookbackNumber.value = 5;
