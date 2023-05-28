@@ -414,8 +414,7 @@ async function setCandleDataValues(
       let j = 1;
       while (candleTimeStamp <= newestRecordTimestamp) {
         if (
-          reversedRecords[j]?.timestamp === candleTimeStamp &&
-          dataRecordsAmount.value === 0
+          reversedRecords[j]?.timestamp === candleTimeStamp
         ) {
           ohlcData.push({
             o: reversedRecords[j]?.open ?? 0,
