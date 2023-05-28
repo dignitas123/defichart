@@ -97,7 +97,7 @@ function intervalCalculation(
     let candleTimeStamp = openDate + timeStep;
 
     if (dataRecordsAmount > 0) {
-      newestRecordTimestamp -= timeStep;
+      newestRecordTimestamp -= timeStep * amount;
     }
 
     let j = 1;
@@ -148,11 +148,10 @@ export function timeFrameAggregate(
   }
   switch (timeFrameMode) {
     case 'M':
-      const amount = timeModeCount === 5 ? timeModeCount / 5 : timeModeCount;
       return intervalCalculation(
         tsRecords,
-        amount,
-        timeModeCount === 5 ? MIN * 5 : MIN,
+        timeModeCount,
+        MIN,
         (date: Date) => date.getMinutes(),
         roundDownMinute,
         dataRecordsAmount,

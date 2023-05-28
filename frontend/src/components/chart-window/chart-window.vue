@@ -372,7 +372,7 @@ async function setCandleDataValues(
         return;
       }
       data.value = [...newAggregatedRecords, ...oldOHLCData];
-      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+      dataRecordsAmount.value += MAX_CANDLES_LOAD;
     } else {
       const timeFrameAggregateRecords = timeFrameAggregate(
         reversedRecords,
@@ -382,7 +382,7 @@ async function setCandleDataValues(
         oldOHLCDataOldestRecord
       );
       data.value = timeFrameAggregateRecords;
-      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+      dataRecordsAmount.value += MAX_CANDLES_LOAD;
     }
   } else {
     const ohlcData: OHLC[] = [];
@@ -398,21 +398,14 @@ async function setCandleDataValues(
           ? oldOHLCDataOldestRecord.d.getTime()
           : oldestRecord;
 
-      if (
-        data.value &&
-        data.value[0].d &&
-        startTime === data.value[0].d.getTime()
-      ) {
-      } else {
-        ohlcData.push({
-          o: reversedRecords[0]?.open ?? 0,
-          h: reversedRecords[0]?.high ?? 0,
-          l: reversedRecords[0]?.low ?? 0,
-          c: reversedRecords[0]?.close ?? 0,
-          v: reversedRecords[0]?.volume ?? 0,
-          d: new Date(reversedRecords[0]?.timestamp ?? 0),
-        });
-      }
+      ohlcData.push({
+        o: reversedRecords[0]?.open ?? 0,
+        h: reversedRecords[0]?.high ?? 0,
+        l: reversedRecords[0]?.low ?? 0,
+        c: reversedRecords[0]?.close ?? 0,
+        v: reversedRecords[0]?.volume ?? 0,
+        d: new Date(reversedRecords[0]?.timestamp ?? 0),
+      });
 
       if (dataRecordsAmount.value > 0) {
         newestRecordTimestamp -= timeStep;
@@ -452,10 +445,10 @@ async function setCandleDataValues(
         return;
       }
       data.value = [...ohlcData, ...oldOHLCData];
-      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+      dataRecordsAmount.value += MAX_CANDLES_LOAD;
     } else {
       data.value = ohlcData;
-      dataRecordsAmount.value += reversedRecords?.length ?? 0;
+      dataRecordsAmount.value += MAX_CANDLES_LOAD;
     }
   }
   // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
