@@ -65,11 +65,11 @@ function intervalCalculation(
   oldestRecord: OHLC | undefined = undefined
 ) {
   resetAllTemporaryCandleVariables();
-  // take first date, get rounded date
+
   if (records) {
     const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
     openDate = roundStartTimeCallback(new Date(oldestRecordDate), amount);
-    const newestRecordTimestamp =
+    let newestRecordTimestamp =
       oldestRecord && dataRecordsAmount
         ? oldestRecord.d.getTime()
         : records[records.length - 1]?.timestamp ?? 0;
@@ -96,71 +96,41 @@ function intervalCalculation(
     });
     let candleTimeStamp = openDate + timeStep;
 
+    if (dataRecordsAmount > 0) {
+      newestRecordTimestamp -= timeStep;
+    }
+
     let j = 1;
-    if (dataRecordsAmount) {
-      while (candleTimeStamp < newestRecordTimestamp) {
-        if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
-          if (records[j]?.timestamp === candleTimeStamp) {
-            aggregateCandlestickHighLowVolume(records[j]);
-            openDate = records[j]?.timestamp as number;
-            pushCandle();
-            open = records[j]?.open as number;
-          } else if (previousClose) {
-            // 0 volume candle has open === previousClose and openDate candleTimeStamp iteration
-            open = previousClose;
-            openDate = candleTimeStamp;
-            pushCandle();
-          }
-          resetAggregateCandlestick();
-        }
+    while (candleTimeStamp <= newestRecordTimestamp) {
+      if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
         if (records[j]?.timestamp === candleTimeStamp) {
           aggregateCandlestickHighLowVolume(records[j]);
-          previousClose = records[j]?.close as number;
-          j++;
-        } else {
-          aggregateCandlestickHighLowVolume({
-            open: previousClose,
-            high: previousClose,
-            low: previousClose,
-            close: previousClose,
-            volume: 0,
-            timestamp: candleTimeStamp,
-          });
+          openDate = records[j]?.timestamp as number;
+          pushCandle();
+          open = records[j]?.open as number;
+        } else if (previousClose) {
+          // 0 volume candle has open === previousClose and openDate candleTimeStamp iteration
+          open = previousClose;
+          openDate = candleTimeStamp;
+          pushCandle();
         }
-        candleTimeStamp += timeStep;
+        resetAggregateCandlestick();
       }
-    } else {
-      while (candleTimeStamp <= newestRecordTimestamp) {
-        if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
-          if (records[j]?.timestamp === candleTimeStamp) {
-            aggregateCandlestickHighLowVolume(records[j]);
-            openDate = records[j]?.timestamp as number;
-            pushCandle();
-            open = records[j]?.open as number;
-          } else if (previousClose) {
-            // 0 volume candle has open === previousClose and openDate candleTimeStamp iteration
-            open = previousClose;
-            openDate = candleTimeStamp;
-            pushCandle();
-          }
-          resetAggregateCandlestick();
-        }
-        if (records[j]?.timestamp === candleTimeStamp) {
-          aggregateCandlestickHighLowVolume(records[j]);
-          previousClose = records[j]?.close as number;
-          j++;
-        } else {
-          aggregateCandlestickHighLowVolume({
-            open: previousClose,
-            high: previousClose,
-            low: previousClose,
-            close: previousClose,
-            volume: 0,
-            timestamp: candleTimeStamp,
-          });
-        }
-        candleTimeStamp += timeStep;
+      if (records[j]?.timestamp === candleTimeStamp) {
+        aggregateCandlestickHighLowVolume(records[j]);
+        previousClose = records[j]?.close as number;
+        j++;
+      } else {
+        aggregateCandlestickHighLowVolume({
+          open: previousClose,
+          high: previousClose,
+          low: previousClose,
+          close: previousClose,
+          volume: 0,
+          timestamp: candleTimeStamp,
+        });
       }
+      candleTimeStamp += timeStep;
     }
   }
   return res;

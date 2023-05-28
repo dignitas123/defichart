@@ -387,29 +387,43 @@ async function setCandleDataValues(
   } else {
     const ohlcData: OHLC[] = [];
     if (reversedRecords) {
+      const startTime = reversedRecords[0]?.timestamp ?? 0;
       const oldestRecord =
         reversedRecords[reversedRecords.length - 1]?.timestamp ?? 0;
-      const newestRecord = reversedRecords[0]?.timestamp ?? 0;
       const timeStep = getTimeFrameInMs(timeFrame.value) ?? MIN;
-      let candleTimeStamp = newestRecord + timeStep;
+      let candleTimeStamp = startTime + timeStep;
 
-      const newestRecordTimestamp =
+      let newestRecordTimestamp =
         oldOHLCDataOldestRecord && dataRecordsAmount.value
           ? oldOHLCDataOldestRecord.d.getTime()
           : oldestRecord;
 
-      ohlcData.push({
-        o: reversedRecords[0]?.open ?? 0,
-        h: reversedRecords[0]?.high ?? 0,
-        l: reversedRecords[0]?.low ?? 0,
-        c: reversedRecords[0]?.close ?? 0,
-        v: reversedRecords[0]?.volume ?? 0,
-        d: new Date(reversedRecords[0]?.timestamp ?? 0),
-      });
+      if (
+        data.value &&
+        data.value[0].d &&
+        startTime === data.value[0].d.getTime()
+      ) {
+      } else {
+        ohlcData.push({
+          o: reversedRecords[0]?.open ?? 0,
+          h: reversedRecords[0]?.high ?? 0,
+          l: reversedRecords[0]?.low ?? 0,
+          c: reversedRecords[0]?.close ?? 0,
+          v: reversedRecords[0]?.volume ?? 0,
+          d: new Date(reversedRecords[0]?.timestamp ?? 0),
+        });
+      }
+
+      if (dataRecordsAmount.value > 0) {
+        newestRecordTimestamp -= timeStep;
+      }
 
       let j = 1;
       while (candleTimeStamp <= newestRecordTimestamp) {
-        if (reversedRecords[j]?.timestamp === candleTimeStamp) {
+        if (
+          reversedRecords[j]?.timestamp === candleTimeStamp &&
+          dataRecordsAmount.value === 0
+        ) {
           ohlcData.push({
             o: reversedRecords[j]?.open ?? 0,
             h: reversedRecords[j]?.high ?? 0,
