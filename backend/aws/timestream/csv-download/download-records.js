@@ -1,7 +1,7 @@
 import { getRecordsFromStartTime } from "../get-data.js";
 import fs from "fs";
 
-const START_DATE = "2023-05-24 20:20:00";
+const START_DATE = "2023-05-19 00:00:00";
 const TABLE = "btcusd-perp_m1";
 const OUTPUT_FILE_NAME = "BTCUSD_m1.csv";
 
@@ -14,6 +14,7 @@ const hlcvtRecords = ret.Rows.map((row) => {
     low: row.Data[3].ScalarValue,
     close: row.Data[4].ScalarValue,
     volume: row.Data[5].ScalarValue,
+    timestamp: new Date(row.Data[0].ScalarValue).getTime(),
   };
 });
 

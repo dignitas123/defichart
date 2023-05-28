@@ -4,13 +4,14 @@ import {
 } from "../write-data.js";
 import csv from "csvtojson";
 
-const csvFilePath = "BTCUSD_w1.csv"; // make sure files are formatted like the toy dataset
+const CSV_FILE_PATH = "BTCUSD_m1.csv"; // make sure files are formatted like the toy dataset
+const TABLE_NAME = "btcusd-perp_m1";
 
-async function readCSVFileFrom(csvFilePath) {
-  return await csv().fromFile(csvFilePath);
+async function readCSVFileFrom(CSV_FILE_PATH) {
+  return await csv().fromFile(CSV_FILE_PATH);
 }
 
-const ohlcvtRecords = await readCSVFileFrom(csvFilePath);
+const ohlcvtRecords = await readCSVFileFrom(CSV_FILE_PATH);
 
 // Define the size of each chunk
 // AWS chunks for timestream should be 20 when putting 4 records into the database (100 is maximum record insert)
@@ -30,7 +31,7 @@ for (let i = 0; i < chunks.length; i++) {
         100
       ).toFixed(2)}%`
     );
-    await candleSticksStreamWrite(chunks[i], "btcusd-perp_w1", 2);
+    await candleSticksStreamWrite(chunks[i], TABLE_NAME, 2);
     // await candleSticksStreamWriteOnlyOpen(chunks[i], "btcusd-perp_d1");
   }, i * 500);
 }
