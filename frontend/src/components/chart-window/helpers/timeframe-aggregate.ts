@@ -60,7 +60,6 @@ function intervalCalculation(
   amount: number,
   timeStep: number,
   dividableTimeCallback: (date: Date) => number,
-  roundStartTimeCallback: (date: Date, amount: number) => number,
   dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined
 ) {
@@ -68,32 +67,16 @@ function intervalCalculation(
 
   if (records) {
     const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
-    openDate = roundStartTimeCallback(new Date(oldestRecordDate), amount);
+    openDate = oldestRecordDate;
     let newestRecordTimestamp =
       oldestRecord && dataRecordsAmount
         ? oldestRecord.d.getTime()
         : records[records.length - 1]?.timestamp ?? 0;
 
-    // first entry
-    res.push({
-      o: records[0]?.open ?? 0,
-      h: records[0]?.high ?? 0,
-      l: records[0]?.low ?? 0,
-      c: records[0]?.close ?? 0,
-      v: records[0]?.volume ?? 0,
-      d: new Date(openDate),
-    });
+    const firstEntryClose = records[0]?.close ?? 0;
     resetAggregateCandlestick();
-    open = res[0].c;
-    previousClose = res[0].c;
-    aggregateCandlestickHighLowVolume({
-      open: previousClose,
-      high: previousClose,
-      low: previousClose,
-      close: previousClose,
-      volume: 0,
-      timestamp: openDate,
-    });
+    open = firstEntryClose;
+    previousClose = firstEntryClose;
     let candleTimeStamp = openDate + timeStep;
 
     if (dataRecordsAmount > 0) {
@@ -153,7 +136,6 @@ export function timeFrameAggregate(
         timeModeCount,
         MIN,
         (date: Date) => date.getMinutes(),
-        roundDownMinute,
         dataRecordsAmount,
         oldestRecord
       );
@@ -163,7 +145,6 @@ export function timeFrameAggregate(
         timeModeCount,
         HOUR,
         (date: Date) => date.getHours(),
-        roundDownMinute,
         dataRecordsAmount,
         oldestRecord
       );
@@ -173,7 +154,6 @@ export function timeFrameAggregate(
         timeModeCount,
         DAY,
         getDayOfYear,
-        roundDownMinute,
         dataRecordsAmount,
         oldestRecord
       );
@@ -183,7 +163,6 @@ export function timeFrameAggregate(
         timeModeCount,
         WEEK,
         getISOWeek,
-        roundDownMinute,
         dataRecordsAmount,
         oldestRecord
       );
