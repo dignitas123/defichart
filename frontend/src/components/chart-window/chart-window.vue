@@ -201,7 +201,7 @@ import {
   lookbackPeriodEnum,
   LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
-import { useLazyQuery } from '@vue/apollo-composable';
+import { useLazyQuery, useSubscription } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import {
   GetTimeFrameQuery,
@@ -211,6 +211,7 @@ import {
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
 import { isEqual } from 'lodash';
+import { tickDataStreamSubscription } from 'src/apollo/tickDataStream';
 
 const props = defineProps<{
   id: string;
@@ -262,6 +263,13 @@ const dataRecordsAmount = ref(0);
 const datePosition = ref<DatePosition>({
   standardDateFormat: 'HH:mm',
   entries: [],
+});
+
+const { result: tickStreamResult, loading: tickStreamLoading } =
+  useSubscription(tickDataStreamSubscription);
+
+watch(tickStreamResult, () => {
+  console.log('tickStreamResult', tickStreamResult.value);
 });
 
 const {
@@ -413,9 +421,7 @@ async function setCandleDataValues(
 
       let j = 1;
       while (candleTimeStamp <= newestRecordTimestamp) {
-        if (
-          reversedRecords[j]?.timestamp === candleTimeStamp
-        ) {
+        if (reversedRecords[j]?.timestamp === candleTimeStamp) {
           ohlcData.push({
             o: reversedRecords[j]?.open ?? 0,
             h: reversedRecords[j]?.high ?? 0,
