@@ -1,6 +1,9 @@
 <template>
-  <div class="atomic-time">
-    {{ formattedTime }} UTC
+  <div class="atomic-time-wrapper">
+    <div class="atomic-time">
+      {{ formattedTime }}
+    </div>
+    UTC
     <q-tooltip>
       Coordinated Universal Time - 5 hours before New York Time
     </q-tooltip>
@@ -44,7 +47,12 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.atomic-time {
+.atomic-time-wrapper {
+  display: inline-flex;
+  cursor: help;
   font-size: 11px;
+  .atomic-time {
+    width: 50px;
+  }
 }
 </style>
