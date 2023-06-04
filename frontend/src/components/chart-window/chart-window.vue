@@ -206,6 +206,7 @@ import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import {
   GetTimeFrameQuery,
   GetTimeFrameQueryVariables,
+  Subscription,
   TimeFrame as TimeFrameEnum,
 } from 'src/generated/graphql';
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
@@ -266,10 +267,12 @@ const datePosition = ref<DatePosition>({
 });
 
 const { result: tickStreamResult, loading: tickStreamLoading } =
-  useSubscription(tickDataStreamSubscription);
+  useSubscription<Subscription>(tickDataStreamSubscription);
 
 watch(tickStreamResult, () => {
-  console.log('tickStreamResult', tickStreamResult.value);
+  if (tickStreamResult.value?.tickData?.direction !== null) {
+    console.log('new price', tickStreamResult.value);
+  }
 });
 
 const {

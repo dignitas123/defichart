@@ -1,8 +1,14 @@
 import { constants } from "./constants.js";
 import { kinesisClient } from "./client.js";
-import { PutRecordCommand } from "@aws-sdk/client-kinesis";
+import { PutRecordsCommand } from "@aws-sdk/client-kinesis";
 
-export async function putRecordOnKinesis(volume, direction, price, timestamp, partitionKey="btcusd-perp") {
+export async function putRecordOnKinesis(
+  volume,
+  direction,
+  price,
+  timestamp,
+  partitionKey = "btcusd-perp"
+) {
   const data = {
     volume: volume,
     direction: direction,
@@ -10,12 +16,20 @@ export async function putRecordOnKinesis(volume, direction, price, timestamp, pa
     timestamp: timestamp,
   };
 
-  const command = new PutRecordCommand({
-    Data: new TextEncoder().encode(JSON.stringify(data)),
-    PartitionKey: partitionKey,
+  const records = [
+    {
+      Data: new TextEncoder().encode(JSON.stringify(data)),
+      PartitionKey: partitionKey,
+    },
+  ];
+
+  const params = {
     StreamName: constants.KINESIS_STREAM_NAME,
     StreamARN: constants.KINESIS_STREAM_ARN,
-  });
+    Records: records,
+  };
+
+  const command = new PutRecordsCommand(params);
 
   try {
     const result = await kinesisClient.send(command);
