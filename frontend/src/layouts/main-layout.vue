@@ -74,6 +74,8 @@
       @disconnect="disconnectWallet"
     />
 
+    <CookieDialog />
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -94,6 +96,7 @@ import {
   useUserSettings,
 } from 'src/stores/user-settings';
 import AtomicTime from 'src/components/atomic-time/atomic-time.vue';
+import CookieDialog from 'src/components/cookie-dialog/cookie-dialog.vue';
 
 const coinGecko = useCoinGecko();
 
