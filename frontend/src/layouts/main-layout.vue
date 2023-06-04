@@ -12,6 +12,7 @@
           name="img:deficharts_text.svg"
           style="width: auto; height: auto"
         />
+        <AtomicTime />
         <q-space />
         <q-btn
           v-if="!loading && selectedAccountAddress && ethBalance"
@@ -92,6 +93,7 @@ import {
   accountCurrencySymbols,
   useUserSettings,
 } from 'src/stores/user-settings';
+import AtomicTime from 'src/components/atomic-time/atomic-time.vue';
 
 const coinGecko = useCoinGecko();
 
