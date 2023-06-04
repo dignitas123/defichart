@@ -201,21 +201,21 @@ import {
   lookbackPeriodEnum,
   LookbackPeriodString,
 } from './child-components/header-bar/child-components/lookback-dropdown.if';
-import { useLazyQuery, useSubscription } from '@vue/apollo-composable';
+import { useLazyQuery } from '@vue/apollo-composable';
 import { getTimeFrameQuery } from 'src/apollo/timeFrame.query';
 import {
   GetTimeFrameQuery,
   GetTimeFrameQueryVariables,
-  Subscription,
+  TickDataResult,
   TimeFrame as TimeFrameEnum,
 } from 'src/generated/graphql';
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
 import { isEqual } from 'lodash';
-import { tickDataStreamSubscription } from 'src/apollo/tickDataStream';
 
 const props = defineProps<{
   id: string;
+  tickData?: TickDataResult | null;
   symbol: AssetPair;
   symbolName: string;
   broker: Broker;
@@ -266,21 +266,24 @@ const datePosition = ref<DatePosition>({
   entries: [],
 });
 
-const { result: tickStreamResult, loading: tickStreamLoading } =
-  useSubscription<Subscription>(tickDataStreamSubscription);
-
-watch(tickStreamResult, () => {
-  if (tickStreamResult.value?.tickData?.direction !== null) {
-    console.log('new price', tickStreamResult.value);
-  }
-});
-
 const {
   loading: ohlcvLoading,
   error: ohlcvError,
   result: ohlcvResult,
   load: loadOhlcvQuery,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
+
+watch(
+  () => props.tickData,
+  () => {
+    if (
+      props.tickData &&
+      props.tickData.ticker === `${props.symbol}-${props.broker}`
+    ) {
+      // TODO: process tickdata
+    }
+  }
+);
 
 onMounted(async () => {
   // INFO: if no candlesShow in user settings

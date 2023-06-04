@@ -11,6 +11,7 @@
       v-for="(chart, id) in charts"
       :key="id"
       :id="id"
+      :tickData="tickData"
       :broker="chart.broker"
       :symbol="chart.symbol"
       :symbolName="chart.symbolName"
@@ -35,7 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref, nextTick, onMounted } from 'vue';
+import { onUnmounted, reactive, ref, nextTick, onMounted, watch } from 'vue';
 import { Chart } from './broker-charts.if';
 import ChartWindow from 'src/components/chart-window/chart-window.vue';
 import { useBrokerChartSizes } from './broker-charts.cp';
@@ -45,6 +46,9 @@ import {
   MAX_CANDLES_LOAD,
 } from 'src/pages/broker-charts/consts';
 import { useCursorOverwrite } from 'src/shared/composables/cursor-overwrite';
+import { useSubscription } from '@vue/apollo-composable';
+import { Subscription, TickDataResult } from 'src/generated/graphql';
+import { tickDataStreamSubscription } from 'src/apollo/tickDataStream';
 
 const MIN_CHART_HEIGHT = 300;
 const MIN_CHART_WIDTH = 300;
@@ -59,6 +63,18 @@ onUnmounted(() => {
 });
 
 const { maxChartHeight, maxChartWidth } = useBrokerChartSizes();
+
+const tickData = ref<TickDataResult | null>();
+
+const { result: tickStreamResult } = useSubscription<Subscription>(
+  tickDataStreamSubscription
+);
+
+watch(tickStreamResult, () => {
+  if (tickStreamResult.value?.tickData?.direction !== null) {
+    tickData.value = tickStreamResult.value?.tickData;
+  }
+});
 
 const { setCursor, removeCursor } = useCursorOverwrite();
 
