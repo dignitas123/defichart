@@ -9,12 +9,15 @@ import { useLanguageStore } from './stores/language';
 import { useCoinGecko } from './stores/coin-gecko';
 import { useUserSettings } from './stores/user-settings';
 import { setupGraphQL } from './apollo/client';
+import { useAtomicTimeStore } from './stores/atomic-time';
 
 setupGraphQL();
 
 const { setLanguage } = useLanguageStore();
 
 const { setPricesVsCurrency } = useCoinGecko();
+
+const { startAtomicClock } = useAtomicTimeStore();
 
 const { setDisplaySettingsFromLocalStorage } = useUserSettings();
 
@@ -29,6 +32,7 @@ onMounted(async () => {
     tokensPricesToLoad,
     userSettings.getAccountCurrency
   );
+  startAtomicClock();
   setInterval(async () => {
     await setPricesVsCurrency(
       tokensPricesToLoad,

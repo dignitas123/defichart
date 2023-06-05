@@ -1,7 +1,7 @@
 <template>
   <div class="atomic-time-wrapper">
     <div class="atomic-time">
-      {{ formattedTime }}
+      {{ atomicTime.formattedTime }}
     </div>
     UTC
     <q-tooltip>
@@ -11,39 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { WorldTimeResult } from './atomic-time.if';
+import { useAtomicTimeStore } from 'src/stores/atomic-time';
 
-const time = ref<Date>();
-
-const formattedTime = ref('');
-
-function formatTime(time: Date) {
-  return time.toISOString().split('T')[1].slice(0, 8);
-}
-
-function updateAtomicTime() {
-  if (!time.value) {
-    return;
-  }
-  time.value.setSeconds(time.value.getSeconds() + 1);
-  formattedTime.value = formatTime(time.value);
-}
-
-function getAtomicTime() {
-  axios
-    .get('https://worldtimeapi.org/api/ip')
-    .then((result: WorldTimeResult) => {
-      time.value = new Date(result.data.utc_datetime);
-      formattedTime.value = formatTime(time.value);
-    });
-}
-
-onMounted(() => {
-  getAtomicTime();
-  setInterval(updateAtomicTime, 1000); // Update the time every second
-});
+const atomicTime = useAtomicTimeStore();
 </script>
 
 <style lang="scss" scoped>

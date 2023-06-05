@@ -64,7 +64,6 @@ const { setCookie, getCookie } = useCookies();
 
 onMounted(() => {
   const cookie = getCookie(COOKIE_DIALOG_NAME);
-  console.log('cookie', cookie);
   if (cookie === null || cookie === 'false') {
     dialogOpen.value = true;
   }
