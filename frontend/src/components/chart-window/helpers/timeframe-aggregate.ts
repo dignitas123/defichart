@@ -49,12 +49,6 @@ function resetAllTemporaryCandleVariables() {
   resetAggregateCandlestick();
 }
 
-function roundDownMinute(date: Date, amount: number) {
-  const currentMinute = date.getMinutes();
-  const roundDownMinute = Math.floor(currentMinute / amount) * amount;
-  return date.getTime() - (currentMinute - roundDownMinute) * MIN;
-}
-
 function intervalCalculation(
   records: Query['timeFrameRecords'],
   amount: number,

@@ -212,6 +212,7 @@ import {
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
 import { isEqual } from 'lodash';
+import { useCandleStream } from './candle-stream';
 
 const props = defineProps<{
   id: string;
@@ -273,14 +274,30 @@ const {
   load: loadOhlcvQuery,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
+useCandleStream(data, timeFrame);
+
 watch(
   () => props.tickData,
   () => {
     if (
       props.tickData &&
-      props.tickData.ticker === `${props.symbol}-${props.broker}`
+      props.tickData.price &&
+      props.tickData.ticker === `${props.symbol}-${props.broker}` &&
+      data.value
     ) {
-      // TODO: process tickdata
+      const price = props.tickData.price;
+      const currentCandle = data.value[data.value.length - 1];
+      if (price > currentCandle.h) {
+        data.value[data.value.length - 1].h = price;
+      } else if (price < currentCandle.l) {
+        data.value[data.value.length - 1].l = price;
+      }
+      if (currentCandle.v === 0) {
+        // first tick sets open price
+        data.value[data.value.length - 1].o = price;
+      }
+      data.value[data.value.length - 1].c = price;
+      data.value[data.value.length - 1].v += props.tickData.volume ?? 0;
     }
   }
 );

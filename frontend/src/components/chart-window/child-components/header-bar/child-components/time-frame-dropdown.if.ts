@@ -66,7 +66,6 @@ export type TimeFrame =
   | 'H4'
   | 'H6'
   | 'H8'
-  | 'H12'
   | 'D1'
   | 'D2'
   | 'D3'
