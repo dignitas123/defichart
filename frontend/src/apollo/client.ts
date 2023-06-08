@@ -6,12 +6,12 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 
 const httpLink = new HttpLink({
-  uri: 'http://ec2-3-71-112-87.eu-central-1.compute.amazonaws.com/graphql',
+  uri: 'https://ec2-3-71-112-87.eu-central-1.compute.amazonaws.com/graphql',
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: 'ws://ec2-3-71-112-87.eu-central-1.compute.amazonaws.com/graphql',
+    url: 'wss://ec2-3-71-112-87.eu-central-1.compute.amazonaws.com/graphql',
   })
 );
 

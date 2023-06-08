@@ -53,10 +53,20 @@ server {
         try_files $uri $uri/ /index.html;
     }
 }
+```
+## install ssl on ec2 instance with nginx
+
+`sudo dnf install openssl mod_ssl`
+```sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/apache-selfsigned.key -out /etc/pki/tls/certs/apache-selfsigned.crt```
+
+```
 // backend (for graphql):
 // it's the /etc/nginx/nginx.conf
 server {
     listen 80 default_server;
+    listen 443 ssl;
+    ssl_certificate /etc/pki/tls/certs/apache-selfsigned.crt;
+    ssl_certificate_key /etc/pki/tls/private/apache-selfsigned.key;
     server_name _;
 
     location /graphql {
