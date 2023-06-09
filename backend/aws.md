@@ -145,7 +145,7 @@ Frontend:
 Backend:
 `ssh -i defichartsinstancebackend.pem ec2-user@ec2-3-71-112-87.eu-central-1.compute.amazonaws.com`
 
-## deployment
+## deployment and update frontend
 
 - Connect to Instance
 - `nvm use 16`
@@ -155,3 +155,5 @@ Backend:
 - `cd frontend`
 - `yarn build`
 - `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
+
+**Note: somehow build crashes so I'm currently uploading the dist folder, you have to yarn build locally
