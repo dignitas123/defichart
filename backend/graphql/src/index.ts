@@ -103,6 +103,7 @@ export const corsMiddleware = (
 ) => {
   const origin = req.headers.origin as string;
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  console.log('incoming ip', ip);
   const allowedIPs = process.env.ALLOWED_IP?.split(',');
   if (allowedOrigins.includes(origin) || (allowedIPs?.length && allowedIPs.includes(ip as string))) {
     res.setHeader("Access-Control-Allow-Origin", origin || "*");
