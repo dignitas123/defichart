@@ -15,7 +15,11 @@ import { useServer } from "graphql-ws/lib/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
-import { getBeginningForTimeFrame, getCurrentCandleDataForTF, getObjectOnS3 } from "./aws-module/s3-fns";
+import {
+  getBeginningForTimeFrame,
+  getCurrentCandleDataForTF,
+  getObjectOnS3,
+} from "./aws-module/s3-fns";
 import { allowedOrigins } from "./allowed";
 
 // Define your resolver functions
@@ -58,15 +62,17 @@ const resolvers: Resolvers = {
       if (startShift) {
         return timestreamRecords;
       }
-      if(!currentCandle) {
-        const newestNoVolumeCandle = [{
-          timestamp: getBeginningForTimeFrame(timeFrame),
-          open: timestreamRecords[0].close,
-          high: timestreamRecords[0].close,
-          low: timestreamRecords[0].close,
-          close: timestreamRecords[0].close,
-          volume: 0,
-        }]
+      if (!currentCandle) {
+        const newestNoVolumeCandle = [
+          {
+            timestamp: getBeginningForTimeFrame(timeFrame),
+            open: timestreamRecords[0].close,
+            high: timestreamRecords[0].close,
+            low: timestreamRecords[0].close,
+            close: timestreamRecords[0].close,
+            volume: 0,
+          },
+        ];
         return [...newestNoVolumeCandle, ...timestreamRecords];
       }
       const currentRecord = [
@@ -97,23 +103,27 @@ const httpServer = createServer(app);
 import { Request, Response, NextFunction } from "express";
 import { checkArrayIntersection } from "./utils";
 
+const allowedIPs = process.env.ALLOWED_IP?.split(",");
+
 export const corsMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const origin = req.headers.origin as string;
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  console.log('incoming ip', ip, typeof ip, '??', ip && ip.length && ip.length > 0 && ip[0],
-  'with split', ip && typeof ip === 'string' && ip.split(','), 'has comma?', ip?.includes(','));
+  let ips = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-  if(ip && typeof ip === 'string' && ip.split(',').length > 1) {
-    console.log('this is second', ip.split(',')[1]);
-  }
-  const allowedIPs = process.env.ALLOWED_IP?.split(',');
-  if (allowedOrigins.includes(origin) || (allowedIPs && checkArrayIntersection(allowedIPs, ip))) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin || "*");
     next();
+  } else if (allowedIPs?.length && allowedIPs?.length > 0) {
+    if (typeof ips === "string" && ips?.includes(",")) {
+      ips = ips.split(",").map((_ip) => _ip.trim());
+    }
+    if (checkArrayIntersection(allowedIPs, ips)) {
+      res.setHeader("Access-Control-Allow-Origin", origin || "*");
+      next();
+    }
   } else {
     res.status(403).send("Access Forbidden");
   }
