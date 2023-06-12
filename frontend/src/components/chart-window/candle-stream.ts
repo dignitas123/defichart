@@ -148,7 +148,7 @@ export function useCandleStream(
           }
           break;
         case 'D2':
-          const currentCandleD2 = data.value[data.value.length - 1];
+          const currentCandleD2 = data.value.slice(-1)[0];
           const currentCandleDateD2 = currentCandleD2.d;
           currentCandleDateD2.setDate(currentCandleDateD2.getDate() + 2);
           if (
@@ -161,7 +161,7 @@ export function useCandleStream(
           }
           break;
         case 'D3':
-          const currentCandleD3 = data.value[data.value.length - 1];
+          const currentCandleD3 = data.value.slice(-1)[0];
           const currentCandleDateD3 = currentCandleD3.d;
           currentCandleDateD3.setDate(currentCandleDateD3.getDate() + 3);
           if (
@@ -174,7 +174,7 @@ export function useCandleStream(
           }
           break;
         case 'D4':
-          const currentCandleD4 = data.value[data.value.length - 1];
+          const currentCandleD4 = data.value.slice(-1)[0];
           const currentCandleDateD4 = currentCandleD4.d;
           currentCandleDateD4.setDate(currentCandleDateD4.getDate() + 4);
           if (
@@ -187,7 +187,7 @@ export function useCandleStream(
           }
           break;
         case 'W1':
-          const currentCandleW1 = data.value[data.value.length - 1];
+          const currentCandleW1 = data.value.slice(-1)[0];
           const currentCandleDateW1 = currentCandleW1.d;
           currentCandleDateW1.setDate(currentCandleDateW1.getDate() + 7);
           if (
@@ -196,11 +196,12 @@ export function useCandleStream(
             atomicTime.time.getHours() === 0 &&
             atomicTime.time === currentCandleDateW1
           ) {
+            console.log('push new candle');
             pushNewCandle = true;
           }
           break;
         case 'W2':
-          const currentCandleW2 = data.value[data.value.length - 1];
+          const currentCandleW2 = data.value.slice(-1)[0];
           const currentCandleDateW2 = currentCandleW2.d;
           currentCandleDateW2.setDate(currentCandleDateW2.getDate() + 7 * 2);
           if (
@@ -213,7 +214,7 @@ export function useCandleStream(
           }
           break;
         case 'W3':
-          const currentCandleW3 = data.value[data.value.length - 1];
+          const currentCandleW3 = data.value.slice(-1)[0];
           const currentCandleDateW3 = currentCandleW3.d;
           currentCandleDateW3.setDate(currentCandleDateW3.getDate() + 7 * 3);
           if (
@@ -226,7 +227,7 @@ export function useCandleStream(
           }
           break;
         case 'W4':
-          const currentCandleW4 = data.value[data.value.length - 1];
+          const currentCandleW4 = data.value.slice(-1)[0];
           const currentCandleDateW4 = currentCandleW4.d;
           currentCandleDateW4.setDate(currentCandleDateW4.getDate() + 7 * 4);
           if (
