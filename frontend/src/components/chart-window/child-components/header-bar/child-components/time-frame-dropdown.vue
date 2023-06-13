@@ -116,7 +116,7 @@
             @focus="focusCustomTimeFrame"
             @blur="resetCustomTimeFrameInputText"
             @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
-            :style="`width: ${$q.platform.is.mobile ? 54 : 84}px`"
+            :style="`width: ${$q.platform.is.mobile ? 46 : 84}px`"
           />
         </q-item-section>
       </q-item>
