@@ -333,7 +333,11 @@ export function useDateFunctions(
           }
         }
         if (timeDisplayProps.value.mode === TimeMode.Y3) {
-          if (monthTransition && [3, 6, 9].includes(month)) {
+          if (['W2', 'W3', 'W4'].includes(timeFrame.value)) {
+            if (yearTransition) {
+              showEntryDateFormat = 'YYY';
+            }
+          } else if (monthTransition && [3, 6, 9].includes(month)) {
             showEntryDateFormat = 'MMM';
           }
         }
