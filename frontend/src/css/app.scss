@@ -25,6 +25,14 @@ html.ns-resize * {
   display: none;
 }
 
+/* Disable pinch zooming */
+@viewport {
+  zoom: 1 !important;
+  max-zoom: 1 !important;
+  min-zoom: 1 !important;
+  user-zoom: fixed !important;
+}
+
 // Animations
 .blink {
   animation: blink 0.5s;

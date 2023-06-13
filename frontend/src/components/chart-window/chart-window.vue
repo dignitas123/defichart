@@ -64,6 +64,7 @@
           @wheel="onWheel"
           @touchstart="handleChartTouchStart"
           @touchmove="handleChartTouchMove"
+          @touchend="handleChartTouchEnd"
           @mousemove="updateMouseContainer"
           @mouseleave="onChartLeave"
         >
@@ -914,23 +915,100 @@ function onWheel(event: WheelEvent) {
   }
 }
 
-const touchStartY = ref(0);
+const touchData = reactive({
+  initialPinchDistance: 0,
+  currentPinchDistance: 0,
+  pinchDistance: 0,
+});
 
 // @touchstart event (.chart)
 function handleChartTouchStart(event: TouchEvent) {
-  touchStartY.value = event.touches[0].clientY;
+  console.log('touchstart');
+  if (event.touches.length >= 2) {
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+    const xDiff = touch1.clientX - touch2.clientX;
+    const yDiff = touch1.clientY - touch2.clientY;
+    touchData.currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+    if (touchData.initialPinchDistance === 0) {
+      touchData.initialPinchDistance = touchData.currentPinchDistance;
+    }
+  }
 }
 
 // @touchmove event (.chart)
 function handleChartTouchMove(event: TouchEvent) {
-  const touchEnd = event.touches[0].clientY;
-  const diff = touchStartY.value - touchEnd;
-  if (diff > 0 && candleWidth.value > 2) {
-    increaseCandlesShow(candlesChangeDependantOnCandlesShow());
-  } else if (diff < 0) {
-    decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
+  // if (event.touches.length >= 2) {
+  //   const touch1 = event.touches[0];
+  //   const touch2 = event.touches[1];
+  //   const xDiff = touch1.clientX - touch2.clientX;
+  //   const yDiff = touch1.clientY - touch2.clientY;
+  //   const currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+
+  //   // Check if the current pinch distance is greater than the initial pinch distance
+  //   if (currentPinchDistance > touchData.initialPinchDistance) {
+  //     // Zooming in
+  //     const pinchScale = currentPinchDistance / touchData.initialPinchDistance;
+  //     decreaseCandlesShow(Math.round(pinchScale));
+  //   } else {
+  //     // Zooming out
+  //     const pinchScale = touchData.initialPinchDistance / currentPinchDistance;
+  //     if(candleWidth.value > 2) {
+  //       increaseCandlesShow(Math.round(pinchScale));
+  //     }
+  //   }
+  // }
+
+  // if (event.touches.length >= 2) {
+  //   const touch1 = event.touches[0];
+  //   const touch2 = event.touches[1];
+  //   const xDiff = touch1.clientX - touch2.clientX;
+  //   const yDiff = touch1.clientY - touch2.clientY;
+  //   const currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+
+  //   const pinchScaleChange = currentPinchDistance / touchData.initialPinchDistance;
+
+  //   if (pinchScaleChange > touchData.pinchScale) {
+  //     // Zooming in
+  //     decreaseCandlesShow(Math.round(pinchScaleChange));
+  //   } else if (pinchScaleChange < touchData.pinchScale) {
+  //     // Zooming out
+  //     if(candleWidth.value > 2) {
+  //       increaseCandlesShow(Math.round(pinchScaleChange));
+  //     }
+  //   }
+
+  //   // Update pinchScale in touchData for the next iteration
+  //   touchData.pinchScale = pinchScaleChange;
+  // }
+
+  if (event.touches.length >= 2) {
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+    const xDiff = touch1.clientX - touch2.clientX;
+    const yDiff = touch1.clientY - touch2.clientY;
+    const currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+
+    if (currentPinchDistance > touchData.pinchDistance) {
+      // Zooming in
+      decreaseCandlesShow(2);
+    } else if (currentPinchDistance < touchData.pinchDistance) {
+      // Zooming out
+      if (candleWidth.value > 2) {
+        increaseCandlesShow(2);
+      }
+    }
+
+    // Update pinchDistance in touchData for the next iteration
+    touchData.pinchDistance = currentPinchDistance;
   }
-  touchStartY.value = touchEnd;
+}
+
+// @touchend event (.chart)
+function handleChartTouchEnd() {
+  touchData.initialPinchDistance = 0;
+  touchData.currentPinchDistance = 0;
+  touchData.pinchDistance = 0;
 }
 
 function onResize() {
