@@ -19,9 +19,9 @@
     />
     <rect
       :x="candle.wX"
-      :y="candle.lwY"
+      :y="candle.lwY - 2"
       :width="CANDLE_WICK_THICKNESS"
-      :height="candle.lwHeight"
+      :height="candle.lwHeight + 2"
       :style="`fill: ${candle.wickFillColor}`"
       shape-rendering="crispEdges"
     />
