@@ -44,4 +44,20 @@ onMounted(async () => {
 const languageCode = navigator.language.split('-')[0];
 
 setLanguage(languageCode);
+
+// Check for browser compatibility
+if (typeof document.hidden !== 'undefined') {
+  // Add the event listener for visibility change
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+}
+
+// Function to handle visibility change
+function handleVisibilityChange() {
+  if (document.hidden) {
+    // User has switched to a different tab or minimized the window
+  } else {
+    // User has come back to the tab
+    startAtomicClock();
+  }
+}
 </script>

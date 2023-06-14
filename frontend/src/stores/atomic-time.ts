@@ -31,6 +31,7 @@ export const useAtomicTimeStore = defineStore('atomic-time', {
   state: () => ({
     time: new Date(),
     formattedTime: '',
+    timerIntervalId: undefined as NodeJS.Timer | undefined,
   }),
   getters: {
     getFormattedTime: (state) => state.formattedTime,
@@ -38,7 +39,8 @@ export const useAtomicTimeStore = defineStore('atomic-time', {
   actions: {
     startAtomicClock() {
       this.getAtomicTime();
-      setInterval(this.updateAtomicTime, 1000); // Update the time every second
+      clearInterval(this.timerIntervalId);
+      this.timerIntervalId = setInterval(this.updateAtomicTime, 1000); // Update the time every second
     },
     updateAtomicTime() {
       this.time.setSeconds(this.time.getSeconds() + 1);
