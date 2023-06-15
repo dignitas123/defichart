@@ -9,20 +9,22 @@
       shape-rendering="crispEdges"
     />
     <rect
+      :x="candle.wX"
+      :y="candle.lwY - 2"
+      :width="CANDLE_WICK_THICKNESS"
+      :height="candle.lwHeight + 2"
+      :style="`fill: ${candle.wickFillColor}`"
+      shape-rendering="crispEdges"
+    />
+  </g>
+  <g>
+    <rect
       :x="candle.x"
       :y="candle.y"
       :width="candleWidth"
       :height="candle.height"
       :style="`fill: ${candle.fillColor}`"
       :stroke="CANDLE_BORDER && candle.height !== 1 ? CANDLE_BORDER_COLOR : ''"
-      shape-rendering="crispEdges"
-    />
-    <rect
-      :x="candle.wX"
-      :y="candle.lwY - 2"
-      :width="CANDLE_WICK_THICKNESS"
-      :height="candle.lwHeight + 2"
-      :style="`fill: ${candle.wickFillColor}`"
       shape-rendering="crispEdges"
     />
   </g>

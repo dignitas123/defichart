@@ -833,11 +833,10 @@ function calcuLateNewScale(currentScale: number, scalePercentage: number) {
 function onYDrag(event: MouseEvent) {
   const scalePercentIncrease = 0.005;
   if (timeAxisDrag.value) {
-    let candlesToIncrease = Math.ceil(candlesShow.value / 30);
     if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {
-      increaseCandlesShow(candlesToIncrease);
+      increaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (event.x < timeAxisDraggingStart.value) {
-      decreaseCandlesShow(candlesToIncrease);
+      decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
     }
     timeAxisDraggingStart.value = event.x;
   }
@@ -991,11 +990,11 @@ function handleChartTouchMove(event: TouchEvent) {
 
     if (currentPinchDistance > touchData.pinchDistance) {
       // Zooming in
-      decreaseCandlesShow(2);
+      decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (currentPinchDistance < touchData.pinchDistance) {
       // Zooming out
       if (candleWidth.value > 2) {
-        increaseCandlesShow(2);
+        increaseCandlesShow(candlesChangeDependantOnCandlesShow());
       }
     }
 

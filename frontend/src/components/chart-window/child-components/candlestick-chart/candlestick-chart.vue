@@ -143,8 +143,7 @@ const timeDisplayProps = ref<TimeDisplayProperties>();
 
 const previousDate = ref<Date | undefined>(undefined);
 
-async function drawChart() {
-  await nextTick();
+function drawChart() {
   if (!props.width || !props.height || !props.dates || !props.data) {
     return;
   }
