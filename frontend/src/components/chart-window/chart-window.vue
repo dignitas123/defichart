@@ -191,6 +191,7 @@ import {
   YEAR,
   MAX_CANDLES_LOAD,
   M5_TIMEFRAMES,
+  CANDLE_BORDER,
 } from 'src/pages/broker-charts/consts';
 import { findNearestIndex } from 'src/shared/utils/array-functions';
 import { StandardTimeFrames, TimeFrameMode } from './chart-window.if';
@@ -920,7 +921,7 @@ function onWheel(event: WheelEvent) {
     (absAngle >= 45 && absAngle <= 135) ||
     (absAngle >= 225 && absAngle <= 315)
   ) {
-    if (event.deltaY > 0 && candleWidth.value > 2) {
+    if (event.deltaY > 0 && candleWidth.value > (CANDLE_BORDER ? 1.8 : 2.8)) {
       increaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (event.deltaY < 0) {
       decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
@@ -963,7 +964,7 @@ function handleChartTouchMove(event: TouchEvent) {
       decreaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
     } else if (currentPinchDistance < touchData.pinchDistance) {
       // Zooming out
-      if (candleWidth.value > 2) {
+      if (candleWidth.value > (CANDLE_BORDER ? 1.8 : 2.8)) {
         increaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
       }
     }

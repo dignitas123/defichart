@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { Candle, TimeDisplayProperties } from './candlestick-chart.if';
 import { DatePosition, OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import {
