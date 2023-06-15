@@ -830,11 +830,18 @@ function calcuLateNewScale(currentScale: number, scalePercentage: number) {
   return newH2L / chartH2L.value;
 }
 
+const candleWidthBorderNotReached = computed(() => {
+  return candleWidth.value && candleWidth.value > (CANDLE_BORDER ? 1.8 : 2.8);
+});
+
 // @mousemove emit (.chart-wrapper)
 function onYDrag(event: MouseEvent) {
   const scalePercentIncrease = 0.005;
   if (timeAxisDrag.value) {
-    if (event.x > timeAxisDraggingStart.value && candleWidth.value > 2) {
+    if (
+      event.x > timeAxisDraggingStart.value &&
+      candleWidthBorderNotReached.value
+    ) {
       increaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (event.x < timeAxisDraggingStart.value) {
       decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
@@ -921,7 +928,7 @@ function onWheel(event: WheelEvent) {
     (absAngle >= 45 && absAngle <= 135) ||
     (absAngle >= 225 && absAngle <= 315)
   ) {
-    if (event.deltaY > 0 && candleWidth.value > (CANDLE_BORDER ? 1.8 : 2.8)) {
+    if (event.deltaY > 0 && candleWidthBorderNotReached.value) {
       increaseCandlesShow(candlesChangeDependantOnCandlesShow());
     } else if (event.deltaY < 0) {
       decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
@@ -964,7 +971,7 @@ function handleChartTouchMove(event: TouchEvent) {
       decreaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
     } else if (currentPinchDistance < touchData.pinchDistance) {
       // Zooming out
-      if (candleWidth.value > (CANDLE_BORDER ? 1.8 : 2.8)) {
+      if (candleWidthBorderNotReached.value) {
         increaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
       }
     }
