@@ -897,6 +897,20 @@ function candlesChangeDependantOnCandlesShow() {
   }
 }
 
+function candlesChangeDependantOnCandlesShowMobile() {
+  if (candlesShow.value < 15) {
+    return 1;
+  } else if (candlesShow.value > 70) {
+    return 3;
+  } else if (candlesShow.value > 100) {
+    return 8;
+  } else if (candlesShow.value > 150) {
+    return 15;
+  } else {
+    return 1;
+  }
+}
+
 // @wheel emit (.chart)
 function onWheel(event: WheelEvent) {
   const angle = (Math.atan2(event.deltaY, event.deltaX) * 180) / Math.PI;
@@ -937,50 +951,6 @@ function handleChartTouchStart(event: TouchEvent) {
 
 // @touchmove event (.chart)
 function handleChartTouchMove(event: TouchEvent) {
-  // if (event.touches.length >= 2) {
-  //   const touch1 = event.touches[0];
-  //   const touch2 = event.touches[1];
-  //   const xDiff = touch1.clientX - touch2.clientX;
-  //   const yDiff = touch1.clientY - touch2.clientY;
-  //   const currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-
-  //   // Check if the current pinch distance is greater than the initial pinch distance
-  //   if (currentPinchDistance > touchData.initialPinchDistance) {
-  //     // Zooming in
-  //     const pinchScale = currentPinchDistance / touchData.initialPinchDistance;
-  //     decreaseCandlesShow(Math.round(pinchScale));
-  //   } else {
-  //     // Zooming out
-  //     const pinchScale = touchData.initialPinchDistance / currentPinchDistance;
-  //     if(candleWidth.value > 2) {
-  //       increaseCandlesShow(Math.round(pinchScale));
-  //     }
-  //   }
-  // }
-
-  // if (event.touches.length >= 2) {
-  //   const touch1 = event.touches[0];
-  //   const touch2 = event.touches[1];
-  //   const xDiff = touch1.clientX - touch2.clientX;
-  //   const yDiff = touch1.clientY - touch2.clientY;
-  //   const currentPinchDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-
-  //   const pinchScaleChange = currentPinchDistance / touchData.initialPinchDistance;
-
-  //   if (pinchScaleChange > touchData.pinchScale) {
-  //     // Zooming in
-  //     decreaseCandlesShow(Math.round(pinchScaleChange));
-  //   } else if (pinchScaleChange < touchData.pinchScale) {
-  //     // Zooming out
-  //     if(candleWidth.value > 2) {
-  //       increaseCandlesShow(Math.round(pinchScaleChange));
-  //     }
-  //   }
-
-  //   // Update pinchScale in touchData for the next iteration
-  //   touchData.pinchScale = pinchScaleChange;
-  // }
-
   if (event.touches.length >= 2) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
@@ -990,11 +960,11 @@ function handleChartTouchMove(event: TouchEvent) {
 
     if (currentPinchDistance > touchData.pinchDistance) {
       // Zooming in
-      decreaseCandlesShow(candlesChangeDependantOnCandlesShow());
+      decreaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
     } else if (currentPinchDistance < touchData.pinchDistance) {
       // Zooming out
       if (candleWidth.value > 2) {
-        increaseCandlesShow(candlesChangeDependantOnCandlesShow());
+        increaseCandlesShow(candlesChangeDependantOnCandlesShowMobile());
       }
     }
 
