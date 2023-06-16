@@ -269,12 +269,27 @@ const datePosition = ref<DatePosition>({
   entries: [],
 });
 
+const ohlcvResult = ref<GetTimeFrameQuery>();
+
 const {
   loading: ohlcvLoading,
   error: ohlcvError,
-  result: ohlcvResult,
+  onResult: onOhlcvResult,
   load: loadOhlcvQuery,
+  networkStatus: getTimeFrameQueryNetworkStatus,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
+
+const previousTimeFrameQueryNetworkStatus = ref<number>();
+
+onOhlcvResult(async (result) => {
+  if (result.data) {
+    ohlcvResult.value = result.data;
+    // TODO: do something when previousTimeFrameQueryNetworkStatus is 7 (cached)
+    await setCandleDataValuesAndMergeWithOldData();
+  }
+  previousTimeFrameQueryNetworkStatus.value =
+    getTimeFrameQueryNetworkStatus.value;
+});
 
 useCandleStream(data, timeFrame);
 
@@ -329,8 +344,9 @@ async function executeTimeFrameQuery(_startShift = 0) {
     binAmount: MAX_CANDLES_LOAD,
     ...(_startShift && { startShift: _startShift }),
   };
-
+  console.log('getting result b', getTimeFrameQueryNetworkStatus.value);
   loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  console.log('getting result a', getTimeFrameQueryNetworkStatus.value);
   if (isEqual(previousOhlcvQueryVariables, ohlcvQueryVariables)) {
     await setCandleDataValuesAndMergeWithOldData();
   }
@@ -363,10 +379,6 @@ const {
 
 const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
-});
-
-watch(ohlcvResult, async () => {
-  setCandleDataValuesAndMergeWithOldData();
 });
 
 async function setCandleDataValuesAndMergeWithOldData() {

@@ -193,7 +193,7 @@ function drawChart() {
   // Check if a no-volume candle is outside of visible area
   const candleYMin = Math.max(...candles.value.map((candle) => candle.y));
   candles.value.forEach((candle, i) => {
-    if (candle.y >= candleYMin - 2) {
+    if (candle.y >= candleYMin - 2 && candle.height === 1) {
       candles.value[i].y -= 2;
     }
   });
