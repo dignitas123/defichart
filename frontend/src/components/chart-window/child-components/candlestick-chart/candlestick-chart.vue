@@ -193,7 +193,7 @@ function drawChart() {
   // Check if a no-volume candle is outside of visible area
   const candleYMin = Math.max(...candles.value.map((candle) => candle.y));
   candles.value.forEach((candle, i) => {
-    if (candle.y === candleYMin) {
+    if (candle.y >= candleYMin - 2) {
       candles.value[i].y -= 2;
     }
   });
@@ -258,9 +258,7 @@ function drawCandle(
   }
   if (c === o) {
     candle.height = 1;
-    if (candle_border) {
-      candle.fillColor = candle_border_color;
-    }
+    candle.fillColor = candle_border_color;
     // TODO: should be an option to make it transparent
     // if (ohlc.v === 0) {
     //   candle.fillColor = 'transparent';
