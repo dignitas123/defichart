@@ -684,10 +684,12 @@ watch([startingDistanceDifference, timeFrame], async (now, before) => {
     } else {
     }
     await executeTimeFrameQuery(dataRecordsAmount.value);
-  } else {
-    await nextTick();
-    chartUpdateKey.value++;
   }
+  // TODO: unnecessary calculation when zooming in/out, but maybe it's good for something? find out..
+  // else {
+  //   await nextTick();
+  //   chartUpdateKey.value++;
+  // }
 });
 watch(
   () => props.timeFrame,
