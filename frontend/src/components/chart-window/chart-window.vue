@@ -344,9 +344,7 @@ async function executeTimeFrameQuery(_startShift = 0) {
     binAmount: MAX_CANDLES_LOAD,
     ...(_startShift && { startShift: _startShift }),
   };
-  console.log('getting result b', getTimeFrameQueryNetworkStatus.value);
   loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-  console.log('getting result a', getTimeFrameQueryNetworkStatus.value);
   if (isEqual(previousOhlcvQueryVariables, ohlcvQueryVariables)) {
     await setCandleDataValuesAndMergeWithOldData();
   }
@@ -956,7 +954,6 @@ const touchData = reactive({
 
 // @touchstart event (.chart)
 function handleChartTouchStart(event: TouchEvent) {
-  console.log('touchstart');
   if (event.touches.length >= 2) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];

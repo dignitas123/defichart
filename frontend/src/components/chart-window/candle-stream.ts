@@ -196,7 +196,6 @@ export function useCandleStream(
             atomicTime.time.getHours() === 0 &&
             atomicTime.time === currentCandleDateW1
           ) {
-            console.log('push new candle');
             pushNewCandle = true;
           }
           break;
