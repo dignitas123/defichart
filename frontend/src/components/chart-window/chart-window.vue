@@ -324,6 +324,7 @@ onMounted(async () => {
       chartWidth.value
     );
   }
+  initialCandlesShow.value = candlesShow.value;
   executeTimeFrameQuery();
 });
 
@@ -495,7 +496,6 @@ async function setCandleDataValues(
     return;
   }
   calculateAndSetlookbackNumber();
-  startCurrentCandleStream();
 }
 
 const initialCandlesShow = ref(0);
@@ -823,16 +823,20 @@ function handleDoubleClickOnPriceAxis() {
   chartHighScale.value = 0;
   chartLowScale.value = 0;
 }
-function handleDoubleClickOnDateAxis() {
+
+async function handleDoubleClickOnDateAxis() {
   handleDoubleClickOnPriceAxis();
   offset.value = 0;
   candlesShow.value = initialCandlesShow.value;
+  setTimeout(() => {
+    chartUpdateKey.value++;
+  }, 1);
 }
 
 const blockPriceAxisDownDrag = ref(false);
 const blockPriceAxisUpDrag = ref(false);
 
-function calcuLateNewScale(currentScale: number, scalePercentage: number) {
+function calculateNewScale(currentScale: number, scalePercentage: number) {
   if (!chartH2L.value || !chartLow.value) {
     return 1;
   }
@@ -861,7 +865,7 @@ function onYDrag(event: MouseEvent) {
   if (priceAxisDrag.value) {
     if (event.y > priceAxisDraggingStart.value) {
       if (chartLowScale.value > 0) {
-        chartLowScale.value = calcuLateNewScale(
+        chartLowScale.value = calculateNewScale(
           chartLowScale.value,
           -scalePercentIncrease
         );
@@ -870,14 +874,14 @@ function onYDrag(event: MouseEvent) {
           blockPriceAxisUpDrag.value = false;
         }, 1_000);
       } else if (!blockPriceAxisUpDrag.value) {
-        chartHighScale.value = calcuLateNewScale(
+        chartHighScale.value = calculateNewScale(
           chartHighScale.value,
           scalePercentIncrease
         );
       }
     } else if (event.y < priceAxisDraggingStart.value) {
       if (chartHighScale.value > 0) {
-        chartHighScale.value = calcuLateNewScale(
+        chartHighScale.value = calculateNewScale(
           chartHighScale.value,
           -scalePercentIncrease
         );
@@ -886,7 +890,7 @@ function onYDrag(event: MouseEvent) {
           blockPriceAxisDownDrag.value = false;
         }, 1_000);
       } else if (!blockPriceAxisDownDrag.value) {
-        chartLowScale.value = calcuLateNewScale(
+        chartLowScale.value = calculateNewScale(
           chartLowScale.value,
           scalePercentIncrease
         );
@@ -1090,10 +1094,6 @@ function calculateAppropriateCandlesBasedOnChartWidth(_chartWidth: number) {
   const actualTemporaryChartWidth =
     chartsWidthWithoutPriceAxisWidth - assumedPriceAxisAverageWidth;
   return Math.round(actualTemporaryChartWidth / WANTED_PX_PER_CANDLE);
-}
-
-function startCurrentCandleStream() {
-  // TODO: current candle stream start graphql subscription
 }
 
 function calculateAndSetlookbackNumber() {
