@@ -269,12 +269,11 @@ const datePosition = ref<DatePosition>({
   entries: [],
 });
 
-const ohlcvResult = ref<GetTimeFrameQuery>();
-
 const {
   loading: ohlcvLoading,
   error: ohlcvError,
   onResult: onOhlcvResult,
+  result: ohlcvResult,
   load: loadOhlcvQuery,
   networkStatus: getTimeFrameQueryNetworkStatus,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
@@ -283,7 +282,6 @@ const previousTimeFrameQueryNetworkStatus = ref<number>();
 
 onOhlcvResult(async (result) => {
   if (result.data) {
-    ohlcvResult.value = result.data;
     // TODO: do something when previousTimeFrameQueryNetworkStatus is 7 (cached)
     await setCandleDataValuesAndMergeWithOldData();
   }
