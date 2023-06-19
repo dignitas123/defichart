@@ -374,6 +374,15 @@ const {
   chartUpdateKey
 );
 
+watch(startingDistanceDifference, async () => {
+  if(!startingDistanceDifference.value) {
+    return;
+  }
+  if(startingDistanceDifference.value > 0) {
+    await executeTimeFrameQuery(dataRecordsAmount.value);
+  }
+})
+
 const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
 });
