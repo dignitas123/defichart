@@ -669,27 +669,14 @@ watch(
     selected.value = props.selected;
   }
 );
-watch(timeFrame, async () => {
+watch(timeFrame, async (now, before) => {
   emit('update:timeFrame', timeFrame.value);
-});
-watch([startingDistanceDifference, timeFrame], async (now, before) => {
-  if (!startingDistanceDifference.value) {
-    return;
-  }
-  const sameTimeFrame = now[1] === before[1];
-  if (startingDistanceDifference.value > 0 || !sameTimeFrame) {
-    if (!sameTimeFrame) {
-      dataRecordsAmount.value = 0;
-      data.value = undefined;
-    } else {
-    }
+  const sameTimeFrame = now === before;
+  if (!sameTimeFrame) {
+    dataRecordsAmount.value = 0;
+    data.value = undefined;
     await executeTimeFrameQuery(dataRecordsAmount.value);
   }
-  // TODO: unnecessary calculation when zooming in/out, but maybe it's good for something? find out..
-  // else {
-  //   await nextTick();
-  //   chartUpdateKey.value++;
-  // }
 });
 watch(
   () => props.timeFrame,
@@ -706,6 +693,13 @@ watch(
     lookbackPeriod.value = props.lookbackPeriod;
   }
 );
+
+watch(data, async (_, before) => {
+  if (!before) {
+    await nextTick();
+    chartUpdateKey.value++;
+  }
+});
 
 window.addEventListener('keydown', onKeyDown);
 
