@@ -4,7 +4,7 @@ nnso
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useLanguageStore } from './stores/language';
 import { useCoinGecko } from './stores/coin-gecko';
 import { useUserSettings } from './stores/user-settings';
@@ -18,6 +18,8 @@ const { setLanguage } = useLanguageStore();
 const { setPricesVsCurrency } = useCoinGecko();
 
 const { startAtomicClock } = useAtomicTimeStore();
+
+const atomicTime = useAtomicTimeStore();
 
 const { setDisplaySettingsFromLocalStorage } = useUserSettings();
 
@@ -51,13 +53,18 @@ if (typeof document.hidden !== 'undefined') {
   document.addEventListener('visibilitychange', handleVisibilityChange);
 }
 
+const lastTimestampBeforeTabSwitch = ref(new Date());
+
 // Function to handle visibility change
 function handleVisibilityChange() {
   if (document.hidden) {
     // User has switched to a different tab or minimized the window
+    lastTimestampBeforeTabSwitch.value = new Date(atomicTime.time);
   } else {
     // User has come back to the tab
     startAtomicClock();
+    atomicTime.switchTabTimeDifference =
+      atomicTime.time.getTime() - lastTimestampBeforeTabSwitch.value.getTime();
   }
 }
 </script>

@@ -32,6 +32,7 @@ export const useAtomicTimeStore = defineStore('atomic-time', {
     time: new Date(),
     formattedTime: '',
     timerIntervalId: undefined as NodeJS.Timer | undefined,
+    switchTabTimeDifference: 0,
   }),
   getters: {
     getFormattedTime: (state) => state.formattedTime,

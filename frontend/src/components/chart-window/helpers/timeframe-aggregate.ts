@@ -55,7 +55,8 @@ function intervalCalculation(
   timeStep: number,
   dividableTimeCallback: (date: Date) => number,
   dataRecordsAmount: number,
-  oldestRecord: OHLC | undefined = undefined
+  oldestRecord: OHLC | undefined = undefined,
+  mergeNewData = false
 ) {
   resetAllTemporaryCandleVariables();
 
@@ -63,7 +64,7 @@ function intervalCalculation(
     const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
     openDate = oldestRecordDate;
     let newestRecordTimestamp =
-      oldestRecord && dataRecordsAmount
+      oldestRecord && dataRecordsAmount && !mergeNewData
         ? oldestRecord.d.getTime()
         : records[records.length - 1]?.timestamp ?? 0;
 
@@ -73,7 +74,7 @@ function intervalCalculation(
     previousClose = firstEntryClose;
     let candleTimeStamp = openDate + timeStep;
 
-    if (dataRecordsAmount > 0) {
+    if (dataRecordsAmount > 0 && !mergeNewData) {
       newestRecordTimestamp -= timeStep * amount;
     }
 
@@ -118,7 +119,8 @@ export function timeFrameAggregate(
   timeFrameMode: TimeFrameMode,
   timeModeCount: number,
   dataRecordsAmount: number,
-  oldestRecord: OHLC | undefined = undefined
+  oldestRecord: OHLC | undefined = undefined,
+  mergeNewData = false
 ) {
   if (!tsRecords) {
     return undefined;
@@ -131,7 +133,8 @@ export function timeFrameAggregate(
         MIN,
         (date: Date) => date.getMinutes(),
         dataRecordsAmount,
-        oldestRecord
+        oldestRecord,
+        mergeNewData
       );
     case 'H':
       return intervalCalculation(
@@ -140,7 +143,8 @@ export function timeFrameAggregate(
         HOUR,
         (date: Date) => date.getHours(),
         dataRecordsAmount,
-        oldestRecord
+        oldestRecord,
+        mergeNewData
       );
     case 'D':
       return intervalCalculation(
@@ -149,7 +153,8 @@ export function timeFrameAggregate(
         DAY,
         getDayOfYear,
         dataRecordsAmount,
-        oldestRecord
+        oldestRecord,
+        mergeNewData
       );
     case 'W':
       return intervalCalculation(
@@ -158,7 +163,8 @@ export function timeFrameAggregate(
         WEEK,
         getISOWeek,
         dataRecordsAmount,
-        oldestRecord
+        oldestRecord,
+        mergeNewData
       );
   }
 }
