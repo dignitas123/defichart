@@ -49,7 +49,7 @@ const resolvers: Resolvers = {
       const timestreamRecords = await getTimestreamRecords(
         timeFrameQuery(timeFrame, symbol, binAmount, startShift ?? 0)
       );
-      if (!timestreamRecords || !timestreamRecords.length) {
+      if (!timestreamRecords) {
         throw new GraphQLError(
           "Not able to query timesteam records from database. Try again later."
         );
