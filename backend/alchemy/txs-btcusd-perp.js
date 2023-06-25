@@ -131,11 +131,11 @@ console.log("fill currentMinute data..");
 const currentMinuteRows = currentMinuteData.Rows;
 if (currentMinuteRows && currentMinuteRows[0] && currentMinuteRows[0].Data) {
   const currentMinuteRowsData = currentMinuteRows[0].Data;
-  currentMinuteOpen = currentMinuteRowsData[1].ScalarValue ?? 0;
-  currentMinuteHigh = currentMinuteRowsData[2].ScalarValue ?? 0;
-  currentMinuteLow = currentMinuteRowsData[3].ScalarValue ?? 0;
-  currentMinuteVolume = currentMinuteRowsData[4].ScalarValue
-    ? Number(currentMinuteRowsData[4].ScalarValue)
+  currentMinuteOpen = currentMinuteRowsData[0].ScalarValue ?? 0;
+  currentMinuteHigh = currentMinuteRowsData[1].ScalarValue ?? 0;
+  currentMinuteLow = currentMinuteRowsData[2].ScalarValue ?? 0;
+  currentMinuteVolume = currentMinuteRowsData[3].ScalarValue
+    ? Number(currentMinuteRowsData[3].ScalarValue)
     : 0;
 }
 
@@ -160,11 +160,11 @@ console.log("fill currentHour data..");
 const currentHourRows = currentHourData.Rows;
 if (currentHourRows && currentHourRows[0] && currentHourRows[0].Data) {
   const currentHourRowsData = currentHourRows[0].Data;
-  currentHourOpen = currentHourRowsData[1].ScalarValue ?? 0;
-  currentHourHigh = currentHourRowsData[2].ScalarValue ?? 0;
-  currentHourLow = currentHourRowsData[3].ScalarValue ?? 0;
-  currentHourVolume = currentHourRowsData[4].ScalarValue
-    ? Number(currentHourRowsData[4].ScalarValue)
+  currentHourOpen = currentHourRowsData[0].ScalarValue ?? 0;
+  currentHourHigh = currentHourRowsData[1].ScalarValue ?? 0;
+  currentHourLow = currentHourRowsData[2].ScalarValue ?? 0;
+  currentHourVolume = currentHourRowsData[3].ScalarValue
+    ? Number(currentHourRowsData[3].ScalarValue)
     : 0;
 }
 
@@ -172,11 +172,11 @@ console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
 if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
-  currentDayOpen = currentDayRowsData[1].ScalarValue ?? 0;
-  currentDayHigh = currentDayRowsData[2].ScalarValue ?? 0;
-  currentDayLow = currentDayRowsData[3].ScalarValue ?? 0;
-  currentDayVolume = currentDayRowsData[4].ScalarValue
-    ? Number(currentDayRowsData[4].ScalarValue)
+  currentDayOpen = currentDayRowsData[0].ScalarValue ?? 0;
+  currentDayHigh = currentDayRowsData[1].ScalarValue ?? 0;
+  currentDayLow = currentDayRowsData[2].ScalarValue ?? 0;
+  currentDayVolume = currentDayRowsData[3].ScalarValue
+    ? Number(currentDayRowsData[3].ScalarValue)
     : 0;
 }
 
