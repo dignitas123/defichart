@@ -127,6 +127,7 @@ export function getCurrentCandleDataForTF(
   data: CurrentCandleData,
   timeFrame: TimeFrame
 ) {
+  console.log('switch TIMEFRAME', timeFrame, 'data m1', data.m1, 'data', data);
   switch (timeFrame) {
     case "M1":
       return data.m1
