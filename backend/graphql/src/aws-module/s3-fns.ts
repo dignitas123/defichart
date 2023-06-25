@@ -127,40 +127,29 @@ export function getCurrentCandleDataForTF(
   data: CurrentCandleData,
   timeFrame: TimeFrame
 ) {
-  console.log('switch TIMEFRAME', timeFrame, 'data m1', data.m1, 'data', data);
   switch (timeFrame) {
     case "M1":
-      return data.m1
-        ? { ...data.m1, ...{ timestamp: getBeginningOfCurrentMinute() } }
-        : undefined;
+      return { ...data.m1, ...{ timestamp: getBeginningOfCurrentMinute() } };
     case "M5":
-      return data.m5
-        ? {
-            ...data.m5,
-            ...{ timestamp: getBeginningOfCurrentFiveMinuteInterval() },
-          }
-        : undefined;
+      return {
+        ...data.m5,
+        ...{ timestamp: getBeginningOfCurrentFiveMinuteInterval() },
+      };
     case "H1":
-      return data.h1
-        ? { ...data.h1, ...{ timestamp: getBeginningOfCurrentHour() } }
-        : undefined;
+      return { ...data.h1, ...{ timestamp: getBeginningOfCurrentHour() } };
     case "D1":
-      return data.d1
-        ? { ...data.d1, ...{ timestamp: getBeginningOfCurrentDay() } }
-        : undefined;
+      return { ...data.d1, ...{ timestamp: getBeginningOfCurrentDay() } };
     case "W1":
-      return data.w1
-        ? { ...data.w1, ...{ timestamp: getBeginningOfCurrentWeek() } }
-        : undefined;
+      return { ...data.w1, ...{ timestamp: getBeginningOfCurrentWeek() } };
   }
 }
 
 export function getBeginningForTimeFrame(timeFrame: TimeFrame) {
   switch (timeFrame) {
     case "M1":
-      return getBeginningOfCurrentMinute()
+      return getBeginningOfCurrentMinute();
     case "M5":
-      return getBeginningOfCurrentFiveMinuteInterval()
+      return getBeginningOfCurrentFiveMinuteInterval();
     case "H1":
       return getBeginningOfCurrentHour();
     case "D1":

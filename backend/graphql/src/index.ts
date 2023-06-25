@@ -62,19 +62,6 @@ const resolvers: Resolvers = {
       if (startShift) {
         return timestreamRecords;
       }
-      if (!currentCandle) {
-        const newestNoVolumeCandle = [
-          {
-            timestamp: getBeginningForTimeFrame(timeFrame),
-            open: timestreamRecords[0].close,
-            high: timestreamRecords[0].close,
-            low: timestreamRecords[0].close,
-            close: timestreamRecords[0].close,
-            volume: 0,
-          },
-        ];
-        return [...newestNoVolumeCandle, ...timestreamRecords];
-      }
       const currentRecord = [
         {
           timestamp: currentCandle.timestamp,
