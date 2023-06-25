@@ -77,20 +77,54 @@ export function getPreviousWeekBeginning() {
 }
 
 export function getUTCWeekbegin() {
-  const date = new Date();
-  const beginningOfWeek = new Date(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate() - date.getUTCDay() + 1,
-    0,
-    0,
-    0,
-    0
-  );
-  const formattedDate = beginningOfWeek
-    .toISOString()
-    .replace(/T/, " ")
-    .replace(/\..+/, "");
+  const now = new Date();
+  const currentDay = now.getUTCDay(); // 0 (Sunday) to 6 (Saturday)
+
+  // Adjust for Sunday to start the week on Monday
+  if (currentDay === 0) {
+    now.setUTCDate(now.getUTCDate() - 6); // Move back six days to the previous Monday
+  } else {
+    now.setUTCDate(now.getUTCDate() - (currentDay - 1)); // Move back to the beginning of the current week (Monday)
+  }
+
+  // Set the time to 00:00:00 UTC
+  now.setUTCHours(0, 0, 0, 0);
+
+  const formattedDate = now.toISOString().replace(/T/, " ").replace(/\..+/, "");
+
+  return formattedDate;
+}
+
+export function getUTCHourBegin() {
+  const now = new Date();
+
+  // Set the minutes, seconds, and milliseconds to zero
+  now.setUTCMinutes(0, 0, 0);
+
+  const formattedDate = now.toISOString().replace(/T/, " ").replace(/\..+/, "");
+
+  return formattedDate;
+}
+
+export function getMinuteStartInUTC() {
+  const now = new Date();
+
+  // Set the seconds and milliseconds to zero
+  now.setUTCSeconds(0, 0);
+
+  const formattedDate = now.toISOString().replace(/T/, " ").replace(/\..+/, "");
+
+  return formattedDate;
+}
+
+export function getDayStartInUTC() {
+  const now = new Date();
+
+  // Set the hours, minutes, seconds, and milliseconds to zero
+  now.setUTCHours(0, 0, 0, 0);
+
+  const formattedDate = now.toISOString().replace(/T/, " ").replace(/\..+/, "");
+
   return formattedDate;
 }
 

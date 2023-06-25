@@ -8,7 +8,6 @@ import {
 } from "./aws-module/timestream-write-fns.js";
 import { putRecordOnKinesis } from "./aws-module/kinesis-put.js";
 import {
-  getLastBinRecords,
   getLastAggregateRecordsFromStartTime,
   getLastTick,
 } from "./aws-module/timestream-get-fns.js";
@@ -17,10 +16,13 @@ import {
   getLastRoundedFiveMinuteInterval,
   isM5ScalarValuesUndefined,
   getUTCWeekbegin,
+  getUTCHourBegin,
   getPreviousRoundedMinuteInterval,
   getPreviousRoundedHourInterval,
   getPreviousDayBeginning,
   getPreviousWeekBeginning,
+  getDayStartInUTC,
+  getMinuteStartInUTC,
 } from "./aws-module/utility.js";
 import { putObjectOnS3 } from "./aws-module/s3-fns.js";
 
@@ -39,7 +41,9 @@ console.log(
   "getting current minute, 5 min, hour etc. high, low and volume aggregates for initial memory values..",
   new Date().toISOString()
 );
-const currentMinuteData = await getLastBinRecords("1m", "minute");
+const currentMinuteData = await getLastAggregateRecordsFromStartTime(
+  getMinuteStartInUTC()
+);
 if (!currentMinuteData) {
   console.error(
     "Can't get current minute data, shutting down",
@@ -59,7 +63,9 @@ if (!current5MinuteData) {
   process.exit();
 }
 await sleep(300);
-const currentHourData = await getLastBinRecords("1h", "hour");
+const currentHourData = await getLastAggregateRecordsFromStartTime(
+  getUTCHourBegin()
+);
 if (!currentHourData) {
   console.error(
     "Can't get current hour data, shutting down",
@@ -68,7 +74,9 @@ if (!currentHourData) {
   process.exit();
 }
 await sleep(300);
-const currentDayData = await getLastBinRecords("1d", "day");
+const currentDayData = await getLastAggregateRecordsFromStartTime(
+  getDayStartInUTC()
+);
 if (!currentDayData) {
   console.error(
     "Can't get current day data, shutting down",
@@ -164,8 +172,6 @@ console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
 if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
-  console.log('now current day data', currentDayRowsData);
-  console.log('this is the open', currentDayRowsData[0].ScalarValue ?? 0);
   currentDayOpen = currentDayRowsData[1].ScalarValue ?? 0;
   currentDayHigh = currentDayRowsData[2].ScalarValue ?? 0;
   currentDayLow = currentDayRowsData[3].ScalarValue ?? 0;
@@ -178,8 +184,6 @@ console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
 if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
-  console.log('now current week data', currentWeekRowsData);
-  console.log('this is the open', currentWeekRowsData[0].ScalarValue ?? 0);
   currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
   currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
   currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
