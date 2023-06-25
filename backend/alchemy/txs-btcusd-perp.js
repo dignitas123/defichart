@@ -164,6 +164,8 @@ console.log("fill currentDay data..");
 const currentDayRows = currentDayData.Rows;
 if (currentDayRows && currentDayRows[0] && currentDayRows[0].Data) {
   const currentDayRowsData = currentDayRows[0].Data;
+  console.log('now current day data', currentDayRowsData);
+  console.log('this is the open', currentDayRowsData[0].ScalarValue ?? 0);
   currentDayOpen = currentDayRowsData[1].ScalarValue ?? 0;
   currentDayHigh = currentDayRowsData[2].ScalarValue ?? 0;
   currentDayLow = currentDayRowsData[3].ScalarValue ?? 0;
@@ -176,6 +178,8 @@ console.log("fill currentWeek data..");
 const currentWeekRows = currentWeekData.Rows;
 if (currentWeekRows && currentWeekRows[0] && currentWeekRows[0].Data) {
   const currentWeekRowsData = currentWeekRows[0].Data;
+  console.log('now current week data', currentWeekRowsData);
+  console.log('this is the open', currentWeekRowsData[0].ScalarValue ?? 0);
   currentWeekOpen = currentWeekRowsData[0].ScalarValue ?? 0;
   currentWeekHigh = currentWeekRowsData[1].ScalarValue ?? 0;
   currentWeekLow = currentWeekRowsData[2].ScalarValue ?? 0;
@@ -268,12 +272,12 @@ setInterval(() => {
         getPreviousRoundedMinuteInterval(),
         "btcusd-perp_m1"
       );
+      hasToPutNewObjOnS3 = true;
     }
     currentMinuteOpen = 0;
     currentMinuteVolume = 0;
     currentMinuteHigh = 0;
     currentMinuteLow = Infinity;
-    hasToPutNewObjOnS3 = true;
     if (now.getMinutes() % 5 === 0) {
       // beginning of new 5minute
       if (current5MinuteHigh !== 0 && current5MinuteLow !== Infinity) {
@@ -286,12 +290,12 @@ setInterval(() => {
           getPreviousRoundedMinuteInterval(5),
           "btcusd-perp_m5"
         );
+        hasToPutNewObjOnS3 = true;
       }
       current5MinuteOpen = 0;
       current5MinuteVolume = 0;
       current5MinuteHigh = 0;
       current5MinuteLow = Infinity;
-      hasToPutNewObjOnS3 = true;
     }
     if (now.getMinutes() === 0) {
       // beginning of new hour
@@ -315,12 +319,12 @@ setInterval(() => {
           getPreviousRoundedHourInterval(),
           "btcusd-perp_h1"
         );
+        hasToPutNewObjOnS3 = true;
       }
       currentHourOpen = 0;
       currentHourVolume = 0;
       currentHourHigh = 0;
       currentHourLow = Infinity;
-      hasToPutNewObjOnS3 = true;
       if (now.getHours() === 0) {
         // beginning of new day
         console.log("writing new day", new Date().toISOString());
@@ -334,12 +338,12 @@ setInterval(() => {
             getPreviousDayBeginning(),
             "btcusd-perp_d1"
           );
+          hasToPutNewObjOnS3 = true;
         }
         currentDayOpen = 0;
         currentDayVolume = 0;
         currentDayHigh = 0;
         currentDayLow = Infinity;
-        hasToPutNewObjOnS3 = true;
         if (now.getDay() === 1) {
           // beginning of new week
           console.log("writing new week", new Date().toISOString());
@@ -353,12 +357,12 @@ setInterval(() => {
               getPreviousWeekBeginning(),
               "btcusd-perp_w1"
             );
+            hasToPutNewObjOnS3 = true;
           }
           currentWeekOpen = 0;
           currentWeekVolume = 0;
           currentWeekHigh = 0;
           currentWeekLow = Infinity;
-          hasToPutNewObjOnS3 = true;
         }
       }
     }
