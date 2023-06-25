@@ -194,7 +194,12 @@ const getCurrentS3Object = () => {
           low: currentMinuteLow,
           volume: currentMinuteVolume,
         }
-      : 0,
+      : {
+          open: lastTick,
+          high: lastTick,
+          low: lastTick,
+          volume: 0,
+        },
     m5: current5MinuteOpen
       ? {
           open: current5MinuteOpen,
@@ -202,7 +207,12 @@ const getCurrentS3Object = () => {
           low: current5MinuteLow,
           volume: current5MinuteVolume,
         }
-      : 0,
+      : {
+          open: lastTick,
+          high: lastTick,
+          low: lastTick,
+          volume: 0,
+        },
     h1: currentHourOpen
       ? {
           open: currentHourOpen,
@@ -210,7 +220,12 @@ const getCurrentS3Object = () => {
           low: currentHourLow,
           volume: currentHourVolume,
         }
-      : 0,
+      : {
+          open: lastTick,
+          high: lastTick,
+          low: lastTick,
+          volume: 0,
+        },
     d1: currentDayOpen
       ? {
           open: currentDayOpen,
@@ -226,7 +241,12 @@ const getCurrentS3Object = () => {
           low: currentWeekLow,
           volume: currentWeekVolume,
         }
-      : 0,
+      : {
+          open: lastTick,
+          high: lastTick,
+          low: lastTick,
+          volume: 0,
+        },
     close: lastTick,
   };
 };
