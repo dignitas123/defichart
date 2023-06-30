@@ -161,6 +161,7 @@ import {
   provide,
   computed,
   onMounted,
+  Ref,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
@@ -279,18 +280,52 @@ const {
   networkStatus: getTimeFrameQueryNetworkStatus,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
+const {
+  onResult: onOhlcvFillCandlesResult,
+  result: ohlcvFillCandlesResult,
+  load: loadFillCandlesOhlcvQuery,
+} = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
+  fetchPolicy: 'network-only',
+});
+
 const previousTimeFrameQueryNetworkStatus = ref<number>();
+
+onOhlcvFillCandlesResult(async (result) => {
+  if (result.data) {
+    data.value?.pop();
+    await setCandleDataValuesAndMerge(() =>
+      setCandleDataValues(
+        ohlcvFillCandlesResult,
+        startShift.value,
+        data.value && [...data.value],
+        true
+      )
+    );
+    chartUpdateKey.value++;
+  }
+});
 
 onOhlcvResult(async (result) => {
   if (result.data) {
     if (previousTimeFrameQueryNetworkStatus.value === 7) {
+      await setCandleDataValuesAndMerge(() =>
+        setCandleDataValues(
+          ohlcvResult,
+          startShift.value,
+          data.value && [...data.value]
+        )
+      );
       await fillMissingCandles(
         atomicTime.time.getTime() -
           lastTimestampInPrevTimeframe.value[timeFrame.value].getTime()
       );
     } else {
       await setCandleDataValuesAndMerge(() =>
-        setCandleDataValues(startShift.value, data.value && [...data.value])
+        setCandleDataValues(
+          ohlcvResult,
+          startShift.value,
+          data.value && [...data.value]
+        )
       );
     }
   }
@@ -304,13 +339,8 @@ async function fillMissingCandles(timeDiffMissingInMs: number) {
   }
   const missingCandles =
     1 + Math.floor(timeDiffMissingInMs / timeFrameInMs.value);
-  await executeTimeFrameQuery(missingCandles);
-  await setCandleDataValuesAndMerge(() =>
-    setCandleDataValues(startShift.value, data.value && [...data.value], true)
-  );
+  await executeTimeFrameQuery(missingCandles, 0, true);
 }
-
-useCandleStream(data, timeFrame);
 
 watch(
   () => props.tickData,
@@ -350,11 +380,11 @@ onMounted(async () => {
   await executeTimeFrameQuery();
 });
 
-let previousOhlcvQueryVariables: GetTimeFrameQueryVariables;
 const startShift = ref(0);
 async function executeTimeFrameQuery(
   binAmount = MAX_CANDLES_LOAD,
-  _startShift = 0
+  _startShift = 0,
+  mergeNewData = false
 ) {
   startShift.value = _startShift;
 
@@ -368,20 +398,18 @@ async function executeTimeFrameQuery(
     binAmount: binAmount,
     ...(_startShift && { startShift: _startShift }),
   };
-  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-  if (isEqual(previousOhlcvQueryVariables, ohlcvQueryVariables)) {
-    await setCandleDataValuesAndMerge(() =>
-      setCandleDataValues(startShift.value, data.value && [...data.value])
-    );
+  if (mergeNewData) {
+    loadFillCandlesOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
+  } else {
+    loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
   }
-
-  previousOhlcvQueryVariables = ohlcvQueryVariables;
 }
 
 const chartHighScale = ref(0);
 const chartLowScale = ref(0);
-
 const chartUpdateKey = ref(0);
+
+useCandleStream(data, timeFrame, chartUpdateKey);
 
 const {
   increaseCandlesShow,
@@ -401,11 +429,11 @@ const {
   chartUpdateKey
 );
 
-watch(startingDistanceDifference, async () => {
+watch(startingDistanceDifference, async (now, before) => {
   if (!startingDistanceDifference.value) {
     return;
   }
-  if (startingDistanceDifference.value > 0) {
+  if (now && now > 0 && before && before > 0) {
     await executeTimeFrameQuery(
       MAX_CANDLES_LOAD,
       dataRecordsAmountForQuery.value
@@ -435,15 +463,16 @@ const timeFrameInMs = computed(() => {
 });
 
 async function setCandleDataValues(
+  result: Ref<GetTimeFrameQuery | undefined>,
   startShift = 0,
   oldOHLCData: OHLC[] | undefined = undefined,
   mergeNewData = false
 ) {
-  if (!ohlcvResult.value) {
+  if (!result.value) {
     return;
   }
-  const timeFrameRecords = ohlcvResult.value.timeFrameRecords
-    ? [...ohlcvResult.value.timeFrameRecords]
+  const timeFrameRecords = result.value.timeFrameRecords
+    ? [...result.value.timeFrameRecords]
     : undefined;
   const reversedRecords = timeFrameRecords?.reverse();
   const oldOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
@@ -452,6 +481,13 @@ async function setCandleDataValues(
     (timeModeCount.value > 1 && timeFrame.value !== 'M5') ||
     timeModeCount.value > 5
   ) {
+    const unevenBeginning =
+      oldOHLCData &&
+      timeFrameInMs.value &&
+      oldOHLCData.length > 1 &&
+      (oldOHLCData[1].d.getTime() - oldOHLCData[1].d.getTime()) /
+        timeFrameInMs.value !==
+        1;
     if (startShift > 0 || mergeNewData) {
       const newAggregatedRecords = timeFrameAggregate(
         reversedRecords,
@@ -459,10 +495,14 @@ async function setCandleDataValues(
         timeModeCount.value,
         dataRecordsAmountForQuery.value,
         oldOHLCDataOldestRecord,
-        mergeNewData
+        mergeNewData,
+        Boolean(unevenBeginning)
       );
       if (!oldOHLCData || !newAggregatedRecords) {
         return;
+      }
+      if (unevenBeginning) {
+        oldOHLCData.shift();
       }
       data.value = mergeNewData
         ? [...oldOHLCData, ...newAggregatedRecords]
@@ -474,7 +514,8 @@ async function setCandleDataValues(
         timeFrameMode.value,
         timeModeCount.value,
         dataRecordsAmountForQuery.value,
-        oldOHLCDataOldestRecord
+        oldOHLCDataOldestRecord,
+        Boolean(unevenBeginning)
       );
       data.value = timeFrameAggregateRecords;
       dataRecordsAmountForQuery.value += MAX_CANDLES_LOAD;
@@ -482,11 +523,13 @@ async function setCandleDataValues(
   } else {
     const ohlcData: OHLC[] = [];
     if (reversedRecords) {
-      const startTimestamp = reversedRecords[0]?.timestamp ?? 0;
+      const startTimestamp = mergeNewData
+        ? data.value && data.value[data.value.length - 1].d.getTime()
+        : reversedRecords[0]?.timestamp ?? 0;
       const endTimestamp =
         reversedRecords[reversedRecords.length - 1]?.timestamp ?? 0;
       const timeStep = timeFrameInMs.value ?? MIN;
-      let candleTimeStamp = startTimestamp + timeStep;
+      let candleTimeStamp = (startTimestamp ?? 0) + timeStep;
 
       let newestRecordTimestamp =
         oldOHLCDataOldestRecord &&
@@ -501,11 +544,15 @@ async function setCandleDataValues(
         l: reversedRecords[0]?.low ?? 0,
         c: reversedRecords[0]?.close ?? 0,
         v: reversedRecords[0]?.volume ?? 0,
-        d: new Date(reversedRecords[0]?.timestamp ?? 0),
+        d: new Date(candleTimeStamp),
       });
 
-      if (dataRecordsAmountForQuery.value > 0 && !mergeNewData) {
+      if (dataRecordsAmountForQuery.value > 0 || mergeNewData) {
         newestRecordTimestamp -= timeStep;
+      }
+
+      if (mergeNewData) {
+        candleTimeStamp += timeStep;
       }
 
       let j = 1;
@@ -743,6 +790,15 @@ watch(timeFrame, async (now, before) => {
       MAX_CANDLES_LOAD,
       dataRecordsAmountForQuery.value
     );
+    if (now.charAt(0) === before.charAt(0)) {
+      await setCandleDataValuesAndMerge(() =>
+        setCandleDataValues(
+          ohlcvResult,
+          startShift.value,
+          data.value && [...data.value]
+        )
+      );
+    }
   }
 });
 watch(

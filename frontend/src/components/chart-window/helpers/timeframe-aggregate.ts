@@ -10,7 +10,7 @@ let aggregateVolume = 0;
 let aggregateHigh = 0;
 let aggregateLow = Infinity;
 let open = 0;
-let openDate = 0;
+let startTimestamp = 0;
 let previousClose = 0;
 
 function aggregateCandlestickHighLowVolume(tsRecord: Maybe<TimeStreamRecord>) {
@@ -39,7 +39,7 @@ function pushCandle() {
     l: aggregateLow,
     c: previousClose,
     v: aggregateVolume,
-    d: new Date(openDate),
+    d: new Date(startTimestamp),
   });
 }
 
@@ -56,40 +56,49 @@ function intervalCalculation(
   dividableTimeCallback: (date: Date) => number,
   dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined,
-  mergeNewData = false
+  mergeNewData = false,
+  unevenBeginning = false
 ) {
   resetAllTemporaryCandleVariables();
 
   if (records) {
-    const oldestRecordDate = new Date(records[0]?.timestamp ?? 0).getTime();
-    openDate = oldestRecordDate;
+    const oldestRecordDate = mergeNewData
+      ? records[records.length - 1]?.timestamp ?? 0
+      : new Date(records[0]?.timestamp ?? 0).getTime();
+    startTimestamp = oldestRecordDate;
+    const endTimestamp = records[records.length - 1]?.timestamp ?? 0;
     let newestRecordTimestamp =
       oldestRecord && dataRecordsAmount && !mergeNewData
         ? oldestRecord.d.getTime()
-        : records[records.length - 1]?.timestamp ?? 0;
+        : endTimestamp;
 
     const firstEntryClose = records[0]?.close ?? 0;
     resetAggregateCandlestick();
     open = firstEntryClose;
     previousClose = firstEntryClose;
-    let candleTimeStamp = openDate + timeStep;
-
-    if (dataRecordsAmount > 0 && !mergeNewData) {
-      newestRecordTimestamp -= timeStep * amount;
+    let candleTimeStamp = startTimestamp + timeStep;
+    if (mergeNewData) {
+      newestRecordTimestamp -= timeStep;
+      candleTimeStamp += timeStep;
     }
 
     let j = 1;
     while (candleTimeStamp <= newestRecordTimestamp) {
       if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
         if (records[j]?.timestamp === candleTimeStamp) {
-          aggregateCandlestickHighLowVolume(records[j]);
-          openDate = records[j]?.timestamp as number;
-          pushCandle();
-          open = records[j]?.open as number;
+          if (j === 1) {
+            aggregateCandlestickHighLowVolume(records[j]);
+            pushCandle();
+            startTimestamp = records[j]?.timestamp as number;
+            open = records[j]?.open as number;
+          } else {
+            pushCandle();
+            startTimestamp = records[j]?.timestamp as number;
+            open = records[j]?.open as number;
+          }
         } else if (previousClose) {
-          // 0 volume candle has open === previousClose and openDate candleTimeStamp iteration
           open = previousClose;
-          openDate = candleTimeStamp;
+          startTimestamp = candleTimeStamp;
           pushCandle();
         }
         resetAggregateCandlestick();
@@ -110,6 +119,24 @@ function intervalCalculation(
       }
       candleTimeStamp += timeStep;
     }
+    if (unevenBeginning) {
+      aggregateCandlestickHighLowVolume({
+        close: oldestRecord?.c ?? 0,
+        high: oldestRecord?.h ?? 0,
+        low: oldestRecord?.l ?? 0,
+        open: oldestRecord?.o ?? 0,
+        timestamp: oldestRecord?.d.getTime() ?? 0,
+        volume: oldestRecord?.v ?? 0,
+      });
+      res.push({
+        o: open,
+        h: aggregateHigh,
+        l: aggregateLow,
+        c: oldestRecord?.c ?? 0,
+        v: aggregateVolume,
+        d: new Date(startTimestamp),
+      });
+    }
   }
   return res;
 }
@@ -120,7 +147,8 @@ export function timeFrameAggregate(
   timeModeCount: number,
   dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined,
-  mergeNewData = false
+  mergeNewData = false,
+  unevenBeginning = false
 ) {
   if (!tsRecords) {
     return undefined;
@@ -134,7 +162,8 @@ export function timeFrameAggregate(
         (date: Date) => date.getMinutes(),
         dataRecordsAmount,
         oldestRecord,
-        mergeNewData
+        mergeNewData,
+        unevenBeginning
       );
     case 'H':
       return intervalCalculation(
@@ -144,7 +173,8 @@ export function timeFrameAggregate(
         (date: Date) => date.getHours(),
         dataRecordsAmount,
         oldestRecord,
-        mergeNewData
+        mergeNewData,
+        unevenBeginning
       );
     case 'D':
       return intervalCalculation(
@@ -154,7 +184,8 @@ export function timeFrameAggregate(
         getDayOfYear,
         dataRecordsAmount,
         oldestRecord,
-        mergeNewData
+        mergeNewData,
+        unevenBeginning
       );
     case 'W':
       return intervalCalculation(
@@ -164,7 +195,8 @@ export function timeFrameAggregate(
         getISOWeek,
         dataRecordsAmount,
         oldestRecord,
-        mergeNewData
+        mergeNewData,
+        unevenBeginning
       );
   }
 }

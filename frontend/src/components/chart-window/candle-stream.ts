@@ -5,7 +5,8 @@ import { TimeFrame } from './child-components/header-bar/child-components/time-f
 
 export function useCandleStream(
   data: Ref<OHLC[] | undefined>,
-  timeFrame: Ref<TimeFrame>
+  timeFrame: Ref<TimeFrame>,
+  chartUpdateKey: Ref<number>
 ) {
   const atomicTime = useAtomicTimeStore();
 
@@ -249,6 +250,7 @@ export function useCandleStream(
           v: 0,
           d: new Date(),
         });
+        chartUpdateKey.value++;
       }
     }
   );
