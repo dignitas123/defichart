@@ -149,9 +149,10 @@ export function useCandleStream(
           }
           break;
         case 'D2':
-          const currentCandleD2 = data.value.slice(-1)[0];
-          const currentCandleDateD2 = currentCandleD2.d;
+          const currentCandleD2 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateD2 = new Date(currentCandleD2.d);
           currentCandleDateD2.setDate(currentCandleDateD2.getDate() + 2);
+          currentCandleD2.d = currentCandleDateD2;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -162,9 +163,10 @@ export function useCandleStream(
           }
           break;
         case 'D3':
-          const currentCandleD3 = data.value.slice(-1)[0];
-          const currentCandleDateD3 = currentCandleD3.d;
+          const currentCandleD3 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateD3 = new Date(currentCandleD3.d);
           currentCandleDateD3.setDate(currentCandleDateD3.getDate() + 3);
+          currentCandleD3.d = currentCandleDateD3;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -175,9 +177,10 @@ export function useCandleStream(
           }
           break;
         case 'D4':
-          const currentCandleD4 = data.value.slice(-1)[0];
-          const currentCandleDateD4 = currentCandleD4.d;
+          const currentCandleD4 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateD4 = new Date(currentCandleD4.d);
           currentCandleDateD4.setDate(currentCandleDateD4.getDate() + 4);
+          currentCandleD4.d = currentCandleDateD4;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -188,9 +191,10 @@ export function useCandleStream(
           }
           break;
         case 'W1':
-          const currentCandleW1 = data.value.slice(-1)[0];
-          const currentCandleDateW1 = currentCandleW1.d;
+          const currentCandleW1 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateW1 = new Date(currentCandleW1.d);
           currentCandleDateW1.setDate(currentCandleDateW1.getDate() + 7);
+          currentCandleW1.d = currentCandleDateW1;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -201,9 +205,10 @@ export function useCandleStream(
           }
           break;
         case 'W2':
-          const currentCandleW2 = data.value.slice(-1)[0];
-          const currentCandleDateW2 = currentCandleW2.d;
+          const currentCandleW2 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateW2 = new Date(currentCandleW2.d);
           currentCandleDateW2.setDate(currentCandleDateW2.getDate() + 7 * 2);
+          currentCandleW2.d = currentCandleDateW2;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -214,9 +219,10 @@ export function useCandleStream(
           }
           break;
         case 'W3':
-          const currentCandleW3 = data.value.slice(-1)[0];
-          const currentCandleDateW3 = currentCandleW3.d;
+          const currentCandleW3 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateW3 = new Date(currentCandleW3.d);
           currentCandleDateW3.setDate(currentCandleDateW3.getDate() + 7 * 3);
+          currentCandleW3.d = currentCandleDateW3;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
@@ -227,9 +233,10 @@ export function useCandleStream(
           }
           break;
         case 'W4':
-          const currentCandleW4 = data.value.slice(-1)[0];
-          const currentCandleDateW4 = currentCandleW4.d;
+          const currentCandleW4 = { ...data.value.slice(-1)[0] };
+          const currentCandleDateW4 = new Date(currentCandleW4.d);
           currentCandleDateW4.setDate(currentCandleDateW4.getDate() + 7 * 4);
+          currentCandleW4.d = currentCandleDateW4;
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&

@@ -528,7 +528,7 @@ async function setCandleDataValues(
       const endTimestamp =
         reversedRecords[reversedRecords.length - 1]?.timestamp ?? 0;
       const timeStep = timeFrameInMs.value ?? MIN;
-      let candleTimeStamp = (startTimestamp ?? 0);
+      let candleTimeStamp = startTimestamp ?? 0;
 
       let newestRecordTimestamp =
         oldOHLCDataOldestRecord &&
@@ -579,7 +579,6 @@ async function setCandleDataValues(
         }
         candleTimeStamp += timeStep;
       }
-      console.log('ohlcData now', ohlcData);
     }
     if (startShift > 0 || mergeNewData) {
       if (!oldOHLCData) {
