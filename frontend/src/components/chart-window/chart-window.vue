@@ -214,7 +214,6 @@ import {
 } from 'src/generated/graphql';
 import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
-import { isEqual } from 'lodash';
 import { useCandleStream } from './candle-stream';
 import { useAtomicTimeStore } from 'src/stores/atomic-time';
 
