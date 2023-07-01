@@ -119,6 +119,7 @@ function intervalCalculation(
       }
       candleTimeStamp += timeStep;
     }
+    pushCandle();
     if (unevenBeginning) {
       aggregateCandlestickHighLowVolume({
         close: oldestRecord?.c ?? 0,
