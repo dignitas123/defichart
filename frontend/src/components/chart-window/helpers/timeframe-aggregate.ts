@@ -70,6 +70,7 @@ function intervalCalculation(
       : new Date(records[0]?.timestamp ?? 0).getTime();
     startTimestamp = oldestRecordDate;
     const endTimestamp = records[records.length - 1]?.timestamp ?? 0;
+
     let newestRecordTimestamp =
       oldestRecord && dataRecordsAmount && !mergeNewData
         ? oldestRecord.d.getTime()

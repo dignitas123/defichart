@@ -216,6 +216,7 @@ import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
 import { useCandleStream } from './candle-stream';
 import { useAtomicTimeStore } from 'src/stores/atomic-time';
+import { useGetMissingCandles } from './get-missing-candles';
 
 const props = defineProps<{
   id: string;
@@ -315,10 +316,13 @@ onOhlcvResult(async (result) => {
           data.value && [...data.value]
         )
       );
-      await fillMissingCandles(
-        atomicTime.time.getTime() -
-          lastTimestampInPrevTimeframe.value[timeFrame.value].getTime()
-      );
+      const missingCandles = getMissingCandles({
+        startTime: lastTimestampInPrevTimeframe.value[timeFrame.value],
+        timeDiff:
+          atomicTime.time.getTime() -
+          lastTimestampInPrevTimeframe.value[timeFrame.value].getTime(),
+      });
+      await executeTimeFrameQuery(missingCandles, 0, true);
     } else {
       await setCandleDataValuesAndMerge(() =>
         setCandleDataValues(
@@ -332,15 +336,6 @@ onOhlcvResult(async (result) => {
   previousTimeFrameQueryNetworkStatus.value =
     getTimeFrameQueryNetworkStatus.value;
 });
-
-async function fillMissingCandles(timeDiffMissingInMs: number) {
-  if (!timeFrameInMs.value) {
-    return;
-  }
-  const missingCandles =
-    1 + Math.floor(timeDiffMissingInMs / timeFrameInMs.value);
-  await executeTimeFrameQuery(missingCandles, 0, true);
-}
 
 watch(
   () => props.tickData,
@@ -616,6 +611,11 @@ const timeModeCount = computed(() => {
   return Number(timeFrame.value.substring(1));
 });
 
+const { getMissingCandles } = useGetMissingCandles(
+  timeFrameInMs,
+  timeFrameMode
+);
+
 const candleWidth = ref(0);
 const candleDistance = ref(0);
 
@@ -844,9 +844,11 @@ onUnmounted(() => {
 const atomicTime = useAtomicTimeStore();
 
 watch(
-  () => atomicTime.switchTabTimeDifference,
+  () => atomicTime.tabSwitch,
   async (val) => {
-    await fillMissingCandles(val);
+    console.log('atomicTime.tabSwitch', val);
+    const missingCandles = getMissingCandles(val);
+    await executeTimeFrameQuery(missingCandles, 0, true);
   }
 );
 
@@ -1448,3 +1450,4 @@ function setVerticalLines(lines: number[]) {
   }
 }
 </style>
+./get-missing-candles

@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { defineStore } from 'pinia';
 
+export interface TabSwitch {
+  startTime: Date;
+  timeDiff: number;
+}
+
 interface WorldTime {
   abbreviation: string;
   client_ip: string;
@@ -32,7 +37,10 @@ export const useAtomicTimeStore = defineStore('atomic-time', {
     time: new Date(),
     formattedTime: '',
     timerIntervalId: undefined as NodeJS.Timer | undefined,
-    switchTabTimeDifference: 0,
+    tabSwitch: {
+      startTime: new Date(),
+      timeDiff: 0,
+    } as TabSwitch,
   }),
   getters: {
     getFormattedTime: (state) => state.formattedTime,

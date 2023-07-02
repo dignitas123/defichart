@@ -54,17 +54,22 @@ if (typeof document.hidden !== 'undefined') {
 }
 
 const lastTimestampBeforeTabSwitch = ref(new Date());
+const lastAtomicTimestampBeforeTabSwitch = ref(new Date());
 
 // Function to handle visibility change
 function handleVisibilityChange() {
   if (document.hidden) {
     // User has switched to a different tab or minimized the window
+    lastAtomicTimestampBeforeTabSwitch.value = new Date(atomicTime.time);
     lastTimestampBeforeTabSwitch.value = new Date();
   } else {
     // User has come back to the tab
     startAtomicClock();
-    atomicTime.switchTabTimeDifference =
-      new Date().getTime() - lastTimestampBeforeTabSwitch.value.getTime();
+    atomicTime.tabSwitch = {
+      startTime: lastAtomicTimestampBeforeTabSwitch.value,
+      timeDiff:
+        new Date().getTime() - lastTimestampBeforeTabSwitch.value.getTime(),
+    };
   }
 }
 </script>
