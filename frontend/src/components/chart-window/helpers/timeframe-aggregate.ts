@@ -13,11 +13,13 @@ let open = 0;
 let startTimestamp = 0;
 let previousClose = 0;
 
-function aggregateCandlestickHighLowVolume(tsRecord: Maybe<TimeStreamRecord>) {
-  if (!tsRecord) {
+function aggregateCandlestickHighLowVolume(
+  tsRecord: Maybe<Partial<TimeStreamRecord>>
+) {
+  if (!tsRecord || !tsRecord.high || !tsRecord.low) {
     return;
   }
-  aggregateVolume += tsRecord.volume ?? 0;
+  aggregateVolume += Number(tsRecord.volume);
   if (tsRecord.high > aggregateHigh) {
     aggregateHigh = tsRecord.high;
   }
@@ -56,6 +58,7 @@ function intervalCalculation(
   dividableTimeCallback: (date: Date) => number,
   dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined,
+  newestRecord: OHLC | undefined = undefined,
   mergeNewData = false,
   unevenBeginning = false
 ) {
@@ -115,22 +118,35 @@ function intervalCalculation(
       candleTimeStamp += timeStep;
     }
     if (unevenBeginning) {
-      aggregateCandlestickHighLowVolume({
-        close: oldestRecord?.c ?? 0,
-        high: oldestRecord?.h ?? 0,
-        low: oldestRecord?.l ?? 0,
-        open: oldestRecord?.o ?? 0,
-        timestamp: oldestRecord?.d.getTime() ?? 0,
-        volume: oldestRecord?.v ?? 0,
-      });
-      res.push({
-        o: open,
-        h: aggregateHigh,
-        l: aggregateLow,
-        c: oldestRecord?.c ?? 0,
-        v: aggregateVolume,
-        d: new Date(startTimestamp),
-      });
+      if (mergeNewData) {
+        aggregateCandlestickHighLowVolume({
+          high: newestRecord?.h,
+          low: newestRecord?.l,
+          volume: newestRecord?.v,
+        });
+        res.push({
+          o: newestRecord?.o ?? firstEntryClose,
+          h: aggregateHigh,
+          l: aggregateLow,
+          c: firstEntryClose,
+          v: aggregateVolume,
+          d: new Date(newestRecord?.d.getTime() ?? startTimestamp),
+        });
+      } else {
+        aggregateCandlestickHighLowVolume({
+          high: oldestRecord?.h,
+          low: oldestRecord?.l,
+          volume: oldestRecord?.v,
+        });
+        res.push({
+          o: open,
+          h: aggregateHigh,
+          l: aggregateLow,
+          c: oldestRecord?.c ?? 0,
+          v: aggregateVolume,
+          d: new Date(startTimestamp),
+        });
+      }
     } else {
       pushCandle();
     }
@@ -144,6 +160,7 @@ export function timeFrameAggregate(
   timeModeCount: number,
   dataRecordsAmount: number,
   oldestRecord: OHLC | undefined = undefined,
+  newestRecord: OHLC | undefined = undefined,
   mergeNewData = false,
   unevenBeginning = false
 ) {
@@ -159,6 +176,7 @@ export function timeFrameAggregate(
         (date: Date) => date.getMinutes(),
         dataRecordsAmount,
         oldestRecord,
+        newestRecord,
         mergeNewData,
         unevenBeginning
       );
@@ -170,6 +188,7 @@ export function timeFrameAggregate(
         (date: Date) => date.getHours(),
         dataRecordsAmount,
         oldestRecord,
+        newestRecord,
         mergeNewData,
         unevenBeginning
       );
@@ -181,6 +200,7 @@ export function timeFrameAggregate(
         getDayOfYear,
         dataRecordsAmount,
         oldestRecord,
+        newestRecord,
         mergeNewData,
         unevenBeginning
       );
@@ -192,6 +212,7 @@ export function timeFrameAggregate(
         getISOWeek,
         dataRecordsAmount,
         oldestRecord,
+        newestRecord,
         mergeNewData,
         unevenBeginning
       );

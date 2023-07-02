@@ -290,16 +290,17 @@ const {
 const previousTimeFrameQueryNetworkStatus = ref<number>();
 
 onOhlcvFillCandlesResult(async (result) => {
-  if (result.data) {
-    data.value?.pop();
+  if (result.data && data.value) {
+    const oldData = [...data.value];
     await setCandleDataValuesAndMerge(() =>
       setCandleDataValues(
         ohlcvFillCandlesResult,
         startShift.value,
-        data.value && [...data.value],
+        oldData,
         true
       )
     );
+    data.value.splice(-2, 1);
     chartUpdateKey.value++;
   }
 });
@@ -474,7 +475,10 @@ async function setCandleDataValues(
     ? [...result.value.timeFrameRecords]
     : undefined;
   const reversedRecords = timeFrameRecords?.reverse();
-  const oldOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
+
+  const oldestOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
+  const newestOHLCDataOldestRecord =
+    oldOHLCData && oldOHLCData[oldOHLCData.length - 1];
 
   if (
     (timeModeCount.value > 1 && timeFrame.value !== 'M5') ||
@@ -493,7 +497,8 @@ async function setCandleDataValues(
         timeFrameMode.value,
         timeModeCount.value,
         dataRecordsAmountForQuery.value,
-        oldOHLCDataOldestRecord,
+        oldestOHLCDataOldestRecord,
+        newestOHLCDataOldestRecord,
         mergeNewData,
         Boolean(unevenBeginning)
       );
@@ -513,7 +518,8 @@ async function setCandleDataValues(
         timeFrameMode.value,
         timeModeCount.value,
         dataRecordsAmountForQuery.value,
-        oldOHLCDataOldestRecord,
+        oldestOHLCDataOldestRecord,
+        newestOHLCDataOldestRecord,
         Boolean(unevenBeginning)
       );
       data.value = timeFrameAggregateRecords;
@@ -531,10 +537,10 @@ async function setCandleDataValues(
       let candleTimeStamp = startTimestamp ?? 0;
 
       let newestRecordTimestamp =
-        oldOHLCDataOldestRecord &&
+        oldestOHLCDataOldestRecord &&
         dataRecordsAmountForQuery.value &&
         !mergeNewData
-          ? oldOHLCDataOldestRecord.d.getTime()
+          ? oldestOHLCDataOldestRecord.d.getTime()
           : endTimestamp;
 
       ohlcData.push({
