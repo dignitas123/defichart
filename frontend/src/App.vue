@@ -59,12 +59,12 @@ const lastTimestampBeforeTabSwitch = ref(new Date());
 function handleVisibilityChange() {
   if (document.hidden) {
     // User has switched to a different tab or minimized the window
-    lastTimestampBeforeTabSwitch.value = new Date(atomicTime.time);
+    lastTimestampBeforeTabSwitch.value = new Date();
   } else {
     // User has come back to the tab
     startAtomicClock();
     atomicTime.switchTabTimeDifference =
-      atomicTime.time.getTime() - lastTimestampBeforeTabSwitch.value.getTime();
+      new Date().getTime() - lastTimestampBeforeTabSwitch.value.getTime();
   }
 }
 </script>
