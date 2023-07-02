@@ -74,8 +74,10 @@ function intervalCalculation(
 
     const firstEntryClose = records[0]?.close ?? 0;
     resetAggregateCandlestick();
-    open = firstEntryClose;
+    open = records[0]?.open ?? 0;
     previousClose = firstEntryClose;
+    aggregateCandlestickHighLowVolume(records[0]);
+
     let candleTimeStamp = startTimestamp + timeStep;
     if (mergeNewData) {
       newestRecordTimestamp -= timeStep;
@@ -86,16 +88,9 @@ function intervalCalculation(
     while (candleTimeStamp <= newestRecordTimestamp) {
       if (dividableTimeCallback(new Date(candleTimeStamp)) % amount === 0) {
         if (records[j]?.timestamp === candleTimeStamp) {
-          if (j === 1) {
-            aggregateCandlestickHighLowVolume(records[j]);
-            pushCandle();
-            startTimestamp = records[j]?.timestamp as number;
-            open = records[j]?.open as number;
-          } else {
-            pushCandle();
-            startTimestamp = records[j]?.timestamp as number;
-            open = records[j]?.open as number;
-          }
+          pushCandle();
+          startTimestamp = records[j]?.timestamp as number;
+          open = records[j]?.open as number;
         } else if (previousClose) {
           open = previousClose;
           startTimestamp = candleTimeStamp;
