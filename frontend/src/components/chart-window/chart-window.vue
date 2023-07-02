@@ -798,6 +798,12 @@ watch(timeFrame, async (now, before) => {
         )
       );
     }
+    if (Number(startingDistanceDifference.value) > 0) {
+      await executeTimeFrameQuery(
+        MAX_CANDLES_LOAD,
+        dataRecordsAmountForQuery.value
+      );
+    }
   }
 });
 watch(
