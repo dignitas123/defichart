@@ -846,7 +846,6 @@ const atomicTime = useAtomicTimeStore();
 watch(
   () => atomicTime.tabSwitch,
   async (val) => {
-    console.log('atomicTime.tabSwitch', val);
     const missingCandles = getMissingCandles(val);
     await executeTimeFrameQuery(missingCandles, 0, true);
   }
