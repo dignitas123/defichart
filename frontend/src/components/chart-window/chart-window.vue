@@ -161,7 +161,6 @@ import {
   provide,
   computed,
   onMounted,
-  Ref,
 } from 'vue';
 import CandlestickChart from './child-components/candlestick-chart/candlestick-chart.vue';
 import HeaderBar from './child-components/header-bar/header-bar.vue';
