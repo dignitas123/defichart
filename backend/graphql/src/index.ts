@@ -16,7 +16,6 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { SYMBOL_BROKER_LIST } from "./broker-symbol-const";
 import {
-  getBeginningForTimeFrame,
   getCurrentCandleDataForTF,
   getObjectOnS3,
 } from "./aws-module/s3-fns";
