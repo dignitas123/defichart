@@ -17,10 +17,12 @@ First, create an EC2 instance on AWS. Choose an appropriate instance type based 
 
 ## installations on ec2 instance
 
-- `sudo yum update`
-- `sudo amazon-linux-extras install nginx1`
-- `sudo yum install git npm`
-- `sudo npm install yarn -g`
+```bash
+sudo yum update
+sudo yum -y install nginx
+sudo yum install git npm
+sudo npm install yarn -g
+```
 
 ## install node
 
@@ -32,68 +34,120 @@ nvm install 16
 
 ## setup nginx
 
-- `sudo mkdir /etc/nginx/sites-available`
-- `sudo mkdir /etc/nginx/sites-enabled`
-- `sudo mkdir /var/www`
-- `sudo mkdir /var/www/html`
-- `cd /etc/nginx/sites-available`
-- `sudo ln -s /etc/nginx/sites-available/deficharts /etc/nginx/sites-enabled/`
-- `sudo nano /etc/nginx/sites-available/deficharts`
-
+```bash
+sudo mkdir /etc/nginx/sites-available
+sudo mkdir /etc/nginx/sites-enabled
+sudo mkdir /var/www
+sudo mkdir /var/www/html
+cd /etc/nginx/sites-available
+sudo ln -s /etc/nginx/sites-available/deficharts /etc/nginx/sites-enabled/
+sudo nano /etc/nginx/nginx.conf
 ```
-server {
-    listen 80;
-    listen [::]:80;
-    server_name _;
 
-    root /var/www/deficharts/dist/spa;
-    index index.html;
+```bash
+events {
+    worker_connections  1024;
+}
 
-    location / {
-        try_files $uri $uri/ /index.html;
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    gzip  on;
+    server {
+	    listen 80;
+        listen [::]:80;
+        server_name _;
+
+        #root /var/www/deficharts/dist/spa;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
     }
 }
 ```
-## install ssl on ec2 instance with nginx
+
+## install ssl self signed on ec2 instance with nginx (don't need with aws certificates and load balancer)
 
 `sudo dnf install openssl mod_ssl`
-```sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/apache-selfsigned.key -out /etc/pki/tls/certs/apache-selfsigned.crt```
+`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/apache-selfsigned.key -out /etc/pki/tls/certs/apache-selfsigned.crt`
 
-```
-// backend (for graphql):
-// it's the /etc/nginx/nginx.conf
-server {
-    listen 80 default_server;
-    listen 443 ssl;
-    ssl_certificate /etc/pki/tls/certs/apache-selfsigned.crt;
-    ssl_certificate_key /etc/pki/tls/private/apache-selfsigned.key;
-    server_name _;
+```bash
+events {
+    worker_connections  1024;
+}
 
-    location /graphql {
-        proxy_pass http://localhost:4000/graphql; #port where you are serving your express app
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "Upgrade";
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    gzip  on;
+    server {
+        listen 80 default_server;
+        server_name _;
+
+        location /graphql {
+            proxy_pass http://localhost:4000/graphql; #port where you are serving your express app
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+        }
     }
 }
 ```
 
-- `sudo systemctl start nginx`
-- `sudo systemctl restart nginx`
+```bash
+sudo nginx -t
+sudo systemctl start nginx
+sudo systemctl restart nginx
+```
+
 - check Public IPv4 DNS with http. U should see nginx welcome screen
 
 ## connect github repo
 
-- `ssh-keygen`
-- `cat ~/.ssh/id_rsa.pub`
-- copy the key
+```bash
+ssh-keygen
+cat ~/.ssh/id_rsa.pub
+```
+
+- copy the key until whitespace
 - under github > settings > SSH and GPG Keys > New SSH Key add copied key (ssh-rsa AAAAB3NzaC1yc2EAA… until whitespace)
-- `ssh -T git@github.com` for checking
-- restart instance if it doesn't work
-- git clone git@github.com:<username>/<repository>.git (git clone git@github.com:dignitas123/defichart.git)
-- `cd defichart & yarn & yarn build`
+
+```bash
+ssh -T git@github.com
+cd ~
+git clone git@github.com:dignitas123/defichart.git
+```
 
 ## creating a github access token
 
@@ -140,10 +194,11 @@ sudo scp -i defichartsinstance.pem defichartsinstance.pem ec2-user@ec2-18-159-79
 ```
 
 ## Connect to instance
+
 Frontend:
-`ssh -i defichartsinstance.pem ec2-user@ec2-18-159-79-156.eu-central-1.compute.amazonaws.com`
+`ssh -i defichartsinstance.pem ec2-user@ec2-3-69-193-201.eu-central-1.compute.amazonaws.com`
 Backend:
-`ssh -i defichartsinstancebackend.pem ec2-user@ec2-3-71-112-87.eu-central-1.compute.amazonaws.com`
+`ssh -i defichartsinstance.pem ec2-user@ec2-54-93-107-220.eu-central-1.compute.amazonaws.com`
 
 ## deployment and update frontend
 
@@ -156,4 +211,4 @@ Backend:
 - `yarn build`
 - `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
 
-**Note: somehow build crashes so I'm currently uploading the dist folder, you have to yarn build locally
+\*\*Note: somehow build crashes so I'm currently uploading the dist folder, you have to yarn build locally
