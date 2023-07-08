@@ -17,4 +17,4 @@ const registerConsumerResult = await kinesisClient.send(
   registerConsumerCommand
 );
 
-console.log(`Consumer ARN: ${registerConsumerResult.ConsumerARN}`);
+console.log(`Consumer ARN: ${registerConsumerResult.Consumer}`);
