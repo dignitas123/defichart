@@ -1,5 +1,5 @@
 import { DAY, HOUR, MIN, WEEK } from 'src/pages/broker-charts/consts';
-import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
+import { TimeFrame } from '../child-components/header-bar/child-components/time-frame-dropdown.if';
 
 export function getTimeFrameInMs(timeFrame: TimeFrame) {
   switch (timeFrame) {

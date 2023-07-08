@@ -1,7 +1,7 @@
 import { computed, ref, Ref, watch, watchEffect } from 'vue';
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { DATA_TICKSIZE } from 'src/pages/broker-charts/consts';
-import { roundToTicksize } from './helpers/digits';
+import { roundToTicksize } from '../helpers/digits';
 
 export function useChartData(
   data: Ref<OHLC[] | undefined>,

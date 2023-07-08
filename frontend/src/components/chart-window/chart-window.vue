@@ -174,7 +174,7 @@ import {
   Broker,
 } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
-import { useChartData } from './chart-window.cp';
+import { useChartData } from './composables/chart-data';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -210,9 +210,9 @@ import {
   TickDataResult,
   TimeFrame as TimeFrameEnum,
 } from 'src/generated/graphql';
-import { getTimeFrameInMs } from './time-frame-fns';
-import { useCandleStream } from './candle-stream';
-import { useSetCandleData } from './set-candle-data';
+import { getTimeFrameInMs } from './helpers/time-frame-fns';
+import { useCandleStream } from './composables/candle-stream';
+import { useSetCandleData } from './composables/set-candle-data';
 
 const props = defineProps<{
   id: string;
@@ -1237,4 +1237,5 @@ function setVerticalLines(lines: number[]) {
   }
 }
 </style>
-./get-missing-candles
+./get-missing-candles ./chart-data ./composables/set-candle-data
+./composables/candle-stream ./helpers/time-frame-fns

@@ -1,7 +1,7 @@
 import { OHLC } from 'src/pages/broker-charts/broker-charts.if';
 import { useAtomicTimeStore } from 'src/stores/atomic-time';
 import { Ref, watch } from 'vue';
-import { TimeFrame } from './child-components/header-bar/child-components/time-frame-dropdown.if';
+import { TimeFrame } from '../child-components/header-bar/child-components/time-frame-dropdown.if';
 
 export function useCandleStream(
   data: Ref<OHLC[] | undefined>,
