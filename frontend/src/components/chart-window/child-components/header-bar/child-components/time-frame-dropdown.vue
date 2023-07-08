@@ -104,22 +104,6 @@
           >⇧5</InfoBadge
         >
       </q-item>
-      <q-separator />
-      <q-item class="time-frame-custom-input-item">
-        <q-item-section>
-          <q-input
-            outlined
-            dense
-            v-model="customTimeFrameInputText"
-            mask="A##"
-            :placeholder="customTimeFramePlaceHolder"
-            @focus="focusCustomTimeFrame"
-            @blur="resetCustomTimeFrameInputText"
-            @keydown.enter="onCustomTFInputClick(customTimeFrameInputText)"
-            :style="`width: ${$q.platform.is.mobile ? 46 : 84}px`"
-          />
-        </q-item-section>
-      </q-item>
     </q-list>
   </q-btn-dropdown>
 </template>
@@ -220,10 +204,6 @@ function onCustomTFInputClick(input: string) {
 
     resetCustomTimeFrameInputText();
   }, 300);
-}
-
-function focusCustomTimeFrame() {
-  customTimeFramePlaceHolder.value = '';
 }
 
 function resetCustomTimeFrameInputText() {

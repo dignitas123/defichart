@@ -168,7 +168,6 @@ import HeaderBar from './child-components/header-bar/header-bar.vue';
 import PriceAxis from './child-components/price-axis.vue';
 import ConfigBottomRight from './child-components/config-bottom-right.vue';
 import DateAxis from './child-components/date-axis.vue';
-// import { generateData } from './helpers/fake-data-generator'; TODO: use in playground to test chart related things
 import {
   DatePosition,
   OHLC,
@@ -212,11 +211,9 @@ import {
   TickDataResult,
   TimeFrame as TimeFrameEnum,
 } from 'src/generated/graphql';
-import { timeFrameAggregate } from './helpers/timeframe-aggregate';
 import { getTimeFrameInMs } from './time-frame-fns';
 import { useCandleStream } from './candle-stream';
-import { useAtomicTimeStore } from 'src/stores/atomic-time';
-import { useGetMissingCandles } from './get-missing-candles';
+import { useSetCandleData } from './set-candle-data';
 
 const props = defineProps<{
   id: string;
@@ -277,64 +274,19 @@ const {
   onResult: onOhlcvResult,
   result: ohlcvResult,
   load: loadOhlcvQuery,
-  networkStatus: getTimeFrameQueryNetworkStatus,
 } = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery);
 
-const {
-  onResult: onOhlcvFillCandlesResult,
-  result: ohlcvFillCandlesResult,
-  load: loadFillCandlesOhlcvQuery,
-} = useLazyQuery<GetTimeFrameQuery>(getTimeFrameQuery, {
-  fetchPolicy: 'network-only',
-});
-
-const previousTimeFrameQueryNetworkStatus = ref<number>();
-
-onOhlcvFillCandlesResult(async (result) => {
-  if (result.data && data.value) {
-    const oldData = [...data.value];
-    await setCandleDataValuesAndMerge(() =>
-      setCandleDataValues(
-        ohlcvFillCandlesResult,
-        startShift.value,
-        oldData,
-        true
-      )
-    );
-    data.value.splice(-2, 1);
-    chartUpdateKey.value++;
-  }
-});
-
 onOhlcvResult(async (result) => {
-  if (result.data) {
-    if (previousTimeFrameQueryNetworkStatus.value === 7) {
-      await setCandleDataValuesAndMerge(() =>
-        setCandleDataValues(
-          ohlcvResult,
-          startShift.value,
-          data.value && [...data.value]
-        )
-      );
-      const missingCandles = getMissingCandles({
-        startTime: lastTimestampInPrevTimeframe.value[timeFrame.value],
-        timeDiff:
-          atomicTime.time.getTime() -
-          lastTimestampInPrevTimeframe.value[timeFrame.value].getTime(),
-      });
-      await executeTimeFrameQuery(missingCandles, 0, true);
-    } else {
-      await setCandleDataValuesAndMerge(() =>
-        setCandleDataValues(
-          ohlcvResult,
-          startShift.value,
-          data.value && [...data.value]
-        )
-      );
-    }
+  if (!result.data) {
+    return;
   }
-  previousTimeFrameQueryNetworkStatus.value =
-    getTimeFrameQueryNetworkStatus.value;
+  await setCandleDataValuesAndLookBackNumber(() =>
+    setCandleDataValues(
+      ohlcvResult,
+      startShift.value,
+      data.value && [...data.value]
+    )
+  );
 });
 
 watch(
@@ -378,8 +330,7 @@ onMounted(async () => {
 const startShift = ref(0);
 async function executeTimeFrameQuery(
   binAmount = MAX_CANDLES_LOAD,
-  _startShift = 0,
-  mergeNewData = false
+  _startShift = 0
 ) {
   startShift.value = _startShift;
 
@@ -393,11 +344,7 @@ async function executeTimeFrameQuery(
     binAmount: binAmount,
     ...(_startShift && { startShift: _startShift }),
   };
-  if (mergeNewData) {
-    loadFillCandlesOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-  } else {
-    loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
-  }
+  loadOhlcvQuery(getTimeFrameQuery, ohlcvQueryVariables);
 }
 
 const chartHighScale = ref(0);
@@ -440,161 +387,17 @@ const currentCandleClose = computed(() => {
   return data.value?.length ? data.value[data.value.length - 1].c : 0;
 });
 
-async function setCandleDataValuesAndMerge(
+async function setCandleDataValuesAndLookBackNumber(
   setCandleDataCallback: (
     startShift?: number,
     oldOHLCData?: OHLC[] | undefined,
     mergeNewData?: boolean
-  ) => Promise<void>
+  ) => void
 ) {
   if (!ohlcvResult.value) {
     return;
   }
-  return await setCandleDataCallback();
-}
-
-const timeFrameInMs = computed(() => {
-  return getTimeFrameInMs(timeFrame.value);
-});
-
-async function setCandleDataValues(
-  result: Ref<GetTimeFrameQuery | undefined>,
-  startShift = 0,
-  oldOHLCData: OHLC[] | undefined = undefined,
-  mergeNewData = false
-) {
-  if (!result.value) {
-    return;
-  }
-  const timeFrameRecords = result.value.timeFrameRecords
-    ? [...result.value.timeFrameRecords]
-    : undefined;
-  const reversedRecords = timeFrameRecords?.reverse();
-
-  const oldestOHLCDataOldestRecord = oldOHLCData && oldOHLCData[0];
-  const newestOHLCDataOldestRecord =
-    oldOHLCData && oldOHLCData[oldOHLCData.length - 1];
-
-  if (
-    (timeModeCount.value > 1 && timeFrame.value !== 'M5') ||
-    timeModeCount.value > 5
-  ) {
-    const unevenBeginning =
-      oldOHLCData &&
-      timeFrameInMs.value &&
-      oldOHLCData.length > 1 &&
-      (oldOHLCData[1].d.getTime() - oldOHLCData[1].d.getTime()) /
-        timeFrameInMs.value !==
-        1;
-    if (startShift > 0 || mergeNewData) {
-      const newAggregatedRecords = timeFrameAggregate(
-        reversedRecords,
-        timeFrameMode.value,
-        timeModeCount.value,
-        dataRecordsAmountForQuery.value,
-        oldestOHLCDataOldestRecord,
-        newestOHLCDataOldestRecord,
-        mergeNewData,
-        Boolean(unevenBeginning)
-      );
-      if (!oldOHLCData || !newAggregatedRecords) {
-        return;
-      }
-      if (unevenBeginning) {
-        oldOHLCData.shift();
-      }
-      data.value = mergeNewData
-        ? [...oldOHLCData, ...newAggregatedRecords]
-        : [...newAggregatedRecords, ...oldOHLCData];
-      dataRecordsAmountForQuery.value += MAX_CANDLES_LOAD;
-    } else {
-      const timeFrameAggregateRecords = timeFrameAggregate(
-        reversedRecords,
-        timeFrameMode.value,
-        timeModeCount.value,
-        dataRecordsAmountForQuery.value,
-        oldestOHLCDataOldestRecord,
-        newestOHLCDataOldestRecord,
-        Boolean(unevenBeginning)
-      );
-      data.value = timeFrameAggregateRecords;
-      dataRecordsAmountForQuery.value += MAX_CANDLES_LOAD;
-    }
-  } else {
-    const ohlcData: OHLC[] = [];
-    if (reversedRecords) {
-      const startTimestamp = mergeNewData
-        ? data.value && data.value[data.value.length - 1].d.getTime()
-        : reversedRecords[0]?.timestamp ?? 0;
-      const endTimestamp =
-        reversedRecords[reversedRecords.length - 1]?.timestamp ?? 0;
-      const timeStep = timeFrameInMs.value ?? MIN;
-      let candleTimeStamp = startTimestamp ?? 0;
-
-      let newestRecordTimestamp =
-        oldestOHLCDataOldestRecord &&
-        dataRecordsAmountForQuery.value &&
-        !mergeNewData
-          ? oldestOHLCDataOldestRecord.d.getTime()
-          : endTimestamp;
-
-      ohlcData.push({
-        o: reversedRecords[0]?.open ?? 0,
-        h: reversedRecords[0]?.high ?? 0,
-        l: reversedRecords[0]?.low ?? 0,
-        c: reversedRecords[0]?.close ?? 0,
-        v: reversedRecords[0]?.volume ?? 0,
-        d: new Date(candleTimeStamp),
-      });
-
-      if (dataRecordsAmountForQuery.value > 0 || mergeNewData) {
-        newestRecordTimestamp -= timeStep;
-      }
-
-      if (dataRecordsAmountForQuery.value === 0 || mergeNewData) {
-        candleTimeStamp += timeStep;
-      }
-
-      let j = 1;
-      while (candleTimeStamp <= newestRecordTimestamp) {
-        if (reversedRecords[j]?.timestamp === candleTimeStamp) {
-          ohlcData.push({
-            o: reversedRecords[j]?.open ?? 0,
-            h: reversedRecords[j]?.high ?? 0,
-            l: reversedRecords[j]?.low ?? 0,
-            c: reversedRecords[j]?.close ?? 0,
-            v: reversedRecords[j]?.volume ?? 0,
-            d: new Date(reversedRecords[j]?.timestamp ?? 0),
-          });
-          j++;
-        } else if (ohlcData.length > 0) {
-          const previousCandle = ohlcData[ohlcData.length - 1];
-          ohlcData.push({
-            o: previousCandle.c,
-            h: previousCandle.c,
-            l: previousCandle.c,
-            c: previousCandle.c,
-            v: 0,
-            d: new Date(candleTimeStamp),
-          });
-        }
-        candleTimeStamp += timeStep;
-      }
-    }
-    if (startShift > 0 || mergeNewData) {
-      if (!oldOHLCData) {
-        return;
-      }
-      data.value = mergeNewData
-        ? [...oldOHLCData, ...ohlcData]
-        : [...ohlcData, ...oldOHLCData];
-      dataRecordsAmountForQuery.value += MAX_CANDLES_LOAD;
-    } else {
-      data.value = ohlcData;
-      dataRecordsAmountForQuery.value += MAX_CANDLES_LOAD;
-    }
-  }
-  // data.value = generateData('W', 1); // TODO: activate fake Generation in dev mode playgound
+  setCandleDataCallback();
   await nextTick();
   if (!data.value || !data.value.length) {
     return;
@@ -602,19 +405,21 @@ async function setCandleDataValues(
   calculateAndSetlookbackNumber();
 }
 
+const timeFrameInMs = computed(() => {
+  return getTimeFrameInMs(timeFrame.value);
+});
+
+const { setCandleDataValues } = useSetCandleData(
+  timeFrameInMs,
+  dataRecordsAmountForQuery,
+  data
+);
+
 const initialCandlesShow = ref(0);
 
 const timeFrameMode = computed(() => {
   return timeFrame.value.charAt(0) as TimeFrameMode;
 });
-const timeModeCount = computed(() => {
-  return Number(timeFrame.value.substring(1));
-});
-
-const { getMissingCandles } = useGetMissingCandles(
-  timeFrameInMs,
-  timeFrameMode
-);
 
 const candleWidth = ref(0);
 const candleDistance = ref(0);
@@ -779,24 +584,18 @@ watch(
   }
 );
 
-type lastTimestampInPrevTimeframeEntries = Record<TimeFrame, Date>;
-const lastTimestampInPrevTimeframe = ref<lastTimestampInPrevTimeframeEntries>(
-  {} as lastTimestampInPrevTimeframeEntries
-);
-
 watch(timeFrame, async (now, before) => {
   emit('update:timeFrame', timeFrame.value);
   const sameTimeFrame = now === before;
   if (!sameTimeFrame) {
     dataRecordsAmountForQuery.value = 0;
     data.value = undefined;
-    lastTimestampInPrevTimeframe.value[before] = new Date(atomicTime.time);
     await executeTimeFrameQuery(
       MAX_CANDLES_LOAD,
       dataRecordsAmountForQuery.value
     );
     if (now.charAt(0) === before.charAt(0)) {
-      await setCandleDataValuesAndMerge(() =>
+      await setCandleDataValuesAndLookBackNumber(() =>
         setCandleDataValues(
           ohlcvResult,
           startShift.value,
@@ -840,16 +639,6 @@ window.addEventListener('keydown', onKeyDown);
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
-
-const atomicTime = useAtomicTimeStore();
-
-watch(
-  () => atomicTime.tabSwitch,
-  async (val) => {
-    const missingCandles = getMissingCandles(val);
-    await executeTimeFrameQuery(missingCandles, 0, true);
-  }
-);
 
 const timeFrameSetByUser = ref<StandardTimeFrames>();
 provide('timeFrameSetByUser', timeFrameSetByUser);

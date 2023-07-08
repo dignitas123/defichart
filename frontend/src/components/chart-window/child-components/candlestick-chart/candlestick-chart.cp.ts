@@ -35,49 +35,14 @@ export function useDateFunctions(
     switch (timeFrame.value) {
       case 'M1':
         return new Date(newestDate.setMinutes(newestDate.getMinutes() - 1));
-      case 'M2':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 2));
-      case 'M3':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 3));
-      case 'M4':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 4));
       case 'M5':
         return new Date(newestDate.setMinutes(newestDate.getMinutes() - 5));
-      case 'M10':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 10));
-      case 'M15':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 15));
-      case 'M20':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 20));
-      case 'M30':
-        return new Date(newestDate.setMinutes(newestDate.getMinutes() - 30));
       case 'H1':
         return new Date(newestDate.setHours(newestDate.getHours() - 1));
-      case 'H2':
-        return new Date(newestDate.setHours(newestDate.getHours() - 2));
-      case 'H3':
-        return new Date(newestDate.setHours(newestDate.getHours() - 3));
-      case 'H4':
-        return new Date(newestDate.setHours(newestDate.getHours() - 4));
-      case 'H6':
-        return new Date(newestDate.setHours(newestDate.getHours() - 6));
-        return new Date(newestDate.setHours(newestDate.getHours() - 12));
       case 'D1':
         return new Date(newestDate.setDate(newestDate.getDate() - 1));
-      case 'D2':
-        return new Date(newestDate.setDate(newestDate.getDate() - 2));
-      case 'D3':
-        return new Date(newestDate.setDate(newestDate.getDate() - 3));
-      case 'D4':
-        return new Date(newestDate.setDate(newestDate.getDate() - 4));
       case 'W1':
         return new Date(newestDate.setDate(newestDate.getDate() - 7));
-      case 'W2':
-        return new Date(newestDate.setDate(newestDate.getDate() - 7 * 2));
-      case 'W3':
-        return new Date(newestDate.setDate(newestDate.getDate() - 7 * 3));
-      case 'W4':
-        return new Date(newestDate.setDate(newestDate.getDate() - 7 * 4));
     }
   }
 
@@ -110,18 +75,10 @@ export function useDateFunctions(
             }
           }
         } else if (timeDisplayProps.value.mode === TimeMode.M1) {
-          if (timeFrame.value === 'M2') {
-            if (minutes === 0) {
-              bold = true;
-            } else if (minutes % 5 !== 0) {
-              showEntryDateFormat = '';
-            }
-          } else {
-            if (minutes % 10 === 0) {
-              bold = true;
-            } else if (minutes % 5 !== 0) {
-              showEntryDateFormat = '';
-            }
+          if (minutes % 10 === 0) {
+            bold = true;
+          } else if (minutes % 5 !== 0) {
+            showEntryDateFormat = '';
           }
         } else if (timeDisplayProps.value.mode === TimeMode.M5) {
           if (timeFrame.value === 'M5') {
@@ -130,20 +87,14 @@ export function useDateFunctions(
             } else if (minutes % 15 !== 0) {
               showEntryDateFormat = '';
             }
-          } else if (minutes % 15 === 0 && timeFrame.value !== 'M3') {
+          } else if (minutes % 15 === 0) {
             bold = true;
           }
         } else if (
           timeDisplayProps.value.mode === TimeMode.M10 &&
           minutes % 30 === 0
         ) {
-          if (timeFrame.value === 'M10') {
-            if (minutes === 0) {
-              bold = true;
-            } else if (minutes % 30 !== 0) {
-              showEntryDateFormat = '';
-            }
-          } else if (minutes % 30 === 0) {
+          if (minutes % 30 === 0) {
             bold = true;
           }
         } else if (timeDisplayProps.value.mode === TimeMode.M30) {
@@ -312,10 +263,7 @@ export function useDateFunctions(
         } else if (monthTransition) {
           if (!timeFrame.value.includes('D')) {
             if (timeFrame.value.includes('W')) {
-              if (
-                (timeFrame.value === 'W2' || timeFrame.value === 'W1') &&
-                month === 6
-              ) {
+              if (timeFrame.value === 'W1' && month === 6) {
                 showEntryDateFormat = 'MMM';
               }
             } else if ([3, 6, 9].includes(month)) {
@@ -398,11 +346,7 @@ export function useDateFunctions(
       minuteTimeDifferential = 5;
     } else if (tDifDB < 10 * MIN) {
       mode = TimeMode.M10;
-      if (timeFrame.value === 'M2') {
-        minuteTimeDifferential = 10;
-      } else {
-        minuteTimeDifferential = 15;
-      }
+      minuteTimeDifferential = 15;
     } else if (tDifDB < 16 * MIN) {
       mode = TimeMode.M15;
       minuteTimeDifferential = 20;

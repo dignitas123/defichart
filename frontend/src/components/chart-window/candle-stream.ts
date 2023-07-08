@@ -23,66 +23,10 @@ export function useCandleStream(
             pushNewCandle = true;
           }
           break;
-        case 'M2':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 2 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M3':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 3 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M4':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 4 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
         case 'M5':
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() % 5 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M10':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 10 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M15':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 15 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M20':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 20 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'M30':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() % 30 === 0
           ) {
             pushNewCandle = true;
           }
@@ -94,98 +38,11 @@ export function useCandleStream(
           ) {
             pushNewCandle = true;
           }
-        case 'H2':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() % 2 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'H3':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() % 3 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'H4':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() % 4 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'H6':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() % 6 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'H8':
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() % 8 === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
         case 'D1':
           if (
             atomicTime.time.getSeconds() % 60 === 0 &&
             atomicTime.time.getMinutes() === 0 &&
             atomicTime.time.getHours() === 0
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'D2':
-          const currentCandleD2 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateD2 = new Date(currentCandleD2.d);
-          currentCandleDateD2.setDate(currentCandleDateD2.getDate() + 2);
-          currentCandleD2.d = currentCandleDateD2;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateD2
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'D3':
-          const currentCandleD3 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateD3 = new Date(currentCandleD3.d);
-          currentCandleDateD3.setDate(currentCandleDateD3.getDate() + 3);
-          currentCandleD3.d = currentCandleDateD3;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateD3
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'D4':
-          const currentCandleD4 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateD4 = new Date(currentCandleD4.d);
-          currentCandleDateD4.setDate(currentCandleDateD4.getDate() + 4);
-          currentCandleD4.d = currentCandleDateD4;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateD4
           ) {
             pushNewCandle = true;
           }
@@ -200,48 +57,6 @@ export function useCandleStream(
             atomicTime.time.getMinutes() === 0 &&
             atomicTime.time.getHours() === 0 &&
             atomicTime.time === currentCandleDateW1
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'W2':
-          const currentCandleW2 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateW2 = new Date(currentCandleW2.d);
-          currentCandleDateW2.setDate(currentCandleDateW2.getDate() + 7 * 2);
-          currentCandleW2.d = currentCandleDateW2;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateW2
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'W3':
-          const currentCandleW3 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateW3 = new Date(currentCandleW3.d);
-          currentCandleDateW3.setDate(currentCandleDateW3.getDate() + 7 * 3);
-          currentCandleW3.d = currentCandleDateW3;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateW3
-          ) {
-            pushNewCandle = true;
-          }
-          break;
-        case 'W4':
-          const currentCandleW4 = { ...data.value.slice(-1)[0] };
-          const currentCandleDateW4 = new Date(currentCandleW4.d);
-          currentCandleDateW4.setDate(currentCandleDateW4.getDate() + 7 * 4);
-          currentCandleW4.d = currentCandleDateW4;
-          if (
-            atomicTime.time.getSeconds() % 60 === 0 &&
-            atomicTime.time.getMinutes() === 0 &&
-            atomicTime.time.getHours() === 0 &&
-            atomicTime.time === currentCandleDateW4
           ) {
             pushNewCandle = true;
           }
