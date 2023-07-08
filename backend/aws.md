@@ -203,12 +203,13 @@ Backend:
 ## deployment and update frontend
 
 - Connect to Instance
-- `nvm use 16`
-- `cd defichart`
-- `git pull`
-- `yarn`
-- `cd frontend`
-- `yarn build`
-- `sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html`
+
+```bash
+cd defichart/frontend
+git pull
+yarn
+yarn build
+sudo cp -r /home/ec2-user/defichart/frontend/dist/spa/. /usr/share/nginx/html
+```
 
 \*\*Note: somehow build crashes so I'm currently uploading the dist folder, you have to yarn build locally
