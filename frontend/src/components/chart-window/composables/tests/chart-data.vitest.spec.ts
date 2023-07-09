@@ -72,8 +72,8 @@ describe('useChartData', () => {
     // it should have an offset of one more and therefore increase the starting dist difference by 1
     expect(startingDistanceDifference.value).toBe(-240);
   });
-  it('changes startingDistanceDifference when offset or candlesShow is changed correct', () => {
-    const { startingDistanceDifference } = useChartData(
+  it('has dataDatesCandlesInChart computed and every element in the array is of type date', () => {
+    const { dataDatesCandlesInChart } = useChartData(
       data,
       candlesShow,
       offset,
@@ -81,12 +81,32 @@ describe('useChartData', () => {
       chartLowScale,
       chartUpdateKey
     );
-    expect(startingDistanceDifference.value).toBe(-240);
-    candlesShow.value++;
-    // it should show one more candle, and therefore be one less starting dist difference
-    expect(startingDistanceDifference.value).toBe(-239);
-    offset.value++;
-    // it should have an offset of one more and therefore increase the starting dist difference by 1
-    expect(startingDistanceDifference.value).toBe(-240);
+    function areAllDates(array: Date[]) {
+      return array.every((element) => element instanceof Date);
+    }
+    const result = areAllDates(dataDatesCandlesInChart.value ?? []);
+
+    expect(result).toBe(true);
+  });
+  it('computes chartHigh and chartLow new when candlesInChartData changes', () => {
+    const { candlesInChartData, chartHigh, chartLow } = useChartData(
+      data,
+      candlesShow,
+      offset,
+      chartHighScale,
+      chartLowScale,
+      chartUpdateKey
+    );
+    const oldCandlesInChartData = candlesInChartData.value;
+    const oldChartHigh = chartHigh.value;
+    const oldChartLow = chartLow.value;
+    // data changes and so should candlesInChartData
+    data.value = generateData('M', 5); // generate new data
+    const watcher = watch(candlesInChartData, () => {
+      expect(candlesInChartData.value).not.toEqual(oldCandlesInChartData);
+      expect(chartHigh.value).not.toEqual(oldChartHigh);
+      expect(chartLow.value).not.toEqual(oldChartLow);
+      watcher();
+    });
   });
 });
