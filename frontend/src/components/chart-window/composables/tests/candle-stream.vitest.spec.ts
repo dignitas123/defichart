@@ -33,7 +33,7 @@ describe('useCandleStream', () => {
     // Call the useCandleStream function
     useCandleStream(data, timeFrame, chartUpdateKey);
 
-    // data value is incremented
+    // data value is not incremented before watch trigger
     expect(data.value?.length).toBe(1);
 
     // formatted time triggers watch
