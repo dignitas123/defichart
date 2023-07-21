@@ -58,7 +58,7 @@
       </div>
       <div v-else class="price-row">
         <div
-          class="chart"
+          class="chart relative-position full-height"
           ref="chartRef"
           @contextmenu.prevent
           @wheel="onWheel"
@@ -88,6 +88,13 @@
             v-model:candleDistance="candleDistance"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
+          <ObjectOverlay
+            v-if="false"
+            :candleWidth="candleWidth"
+            :candleDistance="candleDistance"
+            :h2l="chartH2L"
+            :height="chartHeight"
+          />
           <q-btn
             v-if="offset < 0"
             round
@@ -175,6 +182,7 @@ import {
 } from 'src/pages/broker-charts/broker-charts.if';
 import { useBrokerChartSizes } from 'src/pages/broker-charts/broker-charts.cp';
 import { useChartData } from './composables/chart-data';
+import ObjectOverlay from './child-components/object-overlay/object-overlay.vue';
 import CrossHair from './child-components/cross-hair.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -1205,9 +1213,7 @@ function setVerticalLines(lines: number[]) {
 
       .chart {
         flex: 1;
-        height: 100%;
         cursor: crosshair;
-        position: relative;
 
         .go-to-start-button {
           z-index: 20;

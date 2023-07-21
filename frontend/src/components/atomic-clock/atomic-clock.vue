@@ -1,5 +1,5 @@
 <template>
-  <div class="atomic-time-wrapper">
+  <div class="atomic-time-wrapper non-selectable">
     <div class="atomic-time">
       {{ atomicTime.formattedTime }}
     </div>
