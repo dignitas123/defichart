@@ -11,15 +11,18 @@
     <RectangleZone
       v-if="true"
       :top="drawTop"
+      :height="drawHeight"
       :left="drawLeft"
       :width="drawWidth"
-      :height="drawHeight"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+// TODO: this object overlay component should be the parent of all objects on the chart,
+// the rectangle zone is one of them and there should be a config object containing all the components
+// the <RectangleZone> should be a dynamic component in future
+import { ref, watch } from 'vue';
 import RectangleZone from './child-components/rectangle-zone/rectangle-zone.vue';
 import {
   CANDLE_WICK_THICKNESS,
@@ -31,16 +34,43 @@ const props = defineProps<{
   candleDistance: number;
   h2l?: number;
   height?: number;
+  candlesShow: number;
 }>();
 
 const isDrawing = ref(false);
 const startX = ref(0);
 const startY = ref(0);
 
-// chart is zoomed or the height, width is changed
-watch([() => props.candleWidth, () => props.height], () => {
-  console.log('have to change the position of object');
-});
+watch(
+  () => props.candleWidth,
+  () => {
+    drawLeft.value =
+      (drawCandleLeftIndex.value + 1) *
+        (props.candleWidth + props.candleDistance) -
+      props.candleWidth / 2;
+    const drawLeftPoint =
+      (drawCandleRightIndex.value + 1) *
+        (props.candleWidth + props.candleDistance) -
+      props.candleWidth / 2;
+    drawWidth.value = drawLeftPoint - drawLeft.value;
+  }
+);
+
+watch(
+  () => props.height,
+  () => {
+    if (!props.height) {
+      return;
+    }
+    drawTop.value = findNextPricepoint(
+      props.height * drawPriceTopH2LRatio.value
+    );
+    const drawBottomPrice = findNextPricepoint(
+      props.height * drawPriceBottomH2LRatio.value
+    );
+    drawHeight.value = drawTop.value - drawBottomPrice;
+  }
+);
 
 const objectOverlayRef = ref<HTMLElement>();
 
@@ -54,59 +84,74 @@ function startDrawing(event: MouseEvent) {
 }
 
 function stopDrawing() {
+  if (!props.height) {
+    return;
+  }
   isDrawing.value = false;
 
-  drawLeft.value = findCandleMidpoint(drawLeft.value);
+  const { midPoint: leftMidPoint, index: leftIndex } = findCandleMidpoint(
+    drawLeft.value
+  );
+  drawLeft.value = leftMidPoint;
+  drawCandleLeftIndex.value = leftIndex;
   let candleAmount = drawWidth.value / props.candleWidth;
   if (candleAmount < 0.5) {
     candleAmount = 1;
   }
-  0;
-  const newWidthStartPoint = findCandleMidpoint(
+  const { midPoint: rightMidpoint, index: rightIndex } = findCandleMidpoint(
     drawLeft.value + props.candleWidth * candleAmount
   );
-  drawWidth.value = newWidthStartPoint - drawLeft.value;
-
+  drawWidth.value = rightMidpoint - drawLeft.value;
+  drawCandleRightIndex.value = rightIndex;
   const oldTop = ref(drawTop.value);
+
   drawTop.value = findNextPricepoint(drawTop.value);
+  drawPriceTopH2LRatio.value = drawTop.value / props.height;
+
   const newHeightDifference = oldTop.value - drawTop.value;
-  const newHeightStartPoint = findNextPricepoint(
-    drawTop.value - drawHeight.value - newHeightDifference
-  );
+
+  const drawObjectBottomPriceInPx =
+    drawTop.value - drawHeight.value - newHeightDifference;
+  const newHeightStartPoint = findNextPricepoint(drawObjectBottomPriceInPx);
   drawHeight.value = drawTop.value - newHeightStartPoint;
+  drawPriceBottomH2LRatio.value = drawObjectBottomPriceInPx / props.height;
 }
 
 function findCandleMidpoint(x: number) {
   let cD = props.candleDistance;
   let cW = props.candleWidth;
   let dist = cW + cD;
-  let candleIndex = Math.floor(x / dist);
-  let start = candleIndex * dist + cD;
-  return start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
+  let index = Math.floor(x / dist);
+  let start = index * dist + cD;
+  const midPoint = start + cW / 2 - CANDLE_WICK_THICKNESS / 2;
+  return {
+    midPoint,
+    index,
+  };
 }
 
-const tickSizePriceDistanceInPx = computed(() => {
+function getTickSizePriceDistanceInPx() {
   if (!props.h2l || !props.height) {
-    return;
-  }
-  const numberOfPrices = props.h2l / DATA_TICKSIZE;
-  return props.height / numberOfPrices;
-});
-
-function findNextPricepoint(y: number) {
-  if (!tickSizePriceDistanceInPx.value) {
     return 0;
   }
-  return (
-    Math.round(y / tickSizePriceDistanceInPx.value) *
-    tickSizePriceDistanceInPx.value
-  );
+  const pricesAmount = props.h2l / DATA_TICKSIZE;
+  return props.height / pricesAmount;
+}
+
+function findNextPricepoint(y: number) {
+  const tickSizePriceDistanceInPx = getTickSizePriceDistanceInPx();
+
+  return Math.round(y / tickSizePriceDistanceInPx) * tickSizePriceDistanceInPx;
 }
 
 const drawWidth = ref(0);
 const drawHeight = ref(0);
 const drawLeft = ref(0);
 const drawTop = ref(0);
+const drawCandleLeftIndex = ref(0);
+const drawCandleRightIndex = ref(0);
+const drawPriceTopH2LRatio = ref(0);
+const drawPriceBottomH2LRatio = ref(0);
 
 function draw(event: MouseEvent) {
   if (!isDrawing.value) {

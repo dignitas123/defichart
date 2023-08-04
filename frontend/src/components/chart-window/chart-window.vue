@@ -88,12 +88,14 @@
             v-model:candleDistance="candleDistance"
           />
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
+          <!-- TODO: Activate to be able to draw things -->
           <ObjectOverlay
             v-if="false"
             :candleWidth="candleWidth"
             :candleDistance="candleDistance"
             :h2l="chartH2L"
             :height="chartHeight"
+            :candlesShow="candlesShow"
           />
           <q-btn
             v-if="offset < 0"

@@ -6,10 +6,10 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  left: number;
   top: number;
-  width: number;
   height: number;
+  left: number;
+  width: number;
 }>();
 
 const rectangleStyle = computed(() => {
