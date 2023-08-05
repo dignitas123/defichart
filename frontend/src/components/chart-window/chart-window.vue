@@ -96,6 +96,7 @@
             :h2l="chartH2L"
             :height="chartHeight"
             :candlesShow="candlesShow"
+            :offset="offset"
           />
           <q-btn
             v-if="offset < 0"

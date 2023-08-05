@@ -35,6 +35,7 @@ const props = defineProps<{
   h2l?: number;
   height?: number;
   candlesShow: number;
+  offset?: number;
 }>();
 
 const isDrawing = ref(false);
@@ -42,35 +43,38 @@ const startX = ref(0);
 const startY = ref(0);
 
 watch(
+  () => props.offset,
+  (now, before) => {
+    const change = Number(now) - Number(before);
+    drawLeft.value -= change * (props.candleWidth + props.candleDistance);
+  }
+);
+
+watch(
   () => props.candleWidth,
   () => {
     drawLeft.value =
-      (drawCandleLeftIndex.value + 1) *
+      (props.candlesShow - drawCandleLeftIndex.value + 1) *
         (props.candleWidth + props.candleDistance) -
       props.candleWidth / 2;
     const drawLeftPoint =
-      (drawCandleRightIndex.value + 1) *
+      (props.candlesShow - drawCandleRightIndex.value + 1) *
         (props.candleWidth + props.candleDistance) -
       props.candleWidth / 2;
     drawWidth.value = drawLeftPoint - drawLeft.value;
   }
 );
 
-watch(
-  () => props.height,
-  () => {
-    if (!props.height) {
-      return;
-    }
-    drawTop.value = findNextPricepoint(
-      props.height * drawPriceTopH2LRatio.value
-    );
-    const drawBottomPrice = findNextPricepoint(
-      props.height * drawPriceBottomH2LRatio.value
-    );
-    drawHeight.value = drawTop.value - drawBottomPrice;
+watch([() => props.height, () => props.h2l], () => {
+  if (!props.height) {
+    return;
   }
-);
+  drawTop.value = findNextPricepoint(props.height * drawPriceTopH2LRatio.value);
+  const drawBottomPrice = findNextPricepoint(
+    props.height * drawPriceBottomH2LRatio.value
+  );
+  drawHeight.value = drawTop.value - drawBottomPrice;
+});
 
 const objectOverlayRef = ref<HTMLElement>();
 
@@ -93,7 +97,7 @@ function stopDrawing() {
     drawLeft.value
   );
   drawLeft.value = leftMidPoint;
-  drawCandleLeftIndex.value = leftIndex;
+  drawCandleLeftIndex.value = props.candlesShow - leftIndex;
   let candleAmount = drawWidth.value / props.candleWidth;
   if (candleAmount < 0.5) {
     candleAmount = 1;
@@ -102,7 +106,7 @@ function stopDrawing() {
     drawLeft.value + props.candleWidth * candleAmount
   );
   drawWidth.value = rightMidpoint - drawLeft.value;
-  drawCandleRightIndex.value = rightIndex;
+  drawCandleRightIndex.value = props.candlesShow - rightIndex;
   const oldTop = ref(drawTop.value);
 
   drawTop.value = findNextPricepoint(drawTop.value);
