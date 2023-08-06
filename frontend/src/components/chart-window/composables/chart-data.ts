@@ -135,11 +135,29 @@ export function useChartData(
     return chartHigh.value - chartLow.value;
   });
 
+  const chartHighScaleFactor = computed(() => {
+    if (!high.value || !chartH2L.value) {
+      return 1;
+    }
+    return (chartHigh.value - high.value) / chartH2L.value;
+  });
+
+  const chartLowScaleFactor = computed(() => {
+    if (!low.value || !chartH2L.value) {
+      return 1;
+    }
+    return (low.value - chartLow.value) / chartH2L.value;
+  });
+
   return {
     candlesInChartData,
     chartHigh,
     chartLow,
     chartH2L,
+    chartHighScaleFactor,
+    chartLowScaleFactor,
+    high,
+    low,
     decreaseCandlesShow,
     increaseCandlesShow,
     dataDatesCandlesInChart,

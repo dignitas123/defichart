@@ -36,6 +36,8 @@ const props = defineProps<{
   height?: number;
   candlesShow: number;
   offset?: number;
+  chartHighScaleFactor: number;
+  chartLowScaleFactor: number;
 }>();
 
 const isDrawing = ref(false);
@@ -47,6 +49,20 @@ watch(
   (now, before) => {
     const change = Number(now) - Number(before);
     drawLeft.value -= change * (props.candleWidth + props.candleDistance);
+  }
+);
+
+watch(
+  () => props.chartHighScaleFactor,
+  () => {
+    if (!props.height || !drawHeight.value) {
+      return;
+    }
+    drawTop.value = findNextPricepoint(
+      props.height *
+        (props.chartHighScaleFactor +
+          drawPriceTopH2LRatio.value * (1 - props.chartHighScaleFactor))
+    );
   }
 );
 
@@ -65,16 +81,21 @@ watch(
   }
 );
 
-watch([() => props.height, () => props.h2l], () => {
-  if (!props.height) {
-    return;
+watch(
+  () => props.height,
+  () => {
+    if (!props.height) {
+      return;
+    }
+    drawTop.value = findNextPricepoint(
+      props.height * drawPriceTopH2LRatio.value
+    );
+    const drawBottomPrice = findNextPricepoint(
+      props.height * drawPriceBottomH2LRatio.value
+    );
+    drawHeight.value = drawTop.value - drawBottomPrice;
   }
-  drawTop.value = findNextPricepoint(props.height * drawPriceTopH2LRatio.value);
-  const drawBottomPrice = findNextPricepoint(
-    props.height * drawPriceBottomH2LRatio.value
-  );
-  drawHeight.value = drawTop.value - drawBottomPrice;
-});
+);
 
 const objectOverlayRef = ref<HTMLElement>();
 
@@ -86,6 +107,8 @@ function startDrawing(event: MouseEvent) {
   startY.value =
     event.clientY - Number(objectOverlayRef.value?.getBoundingClientRect().top);
 }
+
+const initialDrawTop = ref(0);
 
 function stopDrawing() {
   if (!props.height) {
@@ -107,12 +130,12 @@ function stopDrawing() {
   );
   drawWidth.value = rightMidpoint - drawLeft.value;
   drawCandleRightIndex.value = props.candlesShow - rightIndex;
-  const oldTop = ref(drawTop.value);
+  initialDrawTop.value = drawTop.value;
 
   drawTop.value = findNextPricepoint(drawTop.value);
   drawPriceTopH2LRatio.value = drawTop.value / props.height;
 
-  const newHeightDifference = oldTop.value - drawTop.value;
+  const newHeightDifference = initialDrawTop.value - drawTop.value;
 
   const drawObjectBottomPriceInPx =
     drawTop.value - drawHeight.value - newHeightDifference;

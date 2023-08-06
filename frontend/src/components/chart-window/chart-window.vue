@@ -90,13 +90,15 @@
           <CrossHair v-if="crosshair.show" :x="crosshair.x" :y="crosshair.y" />
           <!-- TODO: Activate to be able to draw things -->
           <ObjectOverlay
-            v-if="false"
+            v-if="true"
             :candleWidth="candleWidth"
             :candleDistance="candleDistance"
             :h2l="chartH2L"
             :height="chartHeight"
             :candlesShow="candlesShow"
             :offset="offset"
+            :chartHighScaleFactor="chartHighScaleFactor"
+            :chartLowScaleFactor="chartLowScaleFactor"
           />
           <q-btn
             v-if="offset < 0"
@@ -370,6 +372,8 @@ const {
   chartH2L,
   chartHigh,
   chartLow,
+  chartHighScaleFactor,
+  chartLowScaleFactor,
   dataDatesCandlesInChart,
   startingDistanceDifference,
 } = useChartData(
@@ -1246,5 +1250,3 @@ function setVerticalLines(lines: number[]) {
   }
 }
 </style>
-./get-missing-candles ./chart-data ./composables/set-candle-data
-./composables/candle-stream ./helpers/time-frame-fns
