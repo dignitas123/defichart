@@ -2,7 +2,7 @@
   <div
     class="object-overlay fit"
     ref="objectOverlayRef"
-    style="z-index: 11"
+    style="z-index: 11; overflow: hidden"
     @mousedown="startDrawing"
     @mousemove="draw"
     @mouseup="stopDrawing"
@@ -133,7 +133,9 @@ function stopDrawing() {
   initialDrawTop.value = drawTop.value;
 
   drawTop.value = findNextPricepoint(drawTop.value);
-  drawPriceTopH2LRatio.value = drawTop.value / props.height;
+  drawPriceTopH2LRatio.value =
+    (drawTop.value / props.height - props.chartHighScaleFactor) /
+    (1 - props.chartHighScaleFactor);
 
   const newHeightDifference = initialDrawTop.value - drawTop.value;
 
