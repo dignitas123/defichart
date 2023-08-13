@@ -55,13 +55,27 @@ watch(
 watch(
   () => props.chartHighScaleFactor,
   () => {
-    if (!props.height || !drawHeight.value) {
+    if (props.chartHighScaleFactor < 0 || !props.height || !drawHeight.value) {
       return;
     }
     drawTop.value = findNextPricepoint(
       props.height *
         (props.chartHighScaleFactor +
           drawPriceTopH2LRatio.value * (1 - props.chartHighScaleFactor))
+    );
+  }
+);
+
+watch(
+  () => props.chartLowScaleFactor,
+  () => {
+    if (props.chartLowScaleFactor < 0 || !props.height || !drawHeight.value) {
+      return;
+    }
+    drawTop.value = findNextPricepoint(
+      props.height *
+        ((1 - drawPriceTopH2LRatio.value) * props.chartLowScaleFactor -
+          props.chartLowScaleFactor)
     );
   }
 );

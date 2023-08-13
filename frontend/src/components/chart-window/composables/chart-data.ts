@@ -139,14 +139,16 @@ export function useChartData(
     if (!high.value || !chartH2L.value) {
       return 1;
     }
-    return (chartHigh.value - high.value) / chartH2L.value;
+    const roundedHigh = roundToTicksize(high.value, DATA_TICKSIZE);
+    return (chartHigh.value - roundedHigh) / chartH2L.value;
   });
 
   const chartLowScaleFactor = computed(() => {
     if (!low.value || !chartH2L.value) {
       return 1;
     }
-    return (low.value - chartLow.value) / chartH2L.value;
+    const roundedLow = roundToTicksize(low.value, DATA_TICKSIZE);
+    return (roundedLow - chartLow.value) / chartH2L.value;
   });
 
   return {
