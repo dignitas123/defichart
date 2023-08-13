@@ -55,7 +55,7 @@ watch(
 watch(
   () => props.chartHighScaleFactor,
   () => {
-    if (props.chartHighScaleFactor < 0 || !props.height || !drawHeight.value) {
+    if (props.chartHighScaleFactor < 0 || !props.height) {
       return;
     }
     drawTop.value = findNextPricepoint(
@@ -69,7 +69,7 @@ watch(
 watch(
   () => props.chartLowScaleFactor,
   () => {
-    if (props.chartLowScaleFactor < 0 || !props.height || !drawHeight.value) {
+    if (props.chartLowScaleFactor < 0 || !props.height) {
       return;
     }
     const h2lRatio = drawPriceTopH2LRatio.value;
@@ -146,9 +146,19 @@ function stopDrawing() {
   initialDrawTop.value = drawTop.value;
 
   drawTop.value = findNextPricepoint(drawTop.value);
-  drawPriceTopH2LRatio.value =
-    (drawTop.value / props.height - props.chartHighScaleFactor) /
-    (1 - props.chartHighScaleFactor);
+
+  if (
+    (props.chartHighScaleFactor === 0 && props.chartLowScaleFactor === 0) ||
+    props.chartHighScaleFactor > 0
+  ) {
+    const highScaleDistance = 1 - props.chartHighScaleFactor;
+    const drawTopRelativeScaleFactor =
+      drawTop.value / props.height - props.chartHighScaleFactor;
+    drawPriceTopH2LRatio.value = drawTopRelativeScaleFactor / highScaleDistance;
+  } else if (props.chartLowScaleFactor > 0) {
+    const lowScale = 1 - props.chartLowScaleFactor;
+    drawPriceTopH2LRatio.value = drawTop.value / (lowScale * props.height);
+  }
 
   const newHeightDifference = initialDrawTop.value - drawTop.value;
 
