@@ -72,11 +72,10 @@ watch(
     if (props.chartLowScaleFactor < 0 || !props.height || !drawHeight.value) {
       return;
     }
-    drawTop.value = findNextPricepoint(
-      props.height *
-        ((1 - drawPriceTopH2LRatio.value) * props.chartLowScaleFactor -
-          props.chartLowScaleFactor)
-    );
+    const h2lRatio = drawPriceTopH2LRatio.value;
+    const adjustedChartLowScaleFactor = 1 - props.chartLowScaleFactor;
+    const newDrawTop = h2lRatio * adjustedChartLowScaleFactor * props.height;
+    drawTop.value = findNextPricepoint(newDrawTop);
   }
 );
 
